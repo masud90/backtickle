@@ -1,0 +1,83 @@
+[package]
+name = "writedown"
+version = "0.1.0"
+description = "A Markdown reader and writer for macOS"
+license = "MIT"
+repository = "https://github.com/masud90/writedown"
+authors = ["Masud Rahman"]
+edition = "2024"
+rust-version = "1.90"
+publish = false
+
+[lib]
+name = "writedown_lib"
+# Desktop only. No staticlib or cdylib: they are for mobile and would only slow the release build.
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.7", features = [] }
+
+[dependencies]
+# protocol-asset: images next to a document are served through the asset protocol, one file at a
+# time (empty static scope in tauri.conf.json, files allowed at runtime, see src/assets.rs).
+# macos-private-api: a transparent web view (the sidebar material shows through it), see src/vibrancy.rs.
+tauri = { version = "2.12", features = ["protocol-asset", "macos-private-api"] }
+# The dialogs are shown from Rust, never from the web view (see src/dialogs.rs).
+tauri-plugin-dialog = "=2.8.1"
+# Only its plain functions are used (open a web link, reveal a file in Finder). The plugin is not
+# registered with the app, so the web view has no opener command and no permission for one.
+tauri-plugin-opener = "=2.7.0"
+serde = { version = "1", features = ["derive"] }
+# preserve_order keeps the key order of a hand-edited settings.json when the app writes it back.
+serde_json = { version = "1", features = ["preserve_order"] }
+# Reading files in any encoding: BOM detection, strict UTF-8, then a guess for legacy encodings.
+encoding_rs = "0.8"
+chardetng = "1.0"
+url = "2"
+percent-encoding = "2"
+libc = "0.2"
+# Walks an Obsidian vault for the note and attachment index (src/vault.rs); no ignore files are read.
+ignore = "0.4"
+# Moves a file or folder to the macOS Trash (src/file_ops.rs); never deletes. MIT.
+trash = "=5.2.9"
+# Watches open documents, their linked files and the open folder (src/watcher.rs) through the macOS
+# FSEvents backend, no polling. CC0-1.0 (public domain dedication). 9.x is still a release candidate.
+notify = { version = "=8.2.0", default-features = false, features = ["macos_fsevent"] }
+# ripgrep's search crates for the folder search (src/search.rs). Unlicense OR MIT.
+grep-searcher = "=0.1.17"
+grep-regex = "=0.1.14"
+grep-matcher = "=0.1.9"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+# One small module (src/terminate.rs) answers system-initiated quits through the Objective-C
+# runtime. The version is the one tao already uses.
+objc2 = "0.6"
+# The one-click PDF export (src/pdf.rs) runs an NSPrintOperation of the web view with the job
+# disposition "save"; src/render.rs opens documents and a render script through NSWorkspace; src/native_doc.rs sets the unsaved dot and notes recent documents (Dock menu). Same versions as Tauri already uses (all MIT); only the features needed.
+objc2-app-kit = { version = "=0.3.2", default-features = false, features = ["std", "NSPrintInfo", "NSPrintOperation", "NSWindow", "NSResponder", "NSView", "NSPDFImageRep", "NSImageRep", "NSDocumentController", "NSDocument", "NSWorkspace"] }
+objc2-web-kit = { version = "=0.3.2", default-features = false, features = ["std", "WKWebView", "objc2-app-kit"] }
+objc2-foundation = { version = "=0.3.2", default-features = false, features = ["std", "NSArray", "NSURL", "NSString", "NSData", "NSDictionary", "NSGeometry", "NSObject"] }
+# The default-app button (src/native_doc.rs) passes a completion block to NSWorkspace; the crate is
+# already in the lock file (MIT), used here only for the block type.
+block2 = "=0.6.2"
+
+[target.'cfg(unix)'.dependencies]
+# Finder tags and other extended attributes are copied by the safe save.
+xattr = "1"
+
+[dev-dependencies]
+# The menu library silently drops a shortcut it cannot parse; the tests parse every one.
+muda = { version = "0.20", default-features = false }
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "s"
+panic = "abort"
+strip = true
+
+# Build scripts and proc macros stay unstripped: on this Mac's Command Line Tools, stripping the
+# proc-macro dylibs breaks a fresh release build ("mis-aligned LINKEDIT string pool"). The app
+# binary itself is still stripped by the release profile above.
+[profile.release.build-override]
+strip = false

@@ -1,0 +1,112 @@
+{
+  "utf8-lf.md": {
+    "encoding": "utf-8",
+    "legacyEncoding": null,
+    "lossy": false,
+    "lineEnding": "lf",
+    "mixedLineEndings": false,
+    "finalNewline": true,
+    "bytes": 35,
+    "text": "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n"
+  },
+  "utf8-crlf.md": {
+    "encoding": "utf-8",
+    "legacyEncoding": null,
+    "lossy": false,
+    "lineEnding": "crlf",
+    "mixedLineEndings": false,
+    "finalNewline": true,
+    "bytes": 40,
+    "text": "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n"
+  },
+  "utf8-bom-lf.md": {
+    "encoding": "utf-8-bom",
+    "legacyEncoding": null,
+    "lossy": false,
+    "lineEnding": "lf",
+    "mixedLineEndings": false,
+    "finalNewline": true,
+    "bytes": 38,
+    "text": "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n"
+  },
+  "utf8-mixed.md": {
+    "encoding": "utf-8",
+    "legacyEncoding": null,
+    "lossy": false,
+    "lineEnding": "lf",
+    "mixedLineEndings": true,
+    "finalNewline": true,
+    "bytes": 51,
+    "text": "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\n"
+  },
+  "utf16le-bom.md": {
+    "encoding": "utf-16le",
+    "legacyEncoding": null,
+    "lossy": false,
+    "lineEnding": "lf",
+    "mixedLineEndings": false,
+    "finalNewline": false,
+    "bytes": 32,
+    "text": "Hello UTF-16LE\n"
+  },
+  "utf16be-bom.md": {
+    "encoding": "utf-16be",
+    "legacyEncoding": null,
+    "lossy": false,
+    "lineEnding": "lf",
+    "mixedLineEndings": false,
+    "finalNewline": true,
+    "bytes": 32,
+    "text": "Hello UTF-16BE\n"
+  },
+  "windows-1252.md": {
+    "encoding": "utf-8",
+    "legacyEncoding": "windows-1252",
+    "lossy": false,
+    "lineEnding": "lf",
+    "mixedLineEndings": false,
+    "finalNewline": false,
+    "bytes": 21,
+    "text": "café\nnaïve\n€ 5\n’ text"
+  },
+  "invalid-utf8.md": {
+    "encoding": "utf-8",
+    "legacyEncoding": "windows-1252",
+    "lossy": false,
+    "lineEnding": "lf",
+    "mixedLineEndings": false,
+    "finalNewline": false,
+    "bytes": 16,
+    "text": "Hello ÿWorld Ã(!"
+  },
+  "no-final-newline.md": {
+    "encoding": "utf-8",
+    "legacyEncoding": null,
+    "lossy": false,
+    "lineEnding": "lf",
+    "mixedLineEndings": false,
+    "finalNewline": false,
+    "bytes": 16,
+    "text": "No final newline"
+  },
+  "empty.md": {
+    "encoding": "utf-8",
+    "legacyEncoding": null,
+    "lossy": false,
+    "lineEnding": "lf",
+    "mixedLineEndings": false,
+    "finalNewline": false,
+    "bytes": 0,
+    "text": ""
+  },
+  "multilingual.md": {
+    "encoding": "utf-8",
+    "legacyEncoding": null,
+    "lossy": false,
+    "lineEnding": "lf",
+    "mixedLineEndings": false,
+    "finalNewline": true,
+    "bytes": 244,
+    "text": "The quick brown fox jumps over the lazy dog.\n快速的棕色狐狸跳过了懒狗。\nالثعلب البني السريع يقفز فوق الكلب الكسول.\nParty time: family emoji 👨‍👩‍👧‍👦 and flag emoji 🏳️‍🌈\n"
+  }
+}

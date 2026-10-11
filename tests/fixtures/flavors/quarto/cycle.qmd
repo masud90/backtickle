@@ -1,0 +1,11 @@
+---
+title: Quarto Cycles
+---
+
+<!-- Fixture for Quarto includes: circular include pattern -->
+
+# Main Document
+
+This is the main document that includes a cycle.
+
+{{< include _cycle-x.qmd >}}

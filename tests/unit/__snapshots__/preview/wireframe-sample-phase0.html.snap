@@ -1,0 +1,83 @@
+<div class="wd-block" data-line="0" data-end-line="0" data-key="1a0atd7roy134">
+  <h1 id="quantum-flow-architecture--api-specifications">Quantum Flow: Architecture &amp; API Specifications</h1>
+</div>
+<div class="wd-block" data-line="1" data-end-line="1" data-key="16mv4sll97514">
+  <p>tag: #tech-spec #distributed-sys</p>
+</div>
+<div class="wd-block" data-line="3" data-end-line="4" data-key="1v3sa6wzk6c74">
+  <div class="callout callout-note">
+    <p class="callout-title"><span class="callout-icon" data-icon="info"><svg viewBox="0 -960 960 960" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span>Note</p>
+    <p>High-throughput zero-copy serialization protocol optimized for Apple Silicon neural fabrics and Darwin memory subsystems.</p>
+  </div>
+</div>
+<div class="wd-block" data-line="6" data-end-line="6" data-key="1dxk6fqljh61l">
+  <h2 id="1-executive-overview">1. Executive Overview</h2>
+</div>
+<div class="wd-block" data-line="7" data-end-line="7" data-key="nbpz7t95v66w">
+  <p>Quantum Flow implements an ultra-low latency IPC bus using <strong>shared-memory rings</strong> and <em>lock-free atomic queues</em>. Legacy protocols are <del>deprecated for v3.0</del> in favor of direct hardware-accelerated memory fences.</p>
+</div>
+<div class="wd-block" data-line="9" data-end-line="9" data-key="m500tii0yo22">
+  <h3 id="sprint-implementation-roadmap">Sprint Implementation Roadmap</h3>
+</div>
+<div class="wd-block" data-line="10" data-end-line="13" data-key="1md6j322usvvk">
+  <ul class="contains-task-list">
+    <li class="task-list-item is-checked" data-wd-rl="0" data-line="10"><span class="task-checkbox" role="checkbox" aria-checked="true" tabindex="0" aria-label="Define protocol buffer schema definition &amp; IDL bindings" data-wd-trl="0" data-task-line="10"></span>Define protocol buffer schema definition &amp; IDL bindings</li>
+    <li class="task-list-item is-checked" data-wd-rl="1" data-line="11"><span class="task-checkbox" role="checkbox" aria-checked="true" tabindex="0" aria-label="Memory lock IPC sockets across Darwin kernel domains" data-wd-trl="1" data-task-line="11"></span>Memory lock IPC sockets across Darwin kernel domains</li>
+    <li class="task-list-item" data-wd-rl="2" data-line="12"><span class="task-checkbox" role="checkbox" aria-checked="false" tabindex="0" aria-label="Benchmarking latency target (p99 < 1.2ms) with 64KB payloads" data-wd-trl="2" data-task-line="12"></span>Benchmarking latency target (p99 &lt; 1.2ms) with 64KB payloads</li>
+    <li class="task-list-item" data-wd-rl="3" data-line="13"><span class="task-checkbox" role="checkbox" aria-checked="false" tabindex="0" aria-label="Realtime telemetry pipeline integration" data-wd-trl="3" data-task-line="13"></span>Realtime telemetry pipeline integration</li>
+  </ul>
+</div>
+<div class="wd-block" data-line="15" data-end-line="15" data-key="9d1iy2cnde21">
+  <h2 id="2-core-interface-definitions">2. Core Interface Definitions</h2>
+</div>
+<div class="wd-block" data-line="16" data-end-line="23" data-key="1imoqlffchqbx">
+  <div class="code-card" data-lang="typescript">
+    <div class="code-card-header"><span class="code-card-lang">TypeScript</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code class="language-typescript"><span class="tok-keyword">export</span> <span class="tok-keyword">interface</span> <span class="tok-typeName">QuantumStreamPacket</span> <span class="tok-punctuation">{</span>
+  <span class="tok-keyword">readonly</span> <span class="tok-propertyName tok-definition">packetId</span><span class="tok-punctuation">:</span> <span class="tok-typeName">string</span><span class="tok-punctuation">;</span>
+  <span class="tok-keyword">readonly</span> <span class="tok-propertyName tok-definition">nanosecondTimestamp</span><span class="tok-punctuation">:</span> <span class="tok-typeName">bigint</span><span class="tok-punctuation">;</span>
+  <span class="tok-keyword">readonly</span> <span class="tok-propertyName tok-definition">payloadBuffer</span><span class="tok-punctuation">:</span> <span class="tok-typeName">ArrayBuffer</span><span class="tok-punctuation">;</span>
+  <span class="tok-propertyName tok-definition">dispatchPriority</span><span class="tok-punctuation">:</span> <span class="tok-string">'REALTIME_URGENT'</span> <span class="tok-operator">|</span> <span class="tok-string">'BACKGROUND'</span><span class="tok-punctuation">;</span>
+<span class="tok-punctuation">}</span>
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="25" data-end-line="25" data-key="1vx0k0jvgl225">
+  <h2 id="3-latency-metrics-verification">3. Latency Metrics Verification</h2>
+</div>
+<div class="wd-block" data-line="26" data-end-line="30" data-key="832xyuxz49s1">
+  <table>
+    <thead>
+      <tr data-wd-rl="0" data-line="26">
+<th class="align-left">Endpoint</th>
+<th class="align-left">Method</th>
+<th class="align-left">Latency Target</th>
+<th class="align-left">Transport Mode</th>
+<th class="align-left">Status</th>
+</tr>
+    </thead>
+    <tbody>
+      <tr data-wd-rl="2" data-line="28">
+<td class="align-left"><code>/ipc/v2/stream</code></td>
+<td class="align-left">PUSH</td>
+<td class="align-left"><code>&lt; 0.42ms</code></td>
+<td class="align-left">Shared Memory Ring</td>
+<td class="align-left">STABLE</td>
+</tr>
+      <tr data-wd-rl="3" data-line="29">
+<td class="align-left"><code>/ipc/v2/rpc</code></td>
+<td class="align-left">QUERY</td>
+<td class="align-left"><code>&lt; 1.15ms</code></td>
+<td class="align-left">Domain Sockets</td>
+<td class="align-left">STABLE</td>
+</tr>
+      <tr data-wd-rl="4" data-line="30">
+<td class="align-left"><code>/telemetry/sync</code></td>
+<td class="align-left">POST</td>
+<td class="align-left"><code>&lt; 4.80ms</code></td>
+<td class="align-left">Mach Port Ring</td>
+<td class="align-left">BETA</td>
+</tr>
+    </tbody>
+  </table>
+</div>

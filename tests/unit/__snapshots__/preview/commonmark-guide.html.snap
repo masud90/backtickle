@@ -1,0 +1,286 @@
+<div class="wd-block" data-line="0" data-end-line="0" data-key="b80pzrmtam1c">
+  <h1 id="commonmark-guide">CommonMark Guide</h1>
+</div>
+<div class="wd-block" data-line="2" data-end-line="2" data-key="297nuwvn9eq6c">
+  <p>CommonMark is a strict, well-defined specification for Markdown. It focuses on the core features of Markdown without the extensions that some flavors like GitHub Flavored Markdown add. This guide shows CommonMark syntax.</p>
+</div>
+<div class="wd-block" data-line="4" data-end-line="4" data-key="1ykwtzejbqh1c">
+  <h2 id="about-commonmark">About CommonMark</h2>
+</div>
+<div class="wd-block" data-line="6" data-end-line="6" data-key="1y901ta3jbo6f">
+  <p>CommonMark is the standard Markdown specification. GitHub Flavored Markdown (GFM) adds useful extensions like tables, task lists, and strikethrough, but CommonMark represents the common core that all Markdown flavors share.</p>
+</div>
+<div class="wd-block" data-line="8" data-end-line="8" data-key="27l9tbf7lepw">
+  <h2 id="headings">Headings</h2>
+</div>
+<div class="wd-block" data-line="10" data-end-line="10" data-key="1g58hjit5ag4c">
+  <p>Six heading levels are available. The source shows all six; the rendered result shows levels 3 to 6 only, so the outline of this guide stays intact.</p>
+</div>
+<div class="wd-block" data-line="12" data-end-line="19" data-key="hlialdb8so8j">
+  <div class="code-card" data-lang="markdown">
+    <div class="code-card-header"><span class="code-card-lang">Markdown</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code class="language-markdown"><span class="tok-heading tok-meta">#</span><span class="tok-heading"> Heading 1</span>
+<span class="tok-heading tok-meta">##</span><span class="tok-heading"> Heading 2</span>
+<span class="tok-heading tok-meta">###</span><span class="tok-heading"> Heading 3</span>
+<span class="tok-heading tok-meta">####</span><span class="tok-heading"> Heading 4</span>
+<span class="tok-heading tok-meta">#####</span><span class="tok-heading"> Heading 5</span>
+<span class="tok-heading tok-meta">######</span><span class="tok-heading"> Heading 6</span>
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="21" data-end-line="21" data-key="lou79an59my">
+  <h3 id="heading-3">Heading 3</h3>
+</div>
+<div class="wd-block" data-line="22" data-end-line="22" data-key="b3i357lc61y">
+  <h4 id="heading-4">Heading 4</h4>
+</div>
+<div class="wd-block" data-line="23" data-end-line="23" data-key="237d4lynrogy">
+  <h5 id="heading-5">Heading 5</h5>
+</div>
+<div class="wd-block" data-line="24" data-end-line="24" data-key="asogl7mobny">
+  <h6 id="heading-6">Heading 6</h6>
+</div>
+<div class="wd-block" data-line="26" data-end-line="26" data-key="1u115r0d1os24">
+  <h2 id="paragraphs-and-text-formatting">Paragraphs and text formatting</h2>
+</div>
+<div class="wd-block" data-line="28" data-end-line="32" data-key="43sz5yk3qsaa">
+  <div class="code-card" data-lang="markdown">
+    <div class="code-card-header"><span class="code-card-lang">Markdown</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code class="language-markdown">This is a simple paragraph with <span class="tok-emphasis tok-meta">*</span><span class="tok-emphasis">italic text</span><span class="tok-emphasis tok-meta">*</span> and <span class="tok-strong tok-meta">**</span><span class="tok-strong">bold text</span><span class="tok-strong tok-meta">**</span>.
+You can also use <span class="tok-emphasis tok-meta">*</span><span class="tok-emphasis tok-strong tok-meta">**</span><span class="tok-emphasis tok-strong">bold italic text</span><span class="tok-emphasis tok-strong tok-meta">**</span><span class="tok-emphasis tok-meta">*</span>.
+You can include <span class="tok-meta">`</span>inline code<span class="tok-meta">`</span> in your text.
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="34" data-end-line="36" data-key="uss4hal2u85s">
+  <p>This is a simple paragraph with <em>italic text</em> and <strong>bold text</strong>.
+You can also use <em><strong>bold italic text</strong></em>.
+You can include <code>inline code</code> in your text.</p>
+</div>
+<div class="wd-block" data-line="38" data-end-line="38" data-key="1wgcbzu82gfq">
+  <h2 id="links">Links</h2>
+</div>
+<div class="wd-block" data-line="40" data-end-line="43" data-key="1srtcnoau1r8f">
+  <div class="code-card" data-lang="markdown">
+    <div class="code-card-header"><span class="code-card-lang">Markdown</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code class="language-markdown"><span class="tok-link tok-meta">[</span><span class="tok-link">External link to example.org</span><span class="tok-link tok-meta">]</span><span class="tok-link tok-meta">(</span><span class="tok-link tok-url">https://example.org</span><span class="tok-link tok-meta">)</span>
+<span class="tok-link tok-meta">[</span><span class="tok-link">Link to a heading</span><span class="tok-link tok-meta">]</span><span class="tok-link tok-meta">(</span><span class="tok-link tok-url">#headings</span><span class="tok-link tok-meta">)</span>
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="45" data-end-line="46" data-key="1iw9etciwpe34">
+  <p><a href="https://example.org">External link to example.org</a>
+<a href="#headings">Link to a heading</a></p>
+</div>
+<div class="wd-block" data-line="48" data-end-line="48" data-key="20zofyhayhks">
+  <h2 id="images">Images</h2>
+</div>
+<div class="wd-block" data-line="50" data-end-line="52" data-key="jc9x1zsvywe6">
+  <div class="code-card" data-lang="markdown">
+    <div class="code-card-header"><span class="code-card-lang">Markdown</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code class="language-markdown"><span class="tok-link tok-meta">![</span><span class="tok-link">Sample inline SVG</span><span class="tok-link tok-meta">]</span><span class="tok-link tok-meta">(</span><span class="tok-link tok-url">data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2040%22%3E%3Crect%20width%3D%2264%22%20height%3D%2240%22%20fill%3D%22%23e8f5e9%22/%3E%3Crect%20width%3D%2232%22%20height%3D%2240%22%20fill%3D%22%234caf50%22/%3E%3C/svg%3E</span><span class="tok-link tok-meta">)</span>
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="54" data-end-line="54" data-key="2ftjxcw5k5y89">
+  <p>![Sample inline SVG](data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2040%22%3E%3Crect%20width%3D%2264%22%20height%3D%2240%22%20fill%3D%22%23e8f5e9%22/%3E%3Crect%20width%3D%2232%22%20height%3D%2240%22%20fill%3D%22%234caf50%22/%3E%3C/svg%3E)</p>
+</div>
+<div class="wd-block" data-line="56" data-end-line="56" data-key="ixa42snirw12">
+  <h2 id="blockquotes">Blockquotes</h2>
+</div>
+<div class="wd-block" data-line="58" data-end-line="63" data-key="qb8eyf9ckv95">
+  <div class="code-card" data-lang="markdown">
+    <div class="code-card-header"><span class="code-card-lang">Markdown</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code class="language-markdown"><span class="tok-meta">&gt;</span> This is a blockquote.
+<span class="tok-meta">&gt;</span>
+<span class="tok-meta">&gt;</span> <span class="tok-meta">&gt;</span> This is a nested blockquote.
+<span class="tok-meta">&gt;</span> <span class="tok-meta">&gt;</span> It can have multiple lines.
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="65" data-end-line="68" data-key="s257b5o02k43">
+  <blockquote>
+    <p>This is a blockquote.</p>
+    <blockquote>
+      <p>This is a nested blockquote.
+It can have multiple lines.</p>
+    </blockquote>
+  </blockquote>
+</div>
+<div class="wd-block" data-line="70" data-end-line="70" data-key="25tdro66srl1a">
+  <h2 id="unordered-lists">Unordered lists</h2>
+</div>
+<div class="wd-block" data-line="72" data-end-line="78" data-key="1b5dtvskq7g94">
+  <div class="code-card" data-lang="markdown">
+    <div class="code-card-header"><span class="code-card-lang">Markdown</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code class="language-markdown"><span class="tok-meta">-</span> Unordered list item 1
+<span class="tok-meta">-</span> Unordered list item 2
+  <span class="tok-meta">-</span> Nested item 1
+  <span class="tok-meta">-</span> Nested item 2
+<span class="tok-meta">-</span> Unordered list item 3
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="80" data-end-line="84" data-key="ajii6t22606l">
+  <ul>
+    <li data-wd-rl="0" data-line="80">Unordered list item 1</li>
+    <li data-wd-rl="1" data-line="81">
+      Unordered list item 2
+      <ul>
+        <li data-wd-rl="2" data-line="82">Nested item 1</li>
+        <li data-wd-rl="3" data-line="83">Nested item 2</li>
+      </ul>
+    </li>
+    <li data-wd-rl="4" data-line="84">Unordered list item 3</li>
+  </ul>
+</div>
+<div class="wd-block" data-line="86" data-end-line="86" data-key="vq14g5y53n16">
+  <h2 id="ordered-lists">Ordered lists</h2>
+</div>
+<div class="wd-block" data-line="88" data-end-line="94" data-key="2biivm3jxwt9l">
+  <div class="code-card" data-lang="markdown">
+    <div class="code-card-header"><span class="code-card-lang">Markdown</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code class="language-markdown"><span class="tok-meta">1.</span> Ordered list item 1
+<span class="tok-meta">2.</span> Ordered list item 2
+   <span class="tok-meta">1.</span> Nested ordered item 1
+   <span class="tok-meta">2.</span> Nested ordered item 2
+<span class="tok-meta">3.</span> Ordered list item 3
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="96" data-end-line="100" data-key="22uisx4crmo6v">
+  <ol>
+    <li data-wd-rl="0" data-line="96">Ordered list item 1</li>
+    <li data-wd-rl="1" data-line="97">
+      Ordered list item 2
+      <ol>
+        <li data-wd-rl="2" data-line="98">Nested ordered item 1</li>
+        <li data-wd-rl="3" data-line="99">Nested ordered item 2</li>
+      </ol>
+    </li>
+    <li data-wd-rl="4" data-line="100">Ordered list item 3</li>
+  </ol>
+</div>
+<div class="wd-block" data-line="102" data-end-line="102" data-key="7lyu63ajfc12">
+  <h2 id="code-blocks">Code blocks</h2>
+</div>
+<div class="wd-block" data-line="104" data-end-line="120" data-key="1eehhjdx0old1">
+  <div class="code-card" data-lang="markdown">
+    <div class="code-card-header"><span class="code-card-lang">Markdown</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code class="language-markdown"><span class="tok-string2">\`</span><span class="tok-string2">\`</span><span class="tok-string2">\`</span>
+function example() {
+    return "code block";
+}
+<span class="tok-string2">\`</span><span class="tok-string2">\`</span><span class="tok-string2">\`</span>
+
+<span class="tok-string2">\`</span><span class="tok-string2">\`</span><span class="tok-string2">\`</span>typescript
+const greeting: string = "Hello, world!";
+console.log(greeting);
+<span class="tok-string2">\`</span><span class="tok-string2">\`</span><span class="tok-string2">\`</span>
+
+<span class="tok-string2">\`</span><span class="tok-string2">\`</span><span class="tok-string2">\`</span>python
+def greet(name):
+    print(f"Hello, {name}!")
+<span class="tok-string2">\`</span><span class="tok-string2">\`</span><span class="tok-string2">\`</span>
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="122" data-end-line="126" data-key="2gac469ccd36o">
+  <div class="code-card" data-lang="">
+    <div class="code-card-header"><span class="code-card-lang">Text</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code>function example() {
+    return "code block";
+}
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="128" data-end-line="131" data-key="mm6ztivmqs8d">
+  <div class="code-card" data-lang="typescript">
+    <div class="code-card-header"><span class="code-card-lang">TypeScript</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code class="language-typescript"><span class="tok-keyword">const</span> <span class="tok-variableName tok-definition">greeting</span><span class="tok-punctuation">:</span> <span class="tok-typeName">string</span> <span class="tok-operator">=</span> <span class="tok-string">"Hello, world!"</span><span class="tok-punctuation">;</span>
+<span class="tok-variableName">console</span><span class="tok-operator">.</span><span class="tok-propertyName">log</span><span class="tok-punctuation">(</span><span class="tok-variableName">greeting</span><span class="tok-punctuation">)</span><span class="tok-punctuation">;</span>
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="133" data-end-line="136" data-key="1gf74opskyo7i">
+  <div class="code-card" data-lang="python">
+    <div class="code-card-header"><span class="code-card-lang">Python</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code class="language-python"><span class="tok-keyword">def</span> <span class="tok-variableName tok-definition">greet</span><span class="tok-punctuation">(</span><span class="tok-variableName">name</span><span class="tok-punctuation">)</span>:
+    <span class="tok-variableName">print</span><span class="tok-punctuation">(</span><span class="tok-string2">f"Hello, </span><span class="tok-punctuation">{</span><span class="tok-variableName">name</span><span class="tok-punctuation">}</span><span class="tok-string2">!"</span><span class="tok-punctuation">)</span>
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="138" data-end-line="138" data-key="hdt50469tq1i">
+  <h2 id="indented-code-block">Indented code block</h2>
+</div>
+<div class="wd-block" data-line="140" data-end-line="144" data-key="1im63cyhifd85">
+  <div class="code-card" data-lang="markdown">
+    <div class="code-card-header"><span class="code-card-lang">Markdown</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code class="language-markdown">    function example() {
+        return "indented code";
+    }
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="146" data-end-line="148" data-key="yasjqsbfmf6r">
+  <div class="code-card" data-lang="">
+    <div class="code-card-header"><span class="code-card-lang">Text</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code>function example() {
+    return "indented code";
+}
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="150" data-end-line="150" data-key="ijkf5fqc1b1a">
+  <h2 id="horizontal-rule">Horizontal rule</h2>
+</div>
+<div class="wd-block" data-line="152" data-end-line="154" data-key="1wpqnfenjdt68">
+  <div class="code-card" data-lang="markdown">
+    <div class="code-card-header"><span class="code-card-lang">Markdown</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code class="language-markdown">---
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="156" data-end-line="156" data-key="21ck2ufg09m7"><hr>
+</div>
+<div class="wd-block" data-line="158" data-end-line="158" data-key="21a7m9pq0pzw">
+  <h2 id="raw-html">Raw HTML</h2>
+</div>
+<div class="wd-block" data-line="160" data-end-line="165" data-key="rl5l0k07rv9l">
+  <div class="code-card" data-lang="markdown">
+    <div class="code-card-header"><span class="code-card-lang">Markdown</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code class="language-markdown"><span class="tok-punctuation">&lt;</span><span class="tok-typeName">details</span><span class="tok-punctuation">&gt;</span>
+<span class="tok-punctuation">&lt;</span><span class="tok-typeName">summary</span><span class="tok-punctuation">&gt;</span>Click to expand<span class="tok-punctuation">&lt;/</span><span class="tok-typeName">summary</span><span class="tok-punctuation">&gt;</span>
+This is hidden content that can be expanded.
+<span class="tok-punctuation">&lt;/</span><span class="tok-typeName">details</span><span class="tok-punctuation">&gt;</span>
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="167" data-end-line="170" data-key="26yqzgyrhyq2t">
+  <details>
+<summary>Click to expand</summary>
+This is hidden content that can be expanded.
+</details>
+</div>
+<div class="wd-block" data-line="172" data-end-line="172" data-key="7fssyh0al212">
+  <h2 id="line-breaks">Line breaks</h2>
+</div>
+<div class="wd-block" data-line="174" data-end-line="180" data-key="124x7z7r0qia5">
+  <div class="code-card" data-lang="markdown">
+    <div class="code-card-header"><span class="code-card-lang">Markdown</span><span class="code-card-actions"><button type="button" class="code-copy"><span class="code-copy-icon"><svg viewBox="0 -960 960 960" width="13" height="13" fill="currentColor" aria-hidden="true" focusable="false">...</svg></span><span class="code-copy-label">Copy</span></button></span></div>
+    <pre tabindex="0"><code class="language-markdown">This line has two trailing spaces at the end<span class="tok-meta">  </span>
+and continues on the next line.
+
+This line uses a backslash<span class="tok-meta">\</span>
+and also continues on the next line.
+</code></pre>
+  </div>
+</div>
+<div class="wd-block" data-line="182" data-end-line="183" data-key="1csyzz8ng892c">
+  <p>This line has two trailing spaces at the end
+and continues on the next line.</p>
+</div>
+<div class="wd-block" data-line="185" data-end-line="186" data-key="g72zdruyg625">
+  <p>This line uses a backslash<br>
+and also continues on the next line.</p>
+</div>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>Writedown</title>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="#0058bc"/>
+  <g fill="#ffffff">
+    <rect x="212" y="232" width="600" height="72"/>
+    <rect x="336" y="304" width="72" height="266"/>
+    <polygon points="232,560 512,560 372,800"/>
+    <rect x="616" y="304" width="72" height="266"/>
+    <polygon points="512,560 792,560 652,800"/>
+  </g>
+</svg>

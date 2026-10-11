@@ -1,0 +1,286 @@
+/* Design tokens for Writedown. Light colors are the DESIGN.md frontmatter values.
+   Dark colors were generated with Material Color Utilities 0.4.0 (Apache-2.0)
+   using the scheme that reproduces the light palette exactly: source color #007AFF,
+   variant FIDELITY, spec 2021, contrast level 0, secondary palette from #5856D6,
+   tertiary palette from #34C759, neutral palette hue 271.5 and chroma 2.6, and
+   surface-variant set equal to surface-container-highest. Values marked "derived"
+   were chosen by hand because DESIGN.md gives no dark value. */
+
+:root {
+  /* Light color palette (47 roles) */
+  --wd-surface: #fcf8fb;
+  --wd-surface-dim: #dcd9dc;
+  --wd-surface-bright: #fcf8fb;
+  --wd-surface-container-lowest: #ffffff;
+  --wd-surface-container-low: #f6f3f5;
+  --wd-surface-container: #f0edef;
+  --wd-surface-container-high: #eae7ea;
+  --wd-surface-container-highest: #e4e2e4;
+  --wd-on-surface: #1b1b1d;
+  --wd-on-surface-variant: #414755;
+  --wd-inverse-surface: #303032;
+  --wd-inverse-on-surface: #f3f0f2;
+  --wd-outline: #717786;
+  --wd-outline-variant: #c1c6d7;
+  --wd-surface-tint: #005bc1;
+  --wd-primary: #0058bc;
+  --wd-on-primary: #ffffff;
+  --wd-primary-container: #0070eb;
+  --wd-on-primary-container: #fefcff;
+  --wd-inverse-primary: #adc6ff;
+  --wd-secondary: #4c4aca;
+  --wd-on-secondary: #ffffff;
+  --wd-secondary-container: #6664e4;
+  --wd-on-secondary-container: #fffbff;
+  --wd-tertiary: #006b27;
+  --wd-on-tertiary: #ffffff;
+  --wd-tertiary-container: #008733;
+  --wd-on-tertiary-container: #f7fff2;
+  --wd-error: #ba1a1a;
+  --wd-on-error: #ffffff;
+  --wd-error-container: #ffdad6;
+  --wd-on-error-container: #93000a;
+  --wd-primary-fixed: #d8e2ff;
+  --wd-primary-fixed-dim: #adc6ff;
+  --wd-on-primary-fixed: #001a41;
+  --wd-on-primary-fixed-variant: #004493;
+  --wd-secondary-fixed: #e2dfff;
+  --wd-secondary-fixed-dim: #c2c1ff;
+  --wd-on-secondary-fixed: #0c006a;
+  --wd-on-secondary-fixed-variant: #3631b4;
+  --wd-tertiary-fixed: #72fe88;
+  --wd-tertiary-fixed-dim: #53e16f;
+  --wd-on-tertiary-fixed: #002107;
+  --wd-on-tertiary-fixed-variant: #00531c;
+  --wd-background: #fcf8fb;
+  --wd-on-background: #1b1b1d;
+  --wd-surface-variant: #e4e2e4;
+
+  /* Material and surface tokens (light) */
+  --wd-canvas: #fbfbfd;
+  --wd-sidebar-material: rgba(242, 242, 247, 0.72);
+  --wd-chrome-material: rgba(255, 255, 255, 0.65);
+  --wd-hairline: rgba(60, 60, 67, 0.12);
+  --wd-code-block-bg: rgba(0, 0, 0, 0.03);
+  --wd-inline-code-bg: rgba(0, 0, 0, 0.05);
+  --wd-selection: color-mix(in srgb, var(--wd-primary) 20%, transparent);
+  --wd-shadow-popover:
+    0 12px 32px -4px rgba(0, 0, 0, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.08);
+  --wd-shadow-menu: 0 4px 14px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+
+  /* Typography tokens (light) */
+  --wd-font-sans: "Inter Variable", "Inter", -apple-system, system-ui, sans-serif;
+  --wd-font-mono:
+    "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --wd-text-headline-xl-size: 32px;
+  --wd-text-headline-xl-line-height: 40px;
+  --wd-text-headline-xl-weight: 700;
+  --wd-text-headline-xl-tracking: -0.022em;
+
+  --wd-text-headline-lg-size: 26px;
+  --wd-text-headline-lg-line-height: 34px;
+  --wd-text-headline-lg-weight: 650;
+  --wd-text-headline-lg-tracking: -0.019em;
+
+  --wd-text-headline-md-size: 20px;
+  --wd-text-headline-md-line-height: 28px;
+  --wd-text-headline-md-weight: 600;
+  --wd-text-headline-md-tracking: -0.014em;
+
+  --wd-text-headline-sm-size: 16px;
+  --wd-text-headline-sm-line-height: 24px;
+  --wd-text-headline-sm-weight: 600;
+  --wd-text-headline-sm-tracking: -0.008em;
+
+  --wd-text-body-lg-size: 17px;
+  --wd-text-body-lg-line-height: 28px;
+  --wd-text-body-lg-weight: 400;
+  --wd-text-body-lg-tracking: -0.005em;
+
+  --wd-text-body-md-size: 15px;
+  --wd-text-body-md-line-height: 24px;
+  --wd-text-body-md-weight: 400;
+  --wd-text-body-md-tracking: -0.003em;
+
+  --wd-text-body-sm-size: 13px;
+  --wd-text-body-sm-line-height: 20px;
+  --wd-text-body-sm-weight: 400;
+  --wd-text-body-sm-tracking: 0em;
+
+  --wd-text-code-inline-size: 13.5px;
+  --wd-text-code-inline-line-height: 20px;
+  --wd-text-code-inline-weight: 450;
+  --wd-text-code-inline-tracking: -0.005em;
+
+  --wd-text-code-block-size: 13px;
+  --wd-text-code-block-line-height: 22px;
+  --wd-text-code-block-weight: 400;
+  --wd-text-code-block-tracking: 0em;
+
+  --wd-text-label-md-size: 12px;
+  --wd-text-label-md-line-height: 16px;
+  --wd-text-label-md-weight: 500;
+  --wd-text-label-md-tracking: 0.01em;
+
+  --wd-text-label-sm-size: 11px;
+  --wd-text-label-sm-line-height: 14px;
+  --wd-text-label-sm-weight: 500;
+  --wd-text-label-sm-tracking: 0.02em;
+
+  /* Spacing tokens */
+  --wd-spacing-gutter: 1rem;
+  --wd-spacing-margin: 1.5rem;
+  --wd-spacing-space-xs: 0.25rem;
+  --wd-spacing-space-sm: 0.5rem;
+  --wd-spacing-space-md: 0.875rem;
+  --wd-spacing-space-lg: 1.25rem;
+  --wd-spacing-space-xl: 2rem;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* Dark color palette (47 roles) */
+    --wd-surface: #131315;
+    --wd-surface-dim: #131315;
+    --wd-surface-bright: #39393b;
+    --wd-surface-container-lowest: #0e0e10;
+    --wd-surface-container-low: #1b1b1d;
+    --wd-surface-container: #1f1f21;
+    --wd-surface-container-high: #2a2a2c;
+    --wd-surface-container-highest: #353437;
+    --wd-on-surface: #e4e2e4;
+    --wd-on-surface-variant: #c1c6d7;
+    --wd-inverse-surface: #e4e2e4;
+    --wd-inverse-on-surface: #303032;
+    --wd-outline: #8b90a0;
+    --wd-outline-variant: #414755;
+    --wd-surface-tint: #adc6ff;
+    --wd-primary: #adc6ff;
+    --wd-on-primary: #002e69;
+    --wd-primary-container: #4b8eff;
+    --wd-on-primary-container: #001435;
+    --wd-inverse-primary: #005bc1;
+    --wd-secondary: #c2c1ff;
+    --wd-on-secondary: #1c0b9f;
+    --wd-secondary-container: #3834b6;
+    --wd-on-secondary-container: #b2b1ff;
+    --wd-tertiary: #53e16f;
+    --wd-on-tertiary: #003911;
+    --wd-tertiary-container: #00a741;
+    --wd-on-tertiary-container: #001a05;
+    --wd-error: #ffb4ab;
+    --wd-on-error: #690005;
+    --wd-error-container: #93000a;
+    --wd-on-error-container: #ffdad6;
+    --wd-primary-fixed: #d8e2ff;
+    --wd-primary-fixed-dim: #adc6ff;
+    --wd-on-primary-fixed: #001a41;
+    --wd-on-primary-fixed-variant: #004493;
+    --wd-secondary-fixed: #e2dfff;
+    --wd-secondary-fixed-dim: #c2c1ff;
+    --wd-on-secondary-fixed: #0c006a;
+    --wd-on-secondary-fixed-variant: #3631b4;
+    --wd-tertiary-fixed: #72fe88;
+    --wd-tertiary-fixed-dim: #53e16f;
+    --wd-on-tertiary-fixed: #002107;
+    --wd-on-tertiary-fixed-variant: #00531c;
+    --wd-background: #131315;
+    --wd-on-background: #e4e2e4;
+    --wd-surface-variant: #353437;
+
+    /* Material and surface tokens (dark, derived) */
+    --wd-canvas: #19191b;
+    --wd-sidebar-material: rgba(30, 30, 32, 0.72);
+    --wd-chrome-material: rgba(30, 30, 32, 0.7);
+    --wd-hairline: rgba(255, 255, 255, 0.08);
+    --wd-code-block-bg: rgba(255, 255, 255, 0.04);
+    --wd-inline-code-bg: rgba(255, 255, 255, 0.08);
+    --wd-selection: color-mix(in srgb, var(--wd-primary) 20%, transparent);
+    --wd-shadow-popover:
+      0 12px 32px -4px rgba(0, 0, 0, 0.5), 0 4px 12px -2px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(255, 255, 255, 0.08);
+    --wd-shadow-menu: 0 4px 14px rgba(0, 0, 0, 0.45), 0 0 0 0.5px rgba(255, 255, 255, 0.1);
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  /* Dark color palette (47 roles) */
+  --wd-surface: #131315;
+  --wd-surface-dim: #131315;
+  --wd-surface-bright: #39393b;
+  --wd-surface-container-lowest: #0e0e10;
+  --wd-surface-container-low: #1b1b1d;
+  --wd-surface-container: #1f1f21;
+  --wd-surface-container-high: #2a2a2c;
+  --wd-surface-container-highest: #353437;
+  --wd-on-surface: #e4e2e4;
+  --wd-on-surface-variant: #c1c6d7;
+  --wd-inverse-surface: #e4e2e4;
+  --wd-inverse-on-surface: #303032;
+  --wd-outline: #8b90a0;
+  --wd-outline-variant: #414755;
+  --wd-surface-tint: #adc6ff;
+  --wd-primary: #adc6ff;
+  --wd-on-primary: #002e69;
+  --wd-primary-container: #4b8eff;
+  --wd-on-primary-container: #001435;
+  --wd-inverse-primary: #005bc1;
+  --wd-secondary: #c2c1ff;
+  --wd-on-secondary: #1c0b9f;
+  --wd-secondary-container: #3834b6;
+  --wd-on-secondary-container: #b2b1ff;
+  --wd-tertiary: #53e16f;
+  --wd-on-tertiary: #003911;
+  --wd-tertiary-container: #00a741;
+  --wd-on-tertiary-container: #001a05;
+  --wd-error: #ffb4ab;
+  --wd-on-error: #690005;
+  --wd-error-container: #93000a;
+  --wd-on-error-container: #ffdad6;
+  --wd-primary-fixed: #d8e2ff;
+  --wd-primary-fixed-dim: #adc6ff;
+  --wd-on-primary-fixed: #001a41;
+  --wd-on-primary-fixed-variant: #004493;
+  --wd-secondary-fixed: #e2dfff;
+  --wd-secondary-fixed-dim: #c2c1ff;
+  --wd-on-secondary-fixed: #0c006a;
+  --wd-on-secondary-fixed-variant: #3631b4;
+  --wd-tertiary-fixed: #72fe88;
+  --wd-tertiary-fixed-dim: #53e16f;
+  --wd-on-tertiary-fixed: #002107;
+  --wd-on-tertiary-fixed-variant: #00531c;
+  --wd-background: #131315;
+  --wd-on-background: #e4e2e4;
+  --wd-surface-variant: #353437;
+
+  /* Material and surface tokens (dark, derived) */
+  --wd-canvas: #19191b;
+  --wd-sidebar-material: rgba(30, 30, 32, 0.72);
+  --wd-chrome-material: rgba(30, 30, 32, 0.7);
+  --wd-hairline: rgba(255, 255, 255, 0.08);
+  --wd-code-block-bg: rgba(255, 255, 255, 0.04);
+  --wd-inline-code-bg: rgba(255, 255, 255, 0.08);
+  --wd-selection: color-mix(in srgb, var(--wd-primary) 20%, transparent);
+  --wd-shadow-popover:
+    0 12px 32px -4px rgba(0, 0, 0, 0.5), 0 4px 12px -2px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+  --wd-shadow-menu: 0 4px 14px rgba(0, 0, 0, 0.45), 0 0 0 0.5px rgba(255, 255, 255, 0.1);
+
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--wd-canvas);
+  color: var(--wd-on-surface);
+  font-family: var(--wd-font-sans);
+  -webkit-font-smoothing: antialiased;
+  ::selection {
+    background-color: var(--wd-selection);
+  }
+}

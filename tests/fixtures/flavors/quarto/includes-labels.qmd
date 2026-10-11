@@ -1,0 +1,23 @@
+---
+title: Quarto Includes with Labels
+---
+
+<!-- Fixture for Quarto includes: labels and footnotes in an included file are numbered with the document -->
+
+# Start
+
+![First figure](img.png){#fig-first}
+
+A note before the include.[^before]
+
+{{< include _labels-inc.qmd >}}
+
+![Last figure](img.png){#fig-last}
+
+A note after the include.[^after]
+
+See @fig-first, @fig-inc, @fig-last, @tbl-inc and @lst-inc.
+
+[^before]: The note before.
+
+[^after]: The note after.

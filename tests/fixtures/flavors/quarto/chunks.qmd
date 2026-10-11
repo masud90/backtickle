@@ -1,0 +1,86 @@
+---
+title: Quarto Code Chunks
+---
+
+<!-- Fixture for Quarto chunks: all chunk types and options -->
+
+## R Chunks
+
+``` {r setup, include=FALSE}
+library(ggplot2)
+options(digits = 2)
+```
+
+``` {r analysis, label="r-chunk-1", echo=TRUE}
+data <- data.frame(x = 1:10, y = rnorm(10))
+summary(data)
+```
+
+``` {r plotting, label="fig-scatter", fig-cap="A scatter plot", fig-width=6}
+plot(data$x, data$y)
+```
+
+## Python Chunks
+
+``` {python, warning=FALSE}
+import pandas as pd
+df = pd.DataFrame({'x': range(10)})
+print(df.head())
+```
+
+``` {python, label="python-analysis"}
+import numpy as np
+result = np.mean([1, 2, 3, 4, 5])
+```
+
+``` {python, label="fig-hist", fig-cap="A histogram"}
+import matplotlib.pyplot as plt
+plt.hist([1, 2, 2, 3, 3, 3, 4])
+plt.show()
+```
+
+## Julia Chunk
+
+``` {julia}
+using Statistics
+data = [1, 2, 3, 4, 5]
+mean(data)
+```
+
+## SQL Chunk
+
+``` {sql, #| connection: con}
+SELECT * FROM users WHERE active = true
+```
+
+## Bash Chunk
+
+``` {bash}
+echo "Hello from bash"
+ls -la
+```
+
+## Mermaid Chunk
+
+``` {mermaid}
+graph LR
+    A --> B
+    B --> C
+    C --> A
+```
+
+## OJS Chunk
+
+``` {ojs}
+viewof x = Inputs.slider([0, 100])
+```
+
+## Unknown Language
+
+``` {stata}
+summarize mpg
+```
+
+## Inline Code
+
+We use inline R code like `r nrow(df)` and Python code like `{python} len(x)`.

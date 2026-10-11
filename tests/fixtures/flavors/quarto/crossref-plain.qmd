@@ -1,0 +1,43 @@
+---
+title: Quarto Cross-references Plain
+---
+
+<!-- Fixture for Quarto cross-references: without number-sections -->
+
+# Introduction {#sec-intro}
+
+This is the introduction section with a reference to @sec-method.
+
+## Methods {#sec-method}
+
+This section references Figure @fig-a and Table @tbl-a.
+
+# Figure Cross-references
+
+![Figure A](img.png){#fig-a}
+
+![Figure B](img.png){#fig-b}
+
+Reference to Figure @Fig-b and suppressed reference to [-@tbl-a].
+
+# Table Cross-references
+
+| Column 1 | Column 2 |
+|----------|----------|
+| Value 1  | Value 2  |
+
+: Table A Caption {#tbl-a}
+
+| Data 1   | Data 2   |
+|----------|----------|
+| Row 1    | Row 2    |
+
+: Table B Caption {#tbl-b}
+
+# Equation Cross-references
+
+$$
+E = mc^2
+$$ {#eq-a}
+
+Reference to @eq-a and @fig-missing and @sec-method.

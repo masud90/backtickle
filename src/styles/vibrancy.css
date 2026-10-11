@@ -1,0 +1,55 @@
+/* Translucent sidebar (Phase 5, WP5.7).
+
+   The native window is transparent and an NSVisualEffectView (the macOS sidebar material) sits
+   behind the web view. Everything on the page is opaque as before except the elements with the
+   class `wd-vibrant` (the sidebar, the category list of Preferences), and only while the root has
+   data-vibrancy="on" (set by `applyVibrancy` when the setting is on and the page runs in the real
+   app). Those elements then get a scrim, a light tint over the material.
+
+   The scrim alpha is the contrast guarantee. It is set against the measured material range, not
+   against black to white: the macOS sidebar material (NSVisualEffectView .sidebar, active,
+   behind-window, as Tauri's Effect::Sidebar) was measured on 11 October 2026 on macOS 27.0.1
+   over a full-screen black and white backdrop. Light appearance gives sRGB gray 204 (over black)
+   to 229 (over white); dark appearance gives 42 to 87 (over white: 87, 86, 86). The measurement
+   script is scripts/measure-sidebar-material.swift. With these values the minimum alphas that
+   keep text at 4.5:1 (icons 3:1) are light 0.19 and dark 0.32. The alphas used are 0.4 (light)
+   and 0.5 (dark), a margin for colorful desktop pictures that shift the material. The checks are
+   in tests/unit/vibrancy.test.ts. */
+
+:root {
+  --wd-sidebar-scrim: rgba(242, 242, 247, 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --wd-sidebar-scrim: rgba(30, 30, 32, 0.5);
+  }
+}
+
+:root[data-theme="dark"] {
+  --wd-sidebar-scrim: rgba(30, 30, 32, 0.5);
+}
+
+/* Regions that stay opaque: they paint the canvas themselves, so the page behind can be clear. */
+.wd-under {
+  background-color: var(--wd-canvas);
+}
+
+:root[data-vibrancy="on"] body,
+:root[data-vibrancy="on"] .wd-app-root {
+  background-color: transparent;
+}
+
+:root[data-vibrancy="on"] .wd-vibrant {
+  background-color: var(--wd-sidebar-scrim);
+}
+
+/* macOS Reduce Transparency: the opaque color the sidebar has without the setting. */
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-vibrancy="on"] .wd-vibrant {
+    background-color: color-mix(in srgb, var(--wd-surface-container-low) 70%, var(--wd-canvas));
+  }
+  :root[data-vibrancy="on"] .wd-vibrant.wd-vibrant-solid {
+    background-color: var(--wd-surface-container-low);
+  }
+}

@@ -1,0 +1,40 @@
+# Folder fixture (synthetic)
+
+Files and search fixture for Phase 3. Invented text only.
+This file is named `README` without an extension on purpose: it mentions the search words, and a
+`README.md` would be listed and searched, changing the expected counts.
+
+## Files
+
+Listed (Markdown family, not hidden, not ignored):
+`chapter 2.md`, `chapter 10.md` (natural order: 2 before 10), `notes with spaces.md`, `plain.txt`,
+`a.mdown`, `b.mkd`, `c.mkdn`, `d.mdx`, `e.qmd`, `f.Rmd`, `g.rmd`, `h.mmd`,
+`sub/Café notes.md`, `sub/deep/level three.md`, `sub/deep/note.markdown`,
+`other/more/mid.md`, `other/more/last/deepest.md` (three levels of folders).
+
+Not listed: `README` (no extension), `expected-search.json`, `data.csv`, `notes.docx` (text placeholder, not a real Word file), `image.png`
+(valid 1x1 PNG), `.config.md` and `.hidden/secret.md` (hidden), `node_modules/pkg/readme.md`,
+`_site/index.md` (default ignore names), `binary.md` (contains NUL bytes, written with
+`printf 'Binary lantern text\0\0\0more\n'`; skipped by search as binary).
+
+## Search words
+
+`lantern` occurs on exactly 7 lines in 4 files that count: `chapter 2.md` (lines 3 and 5, line 5
+has two matches), `chapter 10.md` (line 2, capital L), `sub/Café notes.md` (line 4 inside
+`lanterns`, line 6) and `sub/deep/level three.md` (line 1, line 3 capital L). It also appears in
+`.hidden/secret.md`, `.config.md`, `node_modules/pkg/readme.md` and `binary.md`, which must not
+count. `lamp` appears in `chapter 10.md` line 4, `plain.txt` line 2 (counted by the regex query),
+and in `data.csv` and `_site/index.md` (never counted).
+
+`expected-search.json` holds the expected files, lines and match counts. Commands used, run in
+this folder with bash (`*` as the start so that `.` is not excluded by the hidden-file rule):
+
+    grep -rnI -i  -e 'lantern'       <includes> <excludes> *
+    grep -rnI -n  -e 'lantern'       <includes> <excludes> *     (case-sensitive)
+    grep -rnI -iw -e 'lantern'       <includes> <excludes> *     (whole word)
+    grep -rnI -iE -e 'lan+tern|lamp' <includes> <excludes> *
+
+with `<includes>` = `--include='*.md'` and likewise `*.markdown *.mdown *.mkd *.mkdn *.mdx *.qmd *.Rmd
+*.rmd *.mmd *.txt`, and `<excludes>` = `--exclude-dir=.hidden --exclude-dir=node_modules
+--exclude-dir=_site --exclude='.?*' --exclude=binary.md`. Match counts per line count every
+occurrence (`grep -o` semantics); the regex query is case-insensitive.

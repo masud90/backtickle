@@ -1,0 +1,210 @@
+/* Quarto / R Markdown: chunks, figures, cross-references, callouts that
+   fold, tabsets, columns, includes. Loaded with the Quarto pack, not with the app. No inline styles:
+   widths of columns come from `data-wd-width` through the CSSOM (enhance.ts). */
+
+/* ---- Code chunks ------------------------------------------------------------------------------ */
+
+.wd-preview .code-chunk .code-card-header {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.wd-preview .code-chunk .code-card-actions {
+  margin-left: auto;
+}
+
+.wd-preview .chunk-label {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 600;
+}
+
+.wd-preview .chunk-options {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.wd-preview .chunk-option {
+  max-width: 28ch;
+  padding: 0 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wd-preview .listing-caption {
+  padding: 6px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--wd-text-label-sm-size);
+}
+
+.wd-preview code.inline-chunk {
+  padding: 0 4px;
+  border: 1px dashed var(--wd-outline-variant);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--wd-on-surface-variant);
+}
+
+.wd-preview code.inline-chunk::before {
+  content: attr(data-lang) " ";
+  font-size: 0.75em;
+  opacity: 0.8;
+}
+
+.wd-preview figure.chunk-figure {
+  margin: 0 0 16px;
+}
+
+.wd-preview .chunk-output-placeholder {
+  padding: 24px 16px;
+  border: 1px dashed var(--wd-outline-variant);
+  border-radius: 8px;
+  color: var(--wd-on-surface-variant);
+  font-size: var(--wd-text-body-sm-size);
+  text-align: center;
+}
+
+.wd-preview figure.chunk-figure figcaption {
+  margin-top: 8px;
+}
+
+/* ---- Cross-references and numbers --------------------------------------------------------------- */
+
+.wd-preview .caption-label {
+  font-weight: 600;
+}
+
+.wd-preview .xref-missing {
+  color: var(--wd-error);
+  font-family: var(--wd-font-mono);
+  font-size: 0.9em;
+}
+
+.wd-preview .header-section-number {
+  margin-right: 0.5em;
+  color: var(--wd-on-surface-variant);
+}
+
+.wd-preview .equation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-block: 0 16px;
+}
+
+.wd-preview .equation > .math {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.wd-preview .equation .eq-number {
+  flex: none;
+}
+
+/* ---- Callouts that fold ------------------------------------------------------------------------- */
+
+.wd-preview details.callout > summary.callout-title {
+  cursor: pointer;
+  list-style: none;
+}
+
+.wd-preview details.callout > summary.callout-title::-webkit-details-marker {
+  display: none;
+}
+
+.wd-preview details.callout > summary.callout-title::after {
+  content: "\25B8";
+  margin-left: auto;
+}
+
+.wd-preview details.callout[open] > summary.callout-title::after {
+  content: "\25BE";
+}
+
+.wd-preview details.callout[open] > summary.callout-title {
+  margin-bottom: 8px;
+}
+
+/* ---- Tabsets ------------------------------------------------------------------------------------ */
+
+.wd-preview .tabset {
+  margin-block: 0 16px;
+}
+
+.wd-preview .tabset-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--wd-hairline);
+}
+
+.wd-preview .tabset-tab {
+  padding: 6px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--wd-on-surface-variant);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.wd-preview .tabset-tab[aria-selected="true"] {
+  border-bottom-color: var(--wd-primary);
+  color: var(--wd-primary);
+}
+
+.wd-preview .tabset-tab:focus-visible {
+  outline: 2px solid var(--wd-primary);
+  outline-offset: -2px;
+}
+
+.wd-preview .tabset-panel[hidden] {
+  display: none;
+}
+
+/* ---- Columns ------------------------------------------------------------------------------------ */
+
+.wd-preview .columns {
+  display: flex;
+  gap: 24px;
+  margin-block: 0 16px;
+}
+
+.wd-preview .columns > .column {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.wd-preview .columns > .column[data-wd-width] {
+  flex: 0 0 auto;
+}
+
+/* ---- Shortcodes and includes -------------------------------------------------------------------- */
+
+.wd-preview hr.pagebreak {
+  border: 0;
+  border-top: 1px dashed var(--wd-outline-variant);
+  margin-block: 24px;
+}
+
+.wd-preview code.shortcode {
+  color: var(--wd-on-surface-variant);
+}
+
+.wd-preview .include-card {
+  margin-block: 0 16px;
+  padding: 8px 12px;
+  border: 1px dashed var(--wd-outline-variant);
+  border-radius: 8px;
+  color: var(--wd-on-surface-variant);
+  font-size: var(--wd-text-body-sm-size);
+}

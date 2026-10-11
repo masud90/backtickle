@@ -1,0 +1,30 @@
+{
+  "blocks": [
+    "Document Title",
+    "This is a paragraph with italic and bold text. It also has inline code.",
+    "Here is inline HTML to test.",
+    "A link to example with text counted.",
+    "Header 1 Header 2 Cell 1 Cell 2",
+    "Task item one Task item two",
+    "Inline math excluded: in text.",
+    "Display math follows:",
+    "A footnote reference.",
+    "Section",
+    "More content with soft breaks that become spaces.",
+    "Footnote text counted here."
+  ],
+  "words": [
+    "Document", "Title",
+    "This", "is", "a", "paragraph", "with", "italic", "and", "bold", "text", "It", "also", "has", "inline", "code",
+    "Here", "is", "inline", "HTML", "to", "test",
+    "A", "link", "to", "example", "with", "text", "counted",
+    "Header", "1", "Header", "2", "Cell", "1", "Cell", "2",
+    "Task", "item", "one", "Task", "item", "two",
+    "Inline", "math", "excluded", "in", "text",
+    "Display", "math", "follows",
+    "A", "footnote", "reference",
+    "Section",
+    "More", "content", "with", "soft", "breaks", "that", "become", "spaces",
+    "Footnote", "text", "counted", "here"
+  ]
+}

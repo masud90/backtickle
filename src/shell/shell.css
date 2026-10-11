@@ -1,0 +1,26 @@
+/* The preview scales its type with the zoom (View > Zoom In). The factor is set on the document
+   element by appearance.ts; each token below is the value of tokens.css times the factor. */
+.wd-preview {
+  --wd-text-headline-xl-size: calc(32px * var(--wd-preview-zoom, 1));
+  --wd-text-headline-xl-line-height: calc(40px * var(--wd-preview-zoom, 1));
+  --wd-text-headline-lg-size: calc(26px * var(--wd-preview-zoom, 1));
+  --wd-text-headline-lg-line-height: calc(34px * var(--wd-preview-zoom, 1));
+  --wd-text-headline-md-size: calc(20px * var(--wd-preview-zoom, 1));
+  --wd-text-headline-md-line-height: calc(28px * var(--wd-preview-zoom, 1));
+  --wd-text-headline-sm-size: calc(16px * var(--wd-preview-zoom, 1));
+  --wd-text-headline-sm-line-height: calc(24px * var(--wd-preview-zoom, 1));
+  --wd-text-body-lg-size: calc(17px * var(--wd-preview-zoom, 1));
+  --wd-text-body-lg-line-height: calc(28px * var(--wd-preview-zoom, 1));
+  --wd-text-body-md-size: calc(15px * var(--wd-preview-zoom, 1));
+  --wd-text-body-md-line-height: calc(24px * var(--wd-preview-zoom, 1));
+  --wd-text-body-sm-size: calc(13px * var(--wd-preview-zoom, 1));
+  --wd-text-body-sm-line-height: calc(20px * var(--wd-preview-zoom, 1));
+  --wd-text-code-inline-size: calc(13.5px * var(--wd-preview-zoom, 1));
+  --wd-text-code-inline-line-height: calc(20px * var(--wd-preview-zoom, 1));
+  --wd-text-code-block-size: calc(13px * var(--wd-preview-zoom, 1));
+  --wd-text-code-block-line-height: calc(22px * var(--wd-preview-zoom, 1));
+  --wd-text-label-md-size: calc(12px * var(--wd-preview-zoom, 1));
+  --wd-text-label-md-line-height: calc(16px * var(--wd-preview-zoom, 1));
+  --wd-text-label-sm-size: calc(11px * var(--wd-preview-zoom, 1));
+  --wd-text-label-sm-line-height: calc(14px * var(--wd-preview-zoom, 1));
+}

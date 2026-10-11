@@ -1,0 +1,15 @@
+![Included figure](img.png){#fig-inc}
+
+| Column 1 | Column 2 |
+|----------|----------|
+| Value 1  | Value 2  |
+
+: Included table {#tbl-inc}
+
+```{#lst-inc .python lst-cap="Included listing"}
+x = 1
+```
+
+A note inside the include.[^inc]
+
+[^inc]: The note inside.

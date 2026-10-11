@@ -1,0 +1,55 @@
+---
+title: Components
+---
+
+{/* Fixture for MDX: import, export, components, expressions, tables, formulas */}
+
+import { someComponent } from './module'
+import React from 'react'
+
+export const meta = {
+  title: 'Components',
+  description: 'A component showcase'
+}
+
+# Heading
+
+<Callout type="info" count={3} open>
+
+This is a paragraph with **bold** text.
+
+- List item 1
+- List item 2
+
+</Callout>
+
+<Chart data={[1, 2, 3]} title="Sales" />
+
+<Tabs>
+  <Tab label="A">Text A</Tab>
+</Tabs>
+
+Press <Kbd>Cmd</Kbd> now.
+
+<div className="note">plain</div>
+
+<details><summary>More</summary>Hidden</details>
+
+{1 + 1}
+
+{props.name}
+
+| Header 1 | Header 2 |
+|----------|----------|
+| Cell 1   | Cell 2   |
+
+- [x] Completed task
+- [ ] Incomplete task
+
+This is ~~strike~~ text.
+
+Note[^1]
+
+[^1]: This is a footnote.
+
+$x^2$

@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "defaultFlavor": "gfm",
+  "openExistingIn": "preview",
+  "openNewIn": "split",
+  "recentLimit": 20,
+  "appearance": "system",
+  "readingWpm": 238,
+  "editor": {
+    "fontFamily": "jetbrains-mono",
+    "lineHeight": 1.7,
+    "insertSpaces": true,
+    "currentLine": true,
+    "autoPair": false,
+    "continueLists": true,
+    "typewriter": false,
+    "paneHeaders": true,
+    "fontSize": 13,
+    "tabSize": 2,
+    "softWrap": true,
+    "lineNumbers": true,
+    "spellcheck": true
+  },
+  "view": {
+    "sidebarVisible": true,
+    "sidebarWidth": 240,
+    "splitRatio": 0.5,
+    "syncScroll": true,
+    "zoom": 1.0
+  },
+  "restoreSession": true,
+  "vibrancy": true,
+  "shortcuts": {},
+  "files": {
+    "ignore": ["node_modules", "_site", "_freeze", "renv", "venv", "__pycache__"]
+  },
+  "export": { "pandocPath": null },
+  "preview": {
+    "autoDetectFlavor": true,
+    "font": "inter",
+    "fontSize": 15,
+    "columnWidth": 720,
+    "hashtagPills": false,
+    "obsidianCommentsDimmed": false,
+    "smartPunctuation": true,
+    "math": true,
+    "remoteImages": true,
+    "codeCards": "dark"
+  },
+  "a11y": {
+    "dyslexia": false,
+    "dyslexiaFont": "opendyslexic",
+    "ruler": false,
+    "rulerTint": "yellow",
+    "spotlight": false,
+    "reduceMotion": "system",
+    "highContrast": "system",
+    "scale": 1.0
+  },
+  "saving": {
+    "autoSave": false,
+    "newLineEnding": "lf",
+    "newFinalNewline": false,
+    "defaultFolder": null
+  }
+}

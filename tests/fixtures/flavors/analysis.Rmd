@@ -1,0 +1,13 @@
+---
+title: R Analysis
+author: Data Scientist
+date: 2024-01-01
+---
+
+# R Markdown Document
+
+This is an R Markdown file.
+
+## Data Analysis
+
+Some analysis here.

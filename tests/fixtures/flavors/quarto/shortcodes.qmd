@@ -1,0 +1,18 @@
+---
+title: Quarto Shortcodes
+subtitle: From meta
+---
+
+<!-- Fixture for Quarto shortcodes: includes, metadata, keyboard, video, pagebreak -->
+
+This is an introduction.
+
+{{< pagebreak >}}
+
+Meta subtitle: {{< meta subtitle >}}
+
+Keyboard shortcut: {{< kbd Cmd-S >}}
+
+{{< include _part-a.qmd >}}
+
+Video content: {{< video https://example.org/v.mp4 >}}

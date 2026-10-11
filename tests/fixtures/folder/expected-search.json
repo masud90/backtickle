@@ -1,0 +1,228 @@
+{
+  "note": "Computed with grep -rnI on tests/fixtures/folder with the skip rules applied by hand (see README.md). Paths are relative to the fixture folder. Not in the results by rule: .hidden/, .config.md, node_modules/, _site/, binary.md, non-Markdown extensions.",
+  "searches": [
+    {
+      "query": "lantern",
+      "options": {
+        "matchCase": false,
+        "wholeWord": false,
+        "regex": false
+      },
+      "command": "grep -rnI -i 'lantern'",
+      "files": {
+        "chapter 10.md": [
+          {
+            "line": 2,
+            "text": "Lantern light at dawn.",
+            "matches": 1
+          }
+        ],
+        "chapter 2.md": [
+          {
+            "line": 3,
+            "text": "The lantern hangs by the door.",
+            "matches": 1
+          },
+          {
+            "line": 5,
+            "text": "A lantern, a lantern.",
+            "matches": 2
+          }
+        ],
+        "sub/Café notes.md": [
+          {
+            "line": 4,
+            "text": "Many lanterns glow.",
+            "matches": 1
+          },
+          {
+            "line": 6,
+            "text": "Carry the lantern home.",
+            "matches": 1
+          }
+        ],
+        "sub/deep/level three.md": [
+          {
+            "line": 1,
+            "text": "# lantern",
+            "matches": 1
+          },
+          {
+            "line": 3,
+            "text": "Lantern oil is cheap.",
+            "matches": 1
+          }
+        ]
+      },
+      "totalLines": 7,
+      "totalMatches": 8,
+      "fileCount": 4
+    },
+    {
+      "query": "lantern",
+      "options": {
+        "matchCase": true,
+        "wholeWord": false,
+        "regex": false
+      },
+      "command": "grep -rnI -n 'lantern'",
+      "files": {
+        "chapter 2.md": [
+          {
+            "line": 3,
+            "text": "The lantern hangs by the door.",
+            "matches": 1
+          },
+          {
+            "line": 5,
+            "text": "A lantern, a lantern.",
+            "matches": 2
+          }
+        ],
+        "sub/Café notes.md": [
+          {
+            "line": 4,
+            "text": "Many lanterns glow.",
+            "matches": 1
+          },
+          {
+            "line": 6,
+            "text": "Carry the lantern home.",
+            "matches": 1
+          }
+        ],
+        "sub/deep/level three.md": [
+          {
+            "line": 1,
+            "text": "# lantern",
+            "matches": 1
+          }
+        ]
+      },
+      "totalLines": 5,
+      "totalMatches": 6,
+      "fileCount": 3
+    },
+    {
+      "query": "lantern",
+      "options": {
+        "matchCase": false,
+        "wholeWord": true,
+        "regex": false
+      },
+      "command": "grep -rnI -iw 'lantern'",
+      "files": {
+        "chapter 10.md": [
+          {
+            "line": 2,
+            "text": "Lantern light at dawn.",
+            "matches": 1
+          }
+        ],
+        "chapter 2.md": [
+          {
+            "line": 3,
+            "text": "The lantern hangs by the door.",
+            "matches": 1
+          },
+          {
+            "line": 5,
+            "text": "A lantern, a lantern.",
+            "matches": 2
+          }
+        ],
+        "sub/Café notes.md": [
+          {
+            "line": 6,
+            "text": "Carry the lantern home.",
+            "matches": 1
+          }
+        ],
+        "sub/deep/level three.md": [
+          {
+            "line": 1,
+            "text": "# lantern",
+            "matches": 1
+          },
+          {
+            "line": 3,
+            "text": "Lantern oil is cheap.",
+            "matches": 1
+          }
+        ]
+      },
+      "totalLines": 6,
+      "totalMatches": 7,
+      "fileCount": 4
+    },
+    {
+      "query": "lan+tern|lamp",
+      "options": {
+        "matchCase": false,
+        "wholeWord": false,
+        "regex": true
+      },
+      "command": "grep -rnI -iE 'lan+tern|lamp'",
+      "files": {
+        "chapter 10.md": [
+          {
+            "line": 2,
+            "text": "Lantern light at dawn.",
+            "matches": 1
+          },
+          {
+            "line": 4,
+            "text": "Trim the lamp first.",
+            "matches": 1
+          }
+        ],
+        "chapter 2.md": [
+          {
+            "line": 3,
+            "text": "The lantern hangs by the door.",
+            "matches": 1
+          },
+          {
+            "line": 5,
+            "text": "A lantern, a lantern.",
+            "matches": 2
+          }
+        ],
+        "plain.txt": [
+          {
+            "line": 2,
+            "text": "The lamp is lit.",
+            "matches": 1
+          }
+        ],
+        "sub/Café notes.md": [
+          {
+            "line": 4,
+            "text": "Many lanterns glow.",
+            "matches": 1
+          },
+          {
+            "line": 6,
+            "text": "Carry the lantern home.",
+            "matches": 1
+          }
+        ],
+        "sub/deep/level three.md": [
+          {
+            "line": 1,
+            "text": "# lantern",
+            "matches": 1
+          },
+          {
+            "line": 3,
+            "text": "Lantern oil is cheap.",
+            "matches": 1
+          }
+        ]
+      },
+      "totalLines": 9,
+      "totalMatches": 10,
+      "fileCount": 5
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{/* Fixture for phase2 XSS: MDX attacks */}
+
+<img src=x onError={window.__XSS_SENTINEL__ = true} />
+
+<a href="javascript:window.__XSS_SENTINEL__ = true">Link</a>
+
+{eval('window.__XSS_SENTINEL__ = true')}
+
+export const x = (() => { window.__XSS_SENTINEL__ = true })()
+
+<script>
+  window.__XSS_SENTINEL__ = true
+</script>
+
+<iframe src="evil.html"></iframe>
+
+<div dangerouslySetInnerHTML={{__html: 'window.__XSS_SENTINEL__ = true'}} />
+
+<Foo style={{color: 'red'}} />

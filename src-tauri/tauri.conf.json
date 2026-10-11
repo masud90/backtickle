@@ -1,0 +1,114 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Writedown",
+  "version": "0.1.0",
+  "identifier": "app.writedown.desktop",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Writedown",
+        "url": "index.html",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 960,
+        "minHeight": 600,
+        "center": true,
+        "transparent": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "trafficLightPosition": { "x": 14, "y": 24 }
+      }
+    ],
+    "security": {
+      "freezePrototype": true,
+      "assetProtocol": {
+        "enable": true,
+        "scope": []
+      },
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self'",
+        "style-src": "'self' 'unsafe-inline'",
+        "style-src-elem": "'self' 'unsafe-inline'",
+        "style-src-attr": "'none'",
+        "img-src": "'self' asset: http://asset.localhost data: blob: https:",
+        "font-src": "'self' data:",
+        "connect-src": "ipc: http://ipc.localhost",
+        "object-src": "'none'",
+        "base-uri": "'none'",
+        "frame-src": "'none'",
+        "form-action": "'none'"
+      },
+      "devCsp": {
+        "default-src": "'self'",
+        "script-src": "'self'",
+        "style-src": "'self' 'unsafe-inline'",
+        "style-src-elem": "'self' 'unsafe-inline'",
+        "style-src-attr": "'none'",
+        "img-src": "'self' asset: http://asset.localhost data: blob: https:",
+        "font-src": "'self' data:",
+        "connect-src": "ipc: http://ipc.localhost http://localhost:1420 ws://localhost:1420",
+        "object-src": "'none'",
+        "base-uri": "'none'",
+        "frame-src": "'none'",
+        "form-action": "'none'"
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app"],
+    "copyright": "Copyright © 2026 Masud Rahman",
+    "shortDescription": "A Markdown reader and writer for macOS",
+    "longDescription": "Writedown reads and writes Markdown in six flavors, with a live preview, on macOS.",
+    "homepage": "https://github.com/masud90/writedown",
+    "category": "Productivity",
+    "fileAssociations": [
+      {
+        "ext": ["md", "markdown"],
+        "name": "Markdown document",
+        "role": "Editor",
+        "rank": "Default",
+        "contentTypes": ["net.daringfireball.markdown"]
+      },
+      {
+        "ext": ["mdown", "mkd", "mkdn"],
+        "name": "Markdown document",
+        "role": "Editor",
+        "rank": "Default"
+      },
+      {
+        "ext": ["mdx"],
+        "name": "MDX document",
+        "role": "Editor",
+        "rank": "Alternate"
+      },
+      {
+        "ext": ["qmd"],
+        "name": "Quarto document",
+        "role": "Editor",
+        "rank": "Alternate"
+      },
+      {
+        "ext": ["rmd", "Rmd"],
+        "name": "R Markdown document",
+        "role": "Editor",
+        "rank": "Alternate"
+      }
+    ],
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns"],
+    "macOS": {
+      "signingIdentity": "-",
+      "minimumSystemVersion": "26.0"
+    }
+  }
+}

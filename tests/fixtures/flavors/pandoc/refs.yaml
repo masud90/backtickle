@@ -1,0 +1,102 @@
+references:
+- id: smith2020
+  type: article-journal
+  author:
+  - family: Smith
+    given: Jane
+  title: Learning from Evidence
+  container-title: Journal of Studies
+  issued:
+    date-parts:
+    - - 2020
+  DOI: 10.1234/example.doi
+
+- id: smith2020b
+  type: article-journal
+  author:
+  - family: Smith
+    given: Jane
+  title: Building on Success
+  container-title: Annual Review
+  issued:
+    date-parts:
+    - - 2020
+
+- id: jones2021
+  type: book
+  author:
+  - family: Jones
+    given: Robert
+  title: Comprehensive Guide to Methods
+  publisher: Academic Press
+  issued:
+    date-parts:
+    - - 2021
+
+- id: brown2019
+  type: article-journal
+  author:
+  - family: Brown
+    given: Alice
+  - family: White
+    given: Charles
+  title: Empirical Findings in Practice
+  container-title: Quarterly Report
+  volume: 15
+  issue: 3
+  page: 45-67
+  issued:
+    date-parts:
+    - - 2019
+
+- id: lee2018
+  type: article-journal
+  author:
+  - family: Lee
+    given: David
+  - family: Kim
+    given: Susan
+  - family: Park
+    given: Jennifer
+  - family: Chen
+    given: Michael
+  title: Collaborative Research Framework
+  container-title: International Journal
+  issued:
+    date-parts:
+    - - 2018
+
+- id: unhcr2022
+  type: report
+  author:
+  - literal: United Nations High Commissioner for Refugees
+  title: Global Trends Report
+  issued:
+    date-parts:
+    - - 2022
+
+- id: garcia2017
+  type: chapter
+  author:
+  - family: Garcia
+    given: Maria
+  title: Methodological Approaches
+  container-title: Handbook of Contemporary Research
+  editor:
+  - family: Martinez
+    given: Pablo
+  - family: Santos
+    given: Elena
+  publisher: University Press
+  page: 123-145
+  issued:
+    date-parts:
+    - - 2017
+
+- id: nodate
+  type: webpage
+  author:
+  - family: Taylor
+    given: George
+  title: Online Resource Collection
+  URL: https://example.org/resources

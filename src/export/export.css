@@ -1,0 +1,34 @@
+/* What an exported page adds to the preview CSS: the page frame and the marks that replace the
+   app's controls. Light theme only; no script, no fonts to load (system fallbacks). */
+
+html {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: var(--wd-surface-container-lowest);
+  color: var(--wd-on-surface);
+  font-family: var(--wd-font-sans);
+}
+
+main {
+  padding: 32px 24px;
+}
+
+/* A task box becomes a character in the margin (☑ or ☐). */
+.wd-preview .task-mark {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--wd-on-surface-variant);
+  line-height: inherit;
+}
+
+.wd-preview .tabset-title {
+  margin-block: 16px 8px;
+}
+
+.wd-preview .code-card pre {
+  overflow-x: auto;
+}

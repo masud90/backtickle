@@ -1,0 +1,15 @@
+---
+title: Side Effect Test
+---
+
+<!-- Fixture for Quarto: chunks with side effects (must never run or create output files) -->
+
+Note: The following chunks must never be executed. SIDE_EFFECT_R and SIDE_EFFECT_PY must never appear.
+
+``` {r}
+writeLines("ran", "SIDE_EFFECT_R")
+```
+
+``` {python}
+open("SIDE_EFFECT_PY", "w").write("ran")
+```

@@ -1,0 +1,23 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "preferences-window",
+  "description": "What the Preferences window may do. The window exists only while it is open. It reads and updates the settings and hears when they change, shows the app version and the Pandoc found, chooses a Pandoc and a default folder through two commands of ours, reads and sets the default Markdown app through two more, closes itself, can be dragged by its title strip and reports its startup mark.",
+  "windows": ["preferences"],
+  "permissions": [
+    "core:window:allow-start-dragging",
+    "core:window:allow-internal-toggle-maximize",
+    "core:window:allow-close",
+    "core:window:allow-destroy",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "allow-app-version",
+    "allow-perf-mark",
+    "allow-get-settings",
+    "allow-update-settings",
+    "allow-pandoc-info",
+    "allow-choose-pandoc",
+    "allow-choose-default-folder",
+    "allow-default-markdown-app",
+    "allow-make-default-markdown-app"
+  ]
+}

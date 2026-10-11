@@ -1,0 +1,14 @@
+---
+title: Quarto Report
+format: html
+execute:
+  echo: false
+---
+
+# Report Title
+
+This is a Quarto document that combines Markdown with executable code.
+
+## Analysis
+
+Some content here.

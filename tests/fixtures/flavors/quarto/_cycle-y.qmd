@@ -1,0 +1,5 @@
+# Cycle Y
+
+Content of cycle Y.
+
+{{< include _cycle-x.qmd >}}

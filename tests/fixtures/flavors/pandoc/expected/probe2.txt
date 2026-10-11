@@ -1,0 +1,11 @@
+A (Smith 2020b, 4) B (Smith 2020b, 4–5) C (Smith 2020b, para. 5) D (Smith 2020b, chap. 2) E (Smith 2020b, sec. 3) F (Smith 2020b, vol. 4) G (Smith 2020b, lines 4–5) H (Smith 2020b, pp 4-5) I (Smith 2020b, 4) J (Smith 2020b, 4–5) K (Smith 2020b, 4, 6) L (Smith 2020b, 3, with emphasis) M (Smith 2020b, 4n3) N (Smith 2020b, ii) O (Smith 2020b, vv. 3–4) P (Smith 2020b, pt. 3) Q (Smith 2020b, art. 3) R (Smith 2020b, tab. 3) S (Smith 2020b, fn. 3)
+
+T (see Smith 2020b; also Smith 2020a) U (Smith 2020b; see also Smith 2020a, 3) V (Smith 2020b, 1 for details; Jones 2021) W (for example Jones 2021) X (Jones 2021 and others) Y (Lee et al. 2018, 3; 2018, 3) Z (Smith 2020b) and (Smith 2020b, 4). Smith (2020b; 2021). and (Jones 2021); Smith (2020b)’s view; email a@smith2020.com; (Jones (2021)). Jones (2021), p. 4. (Smith 2020b): not a ref.
+
+Jones, Robert. 2021. Comprehensive Guide to Methods. Academic Press.
+
+Lee, David, Susan Kim, Jennifer Park, and Michael Chen. 2018. “Collaborative Research Framework.” International Journal.
+
+Smith, Jane. 2020a. “Building on Success.” Annual Review.
+
+Smith, Jane. 2020b. “Learning from Evidence.” Journal of Studies, ahead of print. https://doi.org/10.1234/example.doi.

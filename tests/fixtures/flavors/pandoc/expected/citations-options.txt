@@ -1,0 +1,19 @@
+Standard citation in brackets: (Smith 2020b)
+
+Narrative citation: Smith (2020b)
+
+Suppressed author: (2021)
+
+Citation with page number: (see Brown and White 2019, 33)
+
+Multiple citations: (Smith 2020b, 2020a)
+
+Multiple citations with pages: (Lee et al. 2018, 10–12; also United Nations High Commissioner for Refugees 2022, ch. 2)
+
+Author with suffix page: Garcia (2017, 5)
+
+Citation to entry without year: (Taylor, n.d.)
+
+Citation to missing key: (missingkey?)
+
+MultiMarkdown (MMD) form: [#brown2019]

@@ -1,0 +1,36 @@
+---
+title: Bookdown Format
+output: bookdown::html_document2
+---
+
+<!-- Fixture for Quarto bookdown: Rmd format with cross-references -->
+
+# Results {#results}
+
+This is the results section.
+
+``` {r scatter, fig.cap="A scatter"}
+plot(1:10, 1:10)
+```
+
+Reference to Figure \@ref(fig:scatter).
+
+| x | y |
+|---|---|
+| 1 | 2 |
+
+Table: (\#tab:summary) Summary
+
+Reference to Table \@ref(tab:summary).
+
+## Equations
+
+The mean is:
+
+$$
+\mu = \frac{\sum x_i}{n}
+$$ {#eq:mean}
+
+Reference to Equation \@ref(eq:mean).
+
+Reference to Section \@ref(results).

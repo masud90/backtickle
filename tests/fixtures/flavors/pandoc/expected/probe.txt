@@ -1,0 +1,17 @@
+A (Smith 2020b, 3) B (Smith 2020b, 3–4) C (Smith 2020b, ch. 2) D (Smith 2020b, sec. 4) E (Smith 2020b, vol. 2) F (Smith 2020b, 33) G (Smith 2020b, fig. 3) H (Smith 2020b, note) I (Smith 2020b, 5) J (Smith 2020b, chap. 2) K (Smith 2020b, sec. 3) L (Smith 2020b, line 5) M (Smith 2020b, para. 3) N (Smith 2020b, n. 3)
+
+O (Jones 2021; Smith 2020b) P (Smith 2020b, 2020a; Brown and White 2019) Q (Smith 2020b, 3; 2020a, 4) R Brown and White (2019, 3–4) S (see Jones 2021, 3 and passim) T (2019, 3) U (Lee et al. 2018) V (United Nations High Commissioner for Refugees 2022) W (Garcia 2017) X Lee et al. (2018) and United Nations High Commissioner for Refugees (2022) Y (Jones 2021, 1; 2021, 3) Z (Smith 2020b) (Smith 2020b) (see also Jones 2021)
+
+Brown, Alice, and Charles White. 2019. “Empirical Findings in Practice.” Quarterly Report 15 (3): 45–67.
+
+Garcia, Maria. 2017. “Methodological Approaches.” In Handbook of Contemporary Research, edited by Pablo Martinez and Elena Santos. University Press.
+
+Jones, Robert. 2021. Comprehensive Guide to Methods. Academic Press.
+
+Lee, David, Susan Kim, Jennifer Park, and Michael Chen. 2018. “Collaborative Research Framework.” International Journal.
+
+Smith, Jane. 2020a. “Building on Success.” Annual Review.
+
+Smith, Jane. 2020b. “Learning from Evidence.” Journal of Studies, ahead of print. https://doi.org/10.1234/example.doi.
+
+United Nations High Commissioner for Refugees. 2022. Global Trends Report.

@@ -1,0 +1,23 @@
+(Aa et al. 2001) (Ed 2002) (A Book Without Author 2003) (“An Article Without Author” 2004) (de Van 2005) (Zed 2006a) (Thes 2007) (World Bank 2008) (Conf 2009) (Rep 2010) (Zed 2006b) A Book Without Author (2003) Aa et al. (2001)
+
+A Book Without Author. 2003. Pub.
+
+Aa, Ann, Bo Bb, and Cy Cc. 2001. Three Authors. Pub.
+
+“An Article Without Author.” 2004. The Journal 4 (2): 10–20.
+
+Conf, Cal. 2009. “A Paper.” Proceedings of Things, 1–10.
+
+Ed, Eve, ed. 2002. Edited Volume. Pub.
+
+Rep, Ray. 2010. A Report. Technical Report No. 12. Agency.
+
+Thes, Tom. 2007. “A Thesis.” PhD thesis, Some University.
+
+Van, Vic de. 2005. “Volume Only: A Subtitle.” The Journal 7 (March): 5–9. https://doi.org/10.1/x.
+
+World Bank. 2008. “A Page.” Site Name, May 6. https://example.org/p.
+
+Zed, Zoe. 2006a. Book With Edition. 2nd ed. Pub.
+
+Zed, Zoe. 2006b. Book With Volume. Vol. 3. Pub.

@@ -1,0 +1,13 @@
+---
+title: Project Chapter
+---
+
+<!-- Fixture for Quarto project: inherits bibliography from _quarto.yml -->
+
+# Introduction
+
+This document cites a reference [@smith2020].
+
+# Second Section
+
+More content here with another citation [@jones2021].

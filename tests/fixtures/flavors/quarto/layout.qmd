@@ -1,0 +1,71 @@
+---
+title: Quarto Layout
+---
+
+<!-- Fixture for Quarto layout: callouts, panels, columns -->
+
+## Callout Note
+
+::: {.callout-note}
+This is a note callout.
+:::
+
+## Callout Warning
+
+::: {.callout-warning}
+This is a warning callout.
+:::
+
+## Callout Important
+
+::: {.callout-important title="Custom"}
+This is an important callout with a custom title.
+:::
+
+## Callout Tip
+
+::: {.callout-tip}
+## Tip Title
+This is a tip callout with a heading title.
+:::
+
+## Callout Caution
+
+::: {.callout-caution collapse="true"}
+This is a caution callout that starts collapsed.
+:::
+
+## Callout with Collapse False
+
+::: {.callout-warning collapse="false"}
+This warning is explicitly expanded.
+:::
+
+## Panel Tabset
+
+::: {.panel-tabset}
+
+## Tab One
+Content for the first tab here.
+
+## Tab Two
+Content for the second tab here.
+
+## Tab Three
+Content for the third tab here.
+
+:::
+
+## Columns Layout
+
+:::: {.columns}
+
+::: {.column width="40%"}
+This column takes 40 percent of the width.
+:::
+
+::: {.column width="60%"}
+This column takes 60 percent of the width.
+:::
+
+::::

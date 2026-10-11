@@ -1,0 +1,68 @@
+/* Print and Save as PDF. The print root (`#wd-print-root`) is added by
+   `src/export/print.ts` for the length of one print and holds the whole document in the light
+   theme. On screen it is never shown; in print media it is the only thing on the page. This file
+   is loaded as text by that module, so a window that never prints does not pay for it. */
+
+#wd-print-root {
+  display: none;
+}
+
+@page {
+  margin: 18mm 16mm;
+}
+
+@media print {
+  html,
+  body {
+    height: auto;
+    overflow: visible;
+    background: #ffffff;
+  }
+
+  body > :not(#wd-print-root) {
+    display: none;
+  }
+
+  #wd-print-root {
+    display: block;
+    color-scheme: light;
+    background: #ffffff;
+    color: var(--wd-on-surface);
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* The reading column (720 px, or the width chosen in Preferences), narrower when the page is. */
+  #wd-print-root .wd-preview {
+    width: 100%;
+    max-width: var(--wd-preview-column-width, 720px);
+    margin-inline: auto;
+  }
+
+  #wd-print-root
+    .wd-preview
+    :is(.code-card, figure, .callout, tr, img, .mermaid-diagram, .graphviz-diagram, blockquote) {
+    break-inside: avoid;
+  }
+
+  #wd-print-root .wd-preview :is(h1, h2, h3, h4, h5, h6) {
+    break-after: avoid;
+  }
+
+  #wd-print-root .wd-preview img {
+    max-width: 100%;
+  }
+
+  /* A page break shortcode: the rule itself is not drawn. */
+  #wd-print-root .wd-preview hr.pagebreak {
+    break-after: page;
+    border: 0;
+    margin: 0;
+    height: 0;
+  }
+
+  #wd-print-root .wd-preview .code-card pre {
+    white-space: pre-wrap;
+    overflow: visible;
+  }
+}

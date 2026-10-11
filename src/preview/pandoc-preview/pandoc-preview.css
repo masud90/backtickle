@@ -1,0 +1,42 @@
+/* The exact preview (Pandoc): the reading styles come from .wd-preview; this adds what Pandoc's
+   HTML has and the block preview does not. */
+.wd-pandoc-preview .wd-pandoc-banner {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin-bottom: calc(12px * var(--wd-scale, 1));
+  padding: calc(8px * var(--wd-scale, 1)) calc(12px * var(--wd-scale, 1));
+  border-radius: calc(6px * var(--wd-scale, 1));
+  background: var(--wd-error-container, #ffdad6);
+  color: var(--wd-on-error-container, #410002);
+  font-size: var(--wd-text-body-sm-size, 13px);
+}
+
+.wd-pandoc-preview .wd-pandoc-banner[hidden] {
+  display: none;
+}
+
+.wd-pandoc-preview .wd-preview div.sourceCode,
+.wd-pandoc-preview .wd-preview pre {
+  overflow-x: auto;
+}
+
+.wd-pandoc-preview .wd-preview math[display="block"] {
+  display: block math;
+  margin-block: 0.75em;
+}
+
+.wd-pandoc-preview .wd-preview section.footnotes {
+  margin-top: 2em;
+  border-top: 1px solid var(--wd-outline-variant, #c1c6d7);
+  font-size: var(--wd-text-body-sm-size, 13px);
+}
+
+.wd-pandoc-preview .wd-preview div.csl-entry {
+  margin-bottom: 0.5em;
+}
+
+.wd-pandoc-preview .wd-preview .hanging-indent div.csl-entry {
+  padding-left: 2em;
+  text-indent: -2em;
+}

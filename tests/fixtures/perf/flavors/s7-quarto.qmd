@@ -1,0 +1,164 @@
+---
+title: Quarto performance document
+number-sections: true
+---
+
+# Introduction {#sec-intro}
+
+T e i s n   a e , g. I a l y , p e d   t   h r. S y i e w n i h i a l. N c i a   o v a i o u u o i o p n. G i s s e q o h m t a  .
+
+::: {.callout-note}
+## Reading note
+
+P e i e e b i i s u m i a t. Q s s   p e i d m d d i t a c w.
+:::
+
+## Part 1 {#sec-part1}
+
+C r h , t p a i t. R s d p t i u x o s n r , r s. U y l r r s s a r u v o u t t  . A t s r n p n o e s t h   n x a n. I a s p l g   e e.
+
+```{python}
+#| label: chunk1
+import statistics
+statistics.mean([1, 2, 1])
+```
+
+S e u i d d r o u b d p a x s. R r a   , t o a r e e h s   r n p. E   e e a s e , o h n v o m   u.
+
+## Part 2 {#sec-part2}
+
+O g e t m e t t i p h u r o. E d o s r o t i s e i n i a a   l. , r d r p t o g t u r p e r v.   l e t o   e i l g e g. E o s y s r n t a e i.
+
+```{r}
+#| label: fig-plot2
+#| fig-cap: "Plot 2"
+x <- seq(1, 20)
+plot(x, x^2)
+```
+
+See @fig-plot2 for the pattern.
+
+## Part 3 {#sec-part3}
+
+E e t o t e i a i t i   d. A a   a m t   s , g o l   d b o. O t t e l e r a o i u e a o s a p. I r   a d s a a a l. A t g u n e u , i c   a e l.
+
+```{python}
+#| label: chunk3
+import statistics
+statistics.mean([1, 2, 3])
+```
+
+N a i o h   u o t e. A r o i c o g n u   h c o i t d t. E t a s i n u c   e.
+
+## Part 4 {#sec-part4}
+
+N s n e i i t i n n   s. E   p m i r o  .   , i t a n g a i  . H o c   r   n t p   t p i o o e t. I c l r i e n e c a a e u   e.
+
+```{r}
+#| label: fig-plot4
+#| fig-cap: "Plot 4"
+x <- seq(1, 40)
+plot(x, x^2)
+```
+
+See @fig-plot4 for the pattern.
+
+## Part 5 {#sec-part5}
+
+G m   t s e e r s n u c e r c. C w t t   t p n   t t y t s. , e a e , y r r r h l o s d i s n. I y n d n s t s t. R s d i l , v n s m   e u t t s n.
+
+```{python}
+#| label: chunk5
+import statistics
+statistics.mean([1, 2, 5])
+```
+
+H r i i , t e p n d o o i. N r n s v e a m t. R t i x   p a e   p a e d f.
+
+## Part 6 {#sec-part6}
+
+S t   l i t , o   e i. R y o m n s a t e i s. T t p a a o e t r e e d m p i d r. T l e e e e i s. U i i c g p h d i ,.
+
+```{r}
+#| label: fig-plot6
+#| fig-cap: "Plot 6"
+x <- seq(1, 60)
+plot(x, x^2)
+```
+
+See @fig-plot6 for the pattern.
+
+## Part 7 {#sec-part7}
+
+D s n l o i o p r n e d u p. T   v s t c o n c t a e d.   h u e t u e i a , g t   a a.   s r a e e , r   e. N p , s o d i i d t.
+
+```{python}
+#| label: chunk7
+import statistics
+statistics.mean([1, 2, 7])
+```
+
+E e t   e y o s m. E   r o l r r a m. L   l   r e i t o u.
+
+## Part 8 {#sec-part8}
+
+T h h e i e e p o a , e.   o o u r m   f i. M , r h s u s p n r , i. R u e x o n o i t a d d , s t a s. T m o     r s l u r r    .
+
+```{r}
+#| label: fig-plot8
+#| fig-cap: "Plot 8"
+x <- seq(1, 80)
+plot(x, x^2)
+```
+
+See @fig-plot8 for the pattern.
+
+## Part 9 {#sec-part9}
+
+C a s o r   u s. E   i v a t , u t o. R r d g e g t r i   r t   g   i t.   a y e o   i r p   e e e. N n d u i i l g a.
+
+```{python}
+#| label: chunk9
+import statistics
+statistics.mean([1, 2, 9])
+```
+
+L e a a t d i i e c t m v. O   i e   r m r s t s. B o n v c o s m.
+
+## Part 10 {#sec-part10}
+
+A t n d s e s r t a s s g.   a i d d o e a e. Y c s v w o , r e   u , s c l p p. I t c i l i c a   i. O   m c e p n e t o s i e e.
+
+```{r}
+#| label: fig-plot10
+#| fig-cap: "Plot 10"
+x <- seq(1, 100)
+plot(x, x^2)
+```
+
+See @fig-plot10 for the pattern.
+
+## Part 11 {#sec-part11}
+
+O a n n s t q , u t a h   i g i. H t d x , a , c c s.   e t o , s g v r u d. D e w e s c v l s. R o r n e i u   h d n n m.
+
+```{python}
+#| label: chunk11
+import statistics
+statistics.mean([1, 2, 11])
+```
+
+S r o o i b r   e. E s u s s e o a   r c l m i y e t. U   e l g e t n t l i.
+
+## Part 12 {#sec-part12}
+
+O c a r t h t t. O b m i n e e o. L r i   m g i r n. T e l l   o   d s a p g. E i e     s g i s.
+
+```{r}
+#| label: fig-plot12
+#| fig-cap: "Plot 12"
+x <- seq(1, 120)
+plot(x, x^2)
+```
+
+See @fig-plot12 for the pattern.

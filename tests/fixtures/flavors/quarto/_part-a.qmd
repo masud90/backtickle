@@ -1,0 +1,5 @@
+# Part A Heading
+
+This is content from part A.
+
+{{< include _part-b.qmd >}}

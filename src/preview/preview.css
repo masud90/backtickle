@@ -1,0 +1,1323 @@
+/* Typography and components of the rendered Markdown (DESIGN.md "Rendered Markdown Rules", the type
+   scale, and the dual-pane mock). The article is a 720 px reading column. Colors come from the
+   design tokens, so light and dark follow tokens.css; the few colors that are not tokens (the dark
+   code card of the mock, the warning accent of alerts) are defined here for both themes.
+
+   `.wd-preview` is the block preview. Its children are `div.wd-block` wrappers, and it has the
+   components: frontmatter header, alerts, code cards, task boxes, footnotes, math, images.
+
+   No inline styles anywhere: the content security policy forbids them. */
+
+/* ---- Colors that are not design tokens ---------------------------------------------------- */
+
+:root {
+  /* Alert accent for "warning": an amber with 4.5:1 or more on the tinted alert background. */
+  --wd-warning: #8a5200;
+  /* The code card is dark in both themes (the mock): card, header bar, text, and the accent dot. */
+  --wd-code-card-bg: #1e1e24;
+  --wd-code-card-header: #18181d;
+  --wd-code-card-text: #d8dee9;
+  --wd-code-card-dot: #5e81ac;
+  --wd-code-card-focus: #adc6ff;
+  --wd-code-card-border: rgba(255, 255, 255, 0.1);
+  --wd-code-card-muted: rgba(255, 255, 255, 0.8);
+  --wd-code-card-button-bg: rgba(255, 255, 255, 0.05);
+  --wd-code-card-button-text: rgba(255, 255, 255, 0.75);
+  --wd-code-card-button-hover-bg: rgba(255, 255, 255, 0.1);
+  --wd-code-card-button-hover-text: #fff;
+  /* Token colors: the Nord-like palette of the mock, 4.5:1 or more on the dark card. */
+  --wd-tok-keyword: #81a1c1;
+  --wd-tok-type: #88c0d0;
+  --wd-tok-meta: #8fbcbb;
+  --wd-tok-string: #a3be8c;
+  --wd-tok-string2: #ebcb8b;
+  --wd-tok-number: #b48ead;
+  --wd-tok-comment: #7b88a1;
+  --wd-tok-invalid: #d07780;
+}
+
+/* Light code cards (setting "Code blocks: Light", both themes). `data-wd-code-cards` is set on the
+   root by `src/preview/settings.ts`. Every color has 4.5:1 or more on the card (#f6f8fa) and on
+   the header (#eaeef2); tests/unit/preview-code-cards.test.ts computes the ratios from this block. */
+:root[data-wd-code-cards="light"] {
+  --wd-code-card-bg: #f6f8fa;
+  --wd-code-card-header: #eaeef2;
+  --wd-code-card-text: #24292f;
+  --wd-code-card-dot: #0969da;
+  --wd-code-card-focus: #0550ae;
+  --wd-code-card-border: rgba(0, 0, 0, 0.1);
+  --wd-code-card-muted: #57606a;
+  --wd-code-card-button-bg: rgba(0, 0, 0, 0.05);
+  --wd-code-card-button-text: #424a53;
+  --wd-code-card-button-hover-bg: rgba(0, 0, 0, 0.1);
+  --wd-code-card-button-hover-text: #24292f;
+  --wd-tok-keyword: #0550ae;
+  --wd-tok-type: #116329;
+  --wd-tok-meta: #0a6c6c;
+  --wd-tok-string: #0a3069;
+  --wd-tok-string2: #8a4600;
+  --wd-tok-number: #6639ba;
+  --wd-tok-comment: #59636e;
+  --wd-tok-invalid: #b3202a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --wd-warning: #ffb95c;
+  }
+}
+
+:root[data-theme="dark"] {
+  --wd-warning: #ffb95c;
+}
+
+/* ---- Typography (both kinds of article) ----------------------------------------------------- */
+
+/* The reading choices (Preferences, Markdown & Preview): `src/preview/settings.ts` sets
+   --wd-preview-font-family, --wd-preview-size-factor (size / 15) and --wd-preview-column-width on
+   the root; without them the values are today's. The type scale of shell.css is repeated here
+   with the factor, so the headings scale with the body and the zoom still multiplies. The
+   selector is doubled so that it beats the same variables in shell.css whatever the order of the
+   style sheets. */
+.wd-preview.wd-preview {
+  --wd-preview-scale: calc(var(--wd-preview-zoom, 1) * var(--wd-preview-size-factor, 1));
+  --wd-text-headline-xl-size: calc(32px * var(--wd-preview-scale));
+  --wd-text-headline-xl-line-height: calc(40px * var(--wd-preview-scale));
+  --wd-text-headline-lg-size: calc(26px * var(--wd-preview-scale));
+  --wd-text-headline-lg-line-height: calc(34px * var(--wd-preview-scale));
+  --wd-text-headline-md-size: calc(20px * var(--wd-preview-scale));
+  --wd-text-headline-md-line-height: calc(28px * var(--wd-preview-scale));
+  --wd-text-headline-sm-size: calc(16px * var(--wd-preview-scale));
+  --wd-text-headline-sm-line-height: calc(24px * var(--wd-preview-scale));
+  --wd-text-body-lg-size: calc(17px * var(--wd-preview-scale));
+  --wd-text-body-lg-line-height: calc(28px * var(--wd-preview-scale));
+  --wd-text-body-md-size: calc(15px * var(--wd-preview-scale));
+  --wd-text-body-md-line-height: calc(24px * var(--wd-preview-scale));
+  --wd-text-body-sm-size: calc(13px * var(--wd-preview-scale));
+  --wd-text-body-sm-line-height: calc(20px * var(--wd-preview-scale));
+  --wd-text-code-inline-size: calc(13.5px * var(--wd-preview-scale));
+  --wd-text-code-inline-line-height: calc(20px * var(--wd-preview-scale));
+  --wd-text-code-block-size: calc(13px * var(--wd-preview-scale));
+  --wd-text-code-block-line-height: calc(22px * var(--wd-preview-scale));
+  --wd-text-label-md-size: calc(12px * var(--wd-preview-zoom, 1));
+}
+
+.wd-preview {
+  max-width: var(--wd-preview-column-width, 720px);
+  margin-inline: auto;
+  color: var(--wd-on-surface);
+  font-family: var(--wd-preview-font-family, var(--wd-font-sans));
+  font-size: var(--wd-text-body-md-size);
+  font-weight: var(--wd-text-body-md-weight);
+  letter-spacing: var(--wd-text-body-md-tracking);
+  line-height: 1.6;
+  overflow-wrap: break-word;
+
+  /* Block rhythm */
+  & :is(p, ul, ol, blockquote, pre, table, details) {
+    margin-block: 0 16px;
+  }
+
+  & h1 {
+    margin: 0 0 16px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--wd-hairline);
+    font-size: var(--wd-text-headline-xl-size);
+    line-height: var(--wd-text-headline-xl-line-height);
+    font-weight: var(--wd-text-headline-xl-weight);
+    letter-spacing: var(--wd-text-headline-xl-tracking);
+  }
+
+  & h2 {
+    margin: 28px 0 12px;
+    font-size: var(--wd-text-headline-lg-size);
+    line-height: var(--wd-text-headline-lg-line-height);
+    font-weight: var(--wd-text-headline-lg-weight);
+    letter-spacing: var(--wd-text-headline-lg-tracking);
+  }
+
+  & h3 {
+    margin: 20px 0 8px;
+    font-size: var(--wd-text-headline-md-size);
+    line-height: var(--wd-text-headline-md-line-height);
+    font-weight: var(--wd-text-headline-md-weight);
+    letter-spacing: var(--wd-text-headline-md-tracking);
+  }
+
+  & h4 {
+    margin: 16px 0 8px;
+    font-size: var(--wd-text-headline-sm-size);
+    line-height: var(--wd-text-headline-sm-line-height);
+    font-weight: var(--wd-text-headline-sm-weight);
+    letter-spacing: var(--wd-text-headline-sm-tracking);
+  }
+
+  & :is(h5, h6) {
+    margin: 16px 0 8px;
+    font-size: var(--wd-text-body-md-size);
+    line-height: var(--wd-text-body-md-line-height);
+    font-weight: 600;
+  }
+
+  & h6 {
+    color: var(--wd-on-surface-variant);
+  }
+
+  /* Inline */
+  & :is(strong, b) {
+    font-weight: 600;
+  }
+
+  & :is(del, s) {
+    color: var(--wd-on-surface-variant);
+    text-decoration: line-through;
+  }
+
+  & a {
+    color: var(--wd-primary);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, currentcolor 40%, transparent);
+    text-underline-offset: 2px;
+  }
+
+  & a:hover {
+    text-decoration-color: currentcolor;
+  }
+
+  & a:focus-visible {
+    outline: 2px solid var(--wd-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  & :not(pre) > code {
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--wd-inline-code-bg);
+    font-family: var(--wd-font-mono);
+    font-size: var(--wd-text-code-inline-size);
+    font-weight: var(--wd-text-code-inline-weight);
+    letter-spacing: var(--wd-text-code-inline-tracking);
+  }
+
+  & kbd {
+    padding: 1px 6px;
+    border: 1px solid var(--wd-outline-variant);
+    border-radius: 4px;
+    background: var(--wd-surface-container-low);
+    font-family: var(--wd-font-mono);
+    font-size: 12px;
+  }
+
+  & mark {
+    padding: 0 2px;
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--wd-tertiary-fixed) 45%, transparent);
+    color: inherit;
+  }
+
+  & :is(sub, sup) {
+    font-size: 0.75em;
+    line-height: 0;
+  }
+
+  /* Plain code blocks (raw HTML, and the first preview). Code cards below replace this. */
+  & pre {
+    padding: 14px 16px;
+    border: 1px solid var(--wd-hairline);
+    border-radius: 8px;
+    background: var(--wd-code-block-bg);
+    overflow-x: auto;
+    font-family: var(--wd-font-mono);
+    font-size: var(--wd-text-code-block-size);
+    line-height: var(--wd-text-code-block-line-height);
+    font-weight: var(--wd-text-code-block-weight);
+    letter-spacing: var(--wd-text-code-block-tracking);
+  }
+
+  & pre code {
+    font: inherit;
+    letter-spacing: inherit;
+  }
+
+  /* Blockquote: body-lg italic, 3 px primary accent at 40% opacity, 16 px indent */
+  & blockquote {
+    margin-inline: 0;
+    padding-left: 16px;
+    border-left: 3px solid color-mix(in srgb, var(--wd-primary) 40%, transparent);
+    color: var(--wd-on-surface-variant);
+    font-size: var(--wd-text-body-lg-size);
+    line-height: var(--wd-text-body-lg-line-height);
+    font-style: italic;
+    letter-spacing: var(--wd-text-body-lg-tracking);
+  }
+
+  & blockquote > :last-child {
+    margin-bottom: 0;
+  }
+
+  & hr {
+    margin: 24px 0;
+    border: 0;
+    border-top: 1px solid var(--wd-hairline);
+  }
+
+  /* Lists */
+  & li > :is(ul, ol) {
+    margin-block: 4px 0;
+  }
+
+  & :is(ul, ol) {
+    padding-left: 24px;
+  }
+
+  & li {
+    margin-block: 4px;
+  }
+
+  & details > summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  & details[open] > summary {
+    margin-bottom: 8px;
+  }
+
+  /* Images */
+  & img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+}
+
+/* ---- Tables (both kinds of article) ---------------------------------------------------------
+   A rounded card with a header row, hairline row separators and zebra stripes (DESIGN.md
+   "Tables"). Cells wrap instead of scrolling sideways, so a table never needs a scroll area. */
+
+.wd-preview table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid color-mix(in srgb, var(--wd-outline-variant) 40%, transparent);
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: var(--wd-text-body-sm-size);
+  line-height: var(--wd-text-body-sm-line-height);
+  letter-spacing: var(--wd-text-body-sm-tracking);
+}
+
+.wd-preview :is(th, td) {
+  padding: 10px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--wd-outline-variant) 20%, transparent);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.wd-preview .align-center {
+  text-align: center;
+}
+
+.wd-preview .align-right {
+  text-align: right;
+}
+
+.wd-preview th {
+  background: var(--wd-surface-container-high);
+  border-bottom-color: color-mix(in srgb, var(--wd-outline-variant) 60%, transparent);
+  font-weight: 600;
+}
+
+.wd-preview tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--wd-on-surface) 2%, transparent);
+}
+
+.wd-preview tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* ================================================================================================
+   The block preview
+   ================================================================================================ */
+
+/* The block under the editor cursor: a soft wash, drawn outside the block so nothing moves. */
+.wd-preview .wd-block.is-cursor-block {
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--wd-primary) 5%, transparent);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--wd-primary) 5%, transparent);
+}
+
+/* The frontmatter is metadata: it never shows the cursor highlight. */
+.wd-preview .wd-block.is-cursor-block:has(> header.wd-frontmatter) {
+  background: none;
+  box-shadow: none;
+}
+
+/* ---- Frontmatter ---------------------------------------------------------------------------- */
+
+.wd-preview .wd-frontmatter {
+  margin: 0 0 12px;
+}
+
+.wd-preview .wd-frontmatter:empty {
+  display: none;
+}
+
+.wd-preview .wd-frontmatter-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-family: var(--wd-font-mono);
+  font-size: var(--wd-text-label-sm-size);
+  line-height: var(--wd-text-label-sm-line-height);
+  letter-spacing: var(--wd-text-label-sm-tracking);
+}
+
+.wd-preview .wd-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wd-preview .wd-tag {
+  margin: 0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--wd-primary) 10%, transparent);
+  color: var(--wd-primary);
+  font-weight: 600;
+}
+
+.wd-preview .wd-tag:nth-child(even) {
+  background: var(--wd-secondary-fixed);
+  color: var(--wd-on-secondary-fixed-variant);
+  font-weight: 500;
+}
+
+.wd-preview .wd-frontmatter-info {
+  color: var(--wd-on-surface-variant);
+}
+
+/* The first piece of text goes to the right edge, the others follow it. */
+.wd-preview .wd-frontmatter-meta > .wd-frontmatter-info:first-of-type {
+  margin-left: auto;
+}
+
+.wd-preview .wd-frontmatter-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0 0 12px;
+  color: var(--wd-on-surface-variant);
+  font-size: var(--wd-text-label-md-size);
+  line-height: var(--wd-text-label-md-line-height);
+  letter-spacing: var(--wd-text-label-md-tracking);
+}
+
+.wd-preview .wd-frontmatter-fields > div {
+  display: flex;
+  gap: 4px;
+}
+
+.wd-preview .wd-frontmatter-fields dt {
+  font-weight: 600;
+}
+
+.wd-preview .wd-frontmatter-fields dd {
+  margin: 0;
+}
+
+/* ---- Alerts (GitHub callouts): one accent per type ------------------------------------------- */
+
+.wd-preview .callout {
+  --callout-accent: var(--wd-primary);
+  margin: 0 0 16px;
+  padding: 16px;
+  border-left: 4px solid var(--callout-accent);
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in srgb, var(--callout-accent) 8%, transparent);
+  color: var(--wd-on-surface-variant);
+  font-size: var(--wd-text-body-md-size);
+  font-style: normal;
+  line-height: var(--wd-text-body-md-line-height);
+  letter-spacing: var(--wd-text-body-md-tracking);
+}
+
+.wd-preview .callout-note {
+  --callout-accent: var(--wd-primary);
+}
+
+.wd-preview .callout-tip {
+  --callout-accent: var(--wd-tertiary);
+}
+
+.wd-preview .callout-important {
+  --callout-accent: var(--wd-secondary);
+}
+
+.wd-preview .callout-warning {
+  --callout-accent: var(--wd-warning);
+}
+
+.wd-preview .callout-caution {
+  --callout-accent: var(--wd-error);
+}
+
+.wd-preview .callout > :last-child {
+  margin-bottom: 0;
+}
+
+.wd-preview .callout-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 2px;
+  color: var(--callout-accent);
+  font-size: var(--wd-text-headline-sm-size);
+  line-height: var(--wd-text-headline-sm-line-height);
+  font-weight: var(--wd-text-headline-sm-weight);
+  letter-spacing: var(--wd-text-headline-sm-tracking);
+}
+
+.wd-preview .callout-icon {
+  display: inline-flex;
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+/* The text lines up with the title, not with the icon. */
+.wd-preview .callout > :not(.callout-title) {
+  margin-left: 32px;
+}
+
+/* ---- Code cards ------------------------------------------------------------------------------- */
+
+.wd-preview .code-card {
+  margin: 0 0 16px;
+  border: 1px solid color-mix(in srgb, var(--wd-outline-variant) 40%, transparent);
+  border-radius: 12px;
+  background: var(--wd-code-card-bg);
+  color: var(--wd-code-card-text);
+  font-style: normal;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.wd-preview .code-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--wd-code-card-border);
+  background: var(--wd-code-card-header);
+  font-family: var(--wd-font-mono);
+  font-size: var(--wd-text-label-sm-size);
+  line-height: var(--wd-text-label-sm-line-height);
+  font-weight: var(--wd-text-label-sm-weight);
+  letter-spacing: var(--wd-text-label-sm-tracking);
+}
+
+.wd-preview .code-card-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--wd-code-card-muted);
+}
+
+.wd-preview .code-card-lang::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--wd-code-card-dot);
+}
+
+.wd-preview .code-card-actions {
+  display: inline-flex;
+}
+
+.wd-preview .code-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--wd-code-card-button-bg);
+  color: var(--wd-code-card-button-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.wd-preview .code-copy:hover {
+  background: var(--wd-code-card-button-hover-bg);
+  color: var(--wd-code-card-button-hover-text);
+}
+
+.wd-preview .code-copy:focus-visible {
+  outline: 2px solid var(--wd-code-card-focus);
+  outline-offset: 2px;
+}
+
+.wd-preview .code-copy-icon {
+  display: inline-flex;
+}
+
+.wd-preview .code-copy.is-copied {
+  color: var(--wd-code-card-button-hover-text);
+}
+
+.wd-preview .code-card pre {
+  margin: 0;
+  padding: 16px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--wd-code-card-text);
+  overflow-x: auto;
+  font-family: var(--wd-font-mono);
+  font-size: var(--wd-text-code-block-size);
+  line-height: var(--wd-text-code-block-line-height);
+  font-weight: var(--wd-text-code-block-weight);
+  letter-spacing: var(--wd-text-code-block-tracking);
+}
+
+.wd-preview .code-card pre code {
+  padding: 0;
+  background: transparent;
+  font: inherit;
+}
+
+/* Token colors: the Nord-like palette of the mock. Every color has 4.5:1 or more on the card
+   (#1e1e24). Three differ from the usual Nord values, which are too dark for text: comments
+   (#7b88a1 instead of #616e88), meta text (#8fbcbb instead of #5e81ac), and invalid and deleted
+   text (#d07780 instead of #bf616a). */
+.wd-preview .code-card .tok-keyword,
+.wd-preview .code-card .tok-atom,
+.wd-preview .code-card .tok-bool,
+.wd-preview .code-card .tok-operator {
+  color: var(--wd-tok-keyword);
+}
+
+.wd-preview .code-card .tok-typeName,
+.wd-preview .code-card .tok-className,
+.wd-preview .code-card .tok-macroName,
+.wd-preview .code-card .tok-variableName2,
+.wd-preview .code-card .tok-link,
+.wd-preview .code-card .tok-url,
+.wd-preview .code-card .tok-heading {
+  color: var(--wd-tok-type);
+}
+
+.wd-preview .code-card .tok-namespace,
+.wd-preview .code-card .tok-labelName,
+.wd-preview .code-card .tok-meta {
+  color: var(--wd-tok-meta);
+}
+
+.wd-preview .code-card .tok-string,
+.wd-preview .code-card .tok-inserted {
+  color: var(--wd-tok-string);
+}
+
+.wd-preview .code-card .tok-string2 {
+  color: var(--wd-tok-string2);
+}
+
+.wd-preview .code-card .tok-number,
+.wd-preview .code-card .tok-literal {
+  color: var(--wd-tok-number);
+}
+
+.wd-preview .code-card .tok-comment {
+  color: var(--wd-tok-comment);
+  font-style: italic;
+}
+
+.wd-preview .code-card .tok-invalid,
+.wd-preview .code-card .tok-deleted {
+  color: var(--wd-tok-invalid);
+}
+
+.wd-preview .code-card .tok-variableName,
+.wd-preview .code-card .tok-propertyName,
+.wd-preview .code-card .tok-punctuation {
+  color: var(--wd-code-card-text);
+}
+
+.wd-preview .code-card .tok-definition {
+  font-weight: 600;
+}
+
+.wd-preview .code-card .tok-strong,
+.wd-preview .code-card .tok-heading {
+  font-weight: 700;
+}
+
+.wd-preview .code-card .tok-emphasis {
+  font-style: italic;
+}
+
+.wd-preview .code-card .tok-link,
+.wd-preview .code-card .tok-url {
+  text-decoration: underline;
+}
+
+/* The field the Copy button uses when the clipboard API is not available: out of sight. */
+.wd-clipboard-field {
+  position: fixed;
+  top: 0;
+  left: -9999px;
+  opacity: 0;
+}
+
+/* ---- Task lists ------------------------------------------------------------------------------- */
+
+.wd-preview .contains-task-list {
+  padding-left: 0;
+  list-style: none;
+}
+
+/* A task list at the top level is a quiet card (the mock). */
+.wd-preview .wd-block > .contains-task-list {
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--wd-outline-variant) 30%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--wd-surface-container-low) 50%, transparent);
+}
+
+.wd-preview .contains-task-list .contains-task-list {
+  padding-left: 0;
+}
+
+.wd-preview .task-list-item {
+  position: relative;
+  padding-left: 28px;
+  list-style: none;
+}
+
+/* 16 px box, 3.5 px radius. Unchecked: an outline. Checked: tertiary fill and a check mark. */
+.wd-preview .task-checkbox {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--wd-outline);
+  border-radius: 3.5px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.wd-preview .task-checkbox:hover {
+  border-color: var(--wd-primary);
+}
+
+.wd-preview .task-checkbox[aria-checked="true"] {
+  border-color: var(--wd-tertiary);
+  background: var(--wd-tertiary);
+}
+
+.wd-preview .task-checkbox[aria-checked="true"]::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0.5px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--wd-on-tertiary);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.wd-preview .task-checkbox:focus-visible {
+  outline: 2px solid var(--wd-primary);
+  outline-offset: 2px;
+}
+
+/* A completed task: struck through, in the muted text color. The mock fades it to 45%, but faded
+   text would not reach 4.5:1, so the strike line is the part that is faded. */
+.wd-preview .task-list-item.is-checked {
+  color: var(--wd-on-surface-variant);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, currentcolor 45%, transparent);
+}
+
+.wd-preview .task-list-item.is-checked .task-list-item:not(.is-checked) {
+  color: var(--wd-on-surface);
+  text-decoration: none;
+}
+
+/* ---- Footnotes -------------------------------------------------------------------------------- */
+
+.wd-preview .footnote-ref {
+  font-size: 0.75em;
+  line-height: 0;
+}
+
+.wd-preview .footnote-ref a,
+.wd-preview .footnote-backref {
+  text-decoration: none;
+}
+
+.wd-preview .footnotes-sep {
+  margin: 32px 0 16px;
+}
+
+.wd-preview .footnotes {
+  color: var(--wd-on-surface-variant);
+  font-size: var(--wd-text-body-sm-size);
+  line-height: var(--wd-text-body-sm-line-height);
+  letter-spacing: var(--wd-text-body-sm-tracking);
+}
+
+.wd-preview .footnotes-list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.wd-preview .footnotes-list p {
+  margin: 0;
+}
+
+/* ---- Math ------------------------------------------------------------------------------------- */
+
+.wd-preview .math {
+  font-style: normal;
+}
+
+/* Until KaTeX has drawn it, a formula shows its source. */
+.wd-preview .math:not(.math-rendered) {
+  color: var(--wd-on-surface-variant);
+  font-family: var(--wd-font-mono);
+  font-size: var(--wd-text-code-inline-size);
+}
+
+.wd-preview .math-display {
+  margin: 0 0 16px;
+  text-align: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.wd-preview .math math {
+  font-size: 1.1em;
+}
+
+.wd-preview .math-error,
+.wd-preview .katex-error {
+  color: var(--wd-error);
+  font-family: var(--wd-font-mono);
+  font-size: var(--wd-text-code-inline-size);
+}
+
+/* ---- Images ----------------------------------------------------------------------------------- */
+
+.wd-preview .wd-image-missing {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 10px 14px;
+  border: 1px dashed var(--wd-outline);
+  border-radius: 8px;
+  background: var(--wd-surface-container-low);
+  color: var(--wd-on-surface-variant);
+  font-size: var(--wd-text-body-sm-size);
+  line-height: var(--wd-text-body-sm-line-height);
+  vertical-align: middle;
+}
+
+.wd-preview .wd-image-missing-icon {
+  display: inline-flex;
+  flex: none;
+}
+
+.wd-preview .wd-image-missing-text {
+  overflow-wrap: anywhere;
+}
+
+/* Remote images off: the host the picture would have come from. */
+.wd-preview .wd-image-remote-host {
+  color: var(--wd-on-surface-variant);
+  font-family: var(--wd-font-mono);
+  font-size: var(--wd-text-label-sm-size);
+  overflow-wrap: anywhere;
+}
+
+/* Obsidian comments shown dimmed (setting). */
+.wd-preview .wd-comment {
+  color: var(--wd-on-surface-variant);
+  font-style: italic;
+  white-space: pre-wrap;
+}
+
+/* ---- Large documents ------------------------------------------------------------------------
+   The controller adds `wd-preview-large` from 1,500 blocks on and then shows the content of the
+   blocks near the viewport only. Every other block is an empty box (`wd-far`: its children do not
+   exist for the layout) with the height it had when it was last seen, or an estimate: the browser
+   does not lay out, style or paint what it does not show, and a document of 5 MiB has some 370,000
+   nodes. `content-visibility: auto` was tried for this and keeps the cost of the nodes it skips.
+   A block is its own formatting context, so the margins of its first and last child do not
+   collapse with those of the neighbors and its height includes them. To keep the spacing the same,
+   a block starts flush and the headings give up the 16 px that the paragraph above them already
+   leaves. Offsets far from the reader are approximate until the reader gets there. */
+
+/* The controller keeps the position of what the reader looks at itself, when blocks above it get
+   their content and another height (the browser's own scroll anchoring would do it a second time). */
+.wd-preview.wd-preview-large {
+  overflow-anchor: none;
+}
+
+.wd-preview.wd-preview-large > .wd-block {
+  display: flow-root;
+}
+
+.wd-preview.wd-preview-large > .wd-block.wd-far > * {
+  display: none;
+}
+
+.wd-preview.wd-preview-large > .wd-block > :first-child {
+  margin-top: 0;
+}
+
+.wd-preview.wd-preview-large > .wd-block > h2:first-child {
+  margin-top: 12px;
+}
+
+.wd-preview.wd-preview-large > .wd-block > h3:first-child {
+  margin-top: 4px;
+}
+
+.wd-preview.wd-preview-large > .wd-block > hr:first-child {
+  margin-top: 8px;
+}
+
+/* ---- First and last block: no outer margin ------------------------------------------------------ */
+
+.wd-preview > .wd-block:first-child > :first-child {
+  margin-top: 0;
+}
+
+.wd-preview > .wd-block:last-child > :last-child {
+  margin-bottom: 0;
+}
+
+/* ---- Parse error banner (MDX), made by the controller, above the blocks --------------------- */
+
+.mdx-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--wd-error);
+  border-radius: 8px;
+  background: var(--wd-error-container);
+  color: var(--wd-on-error-container);
+  font-family: var(--wd-font-sans);
+  font-size: var(--wd-text-body-md-size);
+}
+
+.mdx-error-banner .mdx-error-text {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.mdx-error-banner .mdx-error-goto {
+  flex: none;
+  padding: 4px 12px;
+  border: 1px solid var(--wd-on-error-container);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--wd-on-error-container);
+  font: inherit;
+  cursor: pointer;
+}
+
+.mdx-error-banner .mdx-error-goto:focus-visible {
+  outline: 2px solid var(--wd-on-error-container);
+  outline-offset: 2px;
+}
+
+/* ---- MDX: components, ESM, expressions --------------------------------------------------------- */
+
+.wd-preview .mdx-component {
+  margin-block: 0 16px;
+  border: 1px solid var(--wd-hairline);
+  border-radius: 8px;
+  background: var(--wd-surface-container-low);
+}
+
+.wd-preview .mdx-component-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  padding: 6px 12px;
+  font-family: var(--wd-font-mono);
+  font-size: var(--wd-text-code-inline-size);
+  color: var(--wd-on-surface-variant);
+}
+
+.wd-preview .mdx-component-name {
+  color: var(--wd-primary);
+  font-weight: 600;
+}
+
+.wd-preview .mdx-props {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+}
+
+.wd-preview .mdx-prop-name {
+  color: var(--wd-tertiary);
+}
+
+.wd-preview .mdx-component-children {
+  padding: 8px 12px 0;
+  border-top: 1px solid var(--wd-hairline);
+}
+
+.wd-preview .mdx-component.is-inline {
+  display: inline;
+  margin: 0;
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+.wd-preview .mdx-component.is-inline .mdx-component-header {
+  display: inline;
+  padding: 0 4px 0 0;
+}
+
+.wd-preview .mdx-component.is-inline .mdx-component-children {
+  display: inline;
+  padding: 0;
+  border: 0;
+}
+
+.wd-preview details.mdx-esm {
+  margin-block: 0 16px;
+  color: var(--wd-on-surface-variant);
+}
+
+.wd-preview details.mdx-esm > summary {
+  cursor: pointer;
+  font-family: var(--wd-font-sans);
+  font-size: var(--wd-text-body-sm-size);
+  color: var(--wd-on-surface-variant);
+}
+
+.wd-preview code.mdx-expression {
+  color: var(--wd-on-surface-variant);
+}
+
+/* ---- Mermaid diagrams ------------------------------------------------------------------------ */
+/* The source shows until the SVG is ready, and stays under a syntax error. */
+
+.wd-preview .mermaid-diagram {
+  margin-block: 0 16px;
+  padding: 16px;
+  border: 1px solid var(--wd-hairline);
+  border-radius: 8px;
+  background: var(--wd-surface-container-lowest);
+  overflow-x: auto;
+
+  & .mermaid-source {
+    margin: 0;
+    font-family: var(--wd-font-mono);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--wd-on-surface-variant);
+    white-space: pre;
+  }
+
+  & .mermaid-svg {
+    display: flex;
+    justify-content: center;
+
+    & svg {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+  }
+
+  & .mermaid-error {
+    margin: 12px 0 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--wd-on-surface-variant);
+    white-space: pre-wrap;
+    font-family: var(--wd-font-mono);
+  }
+}
+
+/* ---- Graphviz diagrams ------------------------------------------------------------------------ */
+/* The source shows until the SVG is ready, and stays under a syntax error. */
+
+.wd-preview .graphviz-diagram {
+  margin-block: 0 16px;
+  padding: 16px;
+  border: 1px solid var(--wd-hairline);
+  border-radius: 8px;
+  background: var(--wd-surface-container-lowest);
+  overflow-x: auto;
+
+  & .graphviz-source {
+    margin: 0;
+    font-family: var(--wd-font-mono);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--wd-on-surface-variant);
+    white-space: pre;
+  }
+
+  & .graphviz-svg {
+    display: flex;
+    justify-content: center;
+
+    & svg {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+  }
+
+  & .graphviz-error {
+    margin: 12px 0 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--wd-on-surface-variant);
+    white-space: pre-wrap;
+    font-family: var(--wd-font-mono);
+  }
+}
+
+/* Classes a document may give with {.name}: always namespaced doc-<name> (Pandoc family). */
+.doc-smallcaps {
+  font-variant: small-caps;
+}
+.doc-underline {
+  text-decoration: underline;
+}
+.doc-mark {
+  background: var(--wd-surface-container-high);
+}
+.doc-hidden {
+  display: none;
+}
+
+/* Pandoc family: title block, line blocks, definition lists, CriticMarkup, figures. */
+.wd-title-block {
+  margin-bottom: 1.5rem;
+}
+.wd-title-block .subtitle,
+.wd-title-block .date {
+  color: var(--wd-on-surface-variant);
+}
+.wd-title-block .author {
+  margin: 0;
+}
+.wd-title-block .affiliation {
+  color: var(--wd-on-surface-variant);
+  margin-left: 0.5em;
+  font-size: 0.9em;
+}
+.line-block {
+  white-space: normal;
+  margin: 1em 0;
+}
+.wd-preview .wd-block dl dt {
+  font-weight: 600;
+  margin-top: 0.75em;
+}
+.wd-preview .wd-block dl dd {
+  margin-left: 1.5em;
+}
+.critic-comment {
+  color: var(--wd-on-surface-variant);
+  font-style: italic;
+}
+.critic-comment::before {
+  content: "\201C";
+}
+.critic-comment::after {
+  content: "\201D";
+}
+ins.critic,
+.critic-sub ins {
+  text-decoration: underline;
+}
+del.critic,
+.critic-sub del {
+  text-decoration: line-through;
+  color: var(--wd-on-surface-variant);
+}
+
+/* ================================================================================================
+   Obsidian (wikilinks, embeds, tags, highlights, properties, the other callout types)
+   ================================================================================================ */
+
+.wd-preview a.wikilink {
+  color: var(--wd-primary);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--wd-primary) 40%, transparent);
+  text-underline-offset: 2px;
+}
+
+/* A link that points nowhere: muted and dashed, not a link color. */
+.wd-preview a.wikilink.is-unresolved {
+  color: var(--wd-on-surface-variant);
+  text-decoration-style: dashed;
+  text-decoration-color: color-mix(in srgb, var(--wd-on-surface-variant) 60%, transparent);
+  cursor: default;
+}
+
+.wd-preview span.tag {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--wd-primary) 10%, transparent);
+  color: var(--wd-primary);
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.wd-preview mark {
+  padding: 0 2px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--wd-warning) 30%, transparent);
+  color: inherit;
+}
+
+.wd-preview table.properties {
+  margin: 0 0 16px;
+  background: var(--wd-surface-container-low);
+}
+
+.wd-preview table.properties th {
+  width: 28%;
+  background: transparent;
+  color: var(--wd-on-surface-variant);
+  font-weight: 500;
+}
+
+.wd-preview table.properties span.tag + span.tag {
+  margin-left: 4px;
+}
+
+.wd-preview .embed {
+  margin: 0 0 16px;
+  border-left: 3px solid color-mix(in srgb, var(--wd-primary) 50%, transparent);
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in srgb, var(--wd-on-surface) 3%, transparent);
+}
+
+.wd-preview .embed-title {
+  padding: 6px 14px 0;
+  color: var(--wd-on-surface-variant);
+  font-size: var(--wd-text-label-sm-size);
+  line-height: var(--wd-text-label-sm-line-height);
+  font-weight: 600;
+}
+
+.wd-preview .embed-content {
+  padding: 4px 14px 10px;
+}
+
+.wd-preview .embed > .embed-content > :last-child {
+  margin-bottom: 0;
+}
+
+.wd-preview .embed-content:empty {
+  display: none;
+}
+
+.wd-preview .embed-note {
+  margin: 0;
+  color: var(--wd-on-surface-variant);
+  font-size: var(--wd-text-body-sm-size);
+  font-style: italic;
+}
+
+.wd-preview .embed.is-unresolved {
+  border-left-style: dashed;
+}
+
+.wd-preview .embed-file {
+  padding-bottom: 6px;
+}
+
+.wd-preview .embed-file .embed-link {
+  color: var(--wd-primary);
+}
+
+/* The Obsidian callout looks that GitHub does not have, and the foldable ones. */
+.wd-preview .callout-abstract,
+.wd-preview .callout-info,
+.wd-preview .callout-todo {
+  --callout-accent: var(--wd-primary);
+}
+
+.wd-preview .callout-success {
+  --callout-accent: var(--wd-tertiary);
+}
+
+.wd-preview .callout-question {
+  --callout-accent: var(--wd-warning);
+}
+
+.wd-preview .callout-failure,
+.wd-preview .callout-danger,
+.wd-preview .callout-bug {
+  --callout-accent: var(--wd-error);
+}
+
+.wd-preview .callout-example {
+  --callout-accent: var(--wd-secondary);
+}
+
+.wd-preview .callout-quote {
+  --callout-accent: var(--wd-on-surface-variant);
+}
+
+.wd-preview details.callout > summary.callout-title {
+  cursor: pointer;
+  list-style: none;
+}
+
+.wd-preview details.callout > summary.callout-title::-webkit-details-marker {
+  display: none;
+}
+
+.wd-preview details.callout > summary.callout-title::after {
+  content: "";
+  margin-left: auto;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--callout-accent);
+  border-bottom: 2px solid var(--callout-accent);
+  transform: rotate(45deg);
+}
+
+.wd-preview details.callout[open] > summary.callout-title::after {
+  transform: rotate(-135deg);
+}
+
+.wd-preview details.callout > summary.callout-title:focus-visible {
+  outline: 2px solid var(--callout-accent);
+  outline-offset: 2px;
+}

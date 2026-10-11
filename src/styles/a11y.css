@@ -1,0 +1,389 @@
+/* Accessibility rules (Phase 4, WP4.4). Everything here is switched on by a data attribute or a
+   variable that src/shell/appearance.ts sets on the document element, so with every setting at its
+   default nothing in this file matches and nothing changes.
+
+   - data-scaled      interface scale other than 1 (the factor is --wd-scale)
+   - data-motion      "reduce": no transitions, animations or caret blink
+   - data-contrast    "more": 1.5 px dividers in `outline`, 2 px focus rings
+   - data-dyslexia    the dyslexia-friendly mode (--wd-dyslexia-font names the typeface)
+   - data-ruler       the reading ruler is on (--wd-ruler is the tint)
+*/
+
+:root {
+  /* Reading ruler tints. Text (on-surface and on-surface-variant) keeps at least 4.5:1 on each
+     one in light and dark; tests/unit/a11y-contrast.test.ts computes the ratios from these values. */
+  --wd-ruler-yellow: #fff1a8;
+  --wd-ruler-blue: #cfe3ff;
+  --wd-ruler-green: #cdeed3;
+  --wd-ruler-pink: #ffd9e6;
+  --wd-ruler: var(--wd-ruler-yellow);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --wd-ruler-yellow: #4a4310;
+    --wd-ruler-blue: #17375c;
+    --wd-ruler-green: #17402a;
+    --wd-ruler-pink: #55203a;
+  }
+}
+
+:root[data-theme="dark"] {
+  --wd-ruler-yellow: #4a4310;
+  --wd-ruler-blue: #17375c;
+  --wd-ruler-green: #17402a;
+  --wd-ruler-pink: #55203a;
+}
+
+:root[data-ruler-tint="yellow"] {
+  --wd-ruler: var(--wd-ruler-yellow);
+}
+:root[data-ruler-tint="blue"] {
+  --wd-ruler: var(--wd-ruler-blue);
+}
+:root[data-ruler-tint="green"] {
+  --wd-ruler: var(--wd-ruler-green);
+}
+:root[data-ruler-tint="pink"] {
+  --wd-ruler: var(--wd-ruler-pink);
+}
+
+/* The editor's current-line highlight gives way to the ruler while it is on. */
+:root[data-ruler] .cm-activeLine {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.cm-wd-ruler {
+  background-color: var(--wd-ruler);
+  pointer-events: none;
+}
+
+/* The preview ruler is one element, moved while the pointer moves. It sits behind the text. */
+.wd-preview-ruler {
+  position: absolute;
+  left: 0;
+  z-index: -1;
+  background-color: var(--wd-ruler);
+  pointer-events: none;
+}
+
+/* ---- interface scale --------------------------------------------------------------------------
+   The window's controls follow --wd-scale: Tailwind's spacing unit (every h-*, w-*, p-*, gap-*),
+   the spacing tokens and the chrome type tokens. The preview sets its own type tokens (shell.css)
+   from fixed values, and the editor takes its size from --wd-editor-font-size, so the document
+   text follows the zoom only. */
+:root[data-scaled] {
+  --spacing: calc(0.25rem * var(--wd-scale));
+  --wd-spacing-gutter: calc(1rem * var(--wd-scale));
+  --wd-spacing-margin: calc(1.5rem * var(--wd-scale));
+  --wd-spacing-space-xs: calc(0.25rem * var(--wd-scale));
+  --wd-spacing-space-sm: calc(0.5rem * var(--wd-scale));
+  --wd-spacing-space-md: calc(0.875rem * var(--wd-scale));
+  --wd-spacing-space-lg: calc(1.25rem * var(--wd-scale));
+  --wd-spacing-space-xl: calc(2rem * var(--wd-scale));
+  --wd-text-headline-xl-size: calc(32px * var(--wd-scale));
+  --wd-text-headline-xl-line-height: calc(40px * var(--wd-scale));
+  --wd-text-headline-lg-size: calc(26px * var(--wd-scale));
+  --wd-text-headline-lg-line-height: calc(34px * var(--wd-scale));
+  --wd-text-headline-md-size: calc(20px * var(--wd-scale));
+  --wd-text-headline-md-line-height: calc(28px * var(--wd-scale));
+  --wd-text-headline-sm-size: calc(16px * var(--wd-scale));
+  --wd-text-headline-sm-line-height: calc(24px * var(--wd-scale));
+  --wd-text-body-lg-size: calc(17px * var(--wd-scale));
+  --wd-text-body-lg-line-height: calc(28px * var(--wd-scale));
+  --wd-text-body-md-size: calc(15px * var(--wd-scale));
+  --wd-text-body-md-line-height: calc(24px * var(--wd-scale));
+  --wd-text-body-sm-size: calc(13px * var(--wd-scale));
+  --wd-text-body-sm-line-height: calc(20px * var(--wd-scale));
+  --wd-text-code-inline-size: calc(13.5px * var(--wd-scale));
+  --wd-text-code-inline-line-height: calc(20px * var(--wd-scale));
+  --wd-text-code-block-size: calc(13px * var(--wd-scale));
+  --wd-text-code-block-line-height: calc(22px * var(--wd-scale));
+  --wd-text-label-md-size: calc(12px * var(--wd-scale));
+  --wd-text-label-md-line-height: calc(16px * var(--wd-scale));
+  --wd-text-label-sm-size: calc(11px * var(--wd-scale));
+  --wd-text-label-sm-line-height: calc(14px * var(--wd-scale));
+}
+
+/* ---- reduce motion ----------------------------------------------------------------------------- */
+:root[data-motion="reduce"],
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] *::before,
+:root[data-motion="reduce"] *::after {
+  /* biome-ignore lint/complexity/noImportantStyles: CodeMirror injects its own caret blink rule */
+  transition: none !important;
+  /* biome-ignore lint/complexity/noImportantStyles: CodeMirror injects its own caret blink rule */
+  animation: none !important;
+  /* biome-ignore lint/complexity/noImportantStyles: no smooth scrolling from any rule */
+  scroll-behavior: auto !important;
+}
+
+/* ---- high-contrast dividers --------------------------------------------------------------------
+   Every divider is 1.5 px solid in `outline` (3:1 or more against both neighbors, WCAG 1.4.11).
+   Tailwind's border utilities carry the color as `border-outline-variant/NN`, so the rules match
+   the class and the sides it draws. */
+:root[data-contrast="more"] {
+  --wd-hairline: var(--wd-outline);
+}
+:root[data-contrast="more"] [class*="border-outline-variant"] {
+  border-color: var(--wd-outline);
+}
+:root[data-contrast="more"] [class*="border-outline-variant"][class~="border"] {
+  border-width: 1.5px;
+}
+:root[data-contrast="more"]
+  [class*="border-outline-variant"]:is([class~="border-b"], [class~="border-y"]) {
+  border-bottom-width: 1.5px;
+}
+:root[data-contrast="more"]
+  [class*="border-outline-variant"]:is([class~="border-t"], [class~="border-y"]) {
+  border-top-width: 1.5px;
+}
+:root[data-contrast="more"]
+  [class*="border-outline-variant"]:is([class~="border-l"], [class~="border-x"]) {
+  border-left-width: 1.5px;
+}
+:root[data-contrast="more"]
+  [class*="border-outline-variant"]:is([class~="border-r"], [class~="border-x"]) {
+  border-right-width: 1.5px;
+}
+:root[data-contrast="more"] .wd-preview :is(h1, pre, hr, table, th, td, .code-card, kbd) {
+  border-color: var(--wd-outline);
+}
+:root[data-contrast="more"] .wd-preview h1 {
+  border-bottom-width: 1.5px;
+}
+:root[data-contrast="more"] .wd-preview hr {
+  border-top-width: 1.5px;
+}
+:root[data-contrast="more"] .wd-preview :is(pre, table, .code-card, kbd) {
+  border-width: 1.5px;
+}
+:root[data-contrast="more"] .wd-preview :is(th, td) {
+  border-bottom-width: 1.5px;
+}
+:root[data-contrast="more"] :focus-visible {
+  outline-width: 2px;
+}
+
+/* ---- dyslexia-friendly mode --------------------------------------------------------------------
+   The preview takes the chosen typeface and the WCAG 2.2 text-spacing values (1.4.12): line height
+   1.5, paragraph spacing 2, letter spacing 0.12 and word spacing 0.16 times the font size. The
+   editor keeps its monospace font and takes the letter and word spacing. */
+:root[data-dyslexia] .wd-preview {
+  font-family: var(--wd-dyslexia-font);
+  letter-spacing: 0.12em;
+  word-spacing: 0.16em;
+}
+:root[data-dyslexia]
+  .wd-preview
+  :is(p, li, h1, h2, h3, h4, h5, h6, th, td, dt, dd, blockquote, figcaption, summary) {
+  font-family: var(--wd-dyslexia-font);
+  line-height: 1.8;
+}
+:root[data-dyslexia] .wd-preview :is(h1, h2, h3, h4, h5, h6) {
+  line-height: 1.5;
+}
+:root[data-dyslexia] .wd-preview p {
+  margin-block-end: 2em;
+}
+:root[data-dyslexia] .wd-preview .wd-tag {
+  letter-spacing: 0.12em;
+  word-spacing: 0.16em;
+}
+:root[data-dyslexia] .wd-preview :is(pre, code, kbd, .katex) {
+  letter-spacing: normal;
+  word-spacing: normal;
+}
+:root[data-dyslexia] .cm-content {
+  letter-spacing: 0.12em;
+  word-spacing: 0.16em;
+}
+
+/* ---- focus-line spotlight (editor only) ---------------------------------------------------------- */
+.cm-wd-spotlight .cm-line {
+  opacity: 0.35;
+}
+.cm-wd-spotlight .cm-line.cm-wd-bright {
+  opacity: 1;
+}
+
+/* ---- scaled sizes without style attributes ---------------------------------------------------
+   Icons, outline indents and Files tree indents are classes, one per value in use, so the scale
+   (--wd-scale, 1 when unset) reaches them without any inline style. Generated list: icon sizes
+   10 to 24 px, outline levels 1 to 6, tree levels 1 to 32 (deeper rows share level 32). */
+.wd-icon-10 {
+  width: calc(10px * var(--wd-scale, 1));
+  height: calc(10px * var(--wd-scale, 1));
+}
+.wd-icon-11 {
+  width: calc(11px * var(--wd-scale, 1));
+  height: calc(11px * var(--wd-scale, 1));
+}
+.wd-icon-12 {
+  width: calc(12px * var(--wd-scale, 1));
+  height: calc(12px * var(--wd-scale, 1));
+}
+.wd-icon-13 {
+  width: calc(13px * var(--wd-scale, 1));
+  height: calc(13px * var(--wd-scale, 1));
+}
+.wd-icon-14 {
+  width: calc(14px * var(--wd-scale, 1));
+  height: calc(14px * var(--wd-scale, 1));
+}
+.wd-icon-15 {
+  width: calc(15px * var(--wd-scale, 1));
+  height: calc(15px * var(--wd-scale, 1));
+}
+.wd-icon-16 {
+  width: calc(16px * var(--wd-scale, 1));
+  height: calc(16px * var(--wd-scale, 1));
+}
+.wd-icon-17 {
+  width: calc(17px * var(--wd-scale, 1));
+  height: calc(17px * var(--wd-scale, 1));
+}
+.wd-icon-18 {
+  width: calc(18px * var(--wd-scale, 1));
+  height: calc(18px * var(--wd-scale, 1));
+}
+.wd-icon-19 {
+  width: calc(19px * var(--wd-scale, 1));
+  height: calc(19px * var(--wd-scale, 1));
+}
+.wd-icon-20 {
+  width: calc(20px * var(--wd-scale, 1));
+  height: calc(20px * var(--wd-scale, 1));
+}
+.wd-icon-21 {
+  width: calc(21px * var(--wd-scale, 1));
+  height: calc(21px * var(--wd-scale, 1));
+}
+.wd-icon-22 {
+  width: calc(22px * var(--wd-scale, 1));
+  height: calc(22px * var(--wd-scale, 1));
+}
+.wd-icon-23 {
+  width: calc(23px * var(--wd-scale, 1));
+  height: calc(23px * var(--wd-scale, 1));
+}
+.wd-icon-24 {
+  width: calc(24px * var(--wd-scale, 1));
+  height: calc(24px * var(--wd-scale, 1));
+}
+.wd-outline-indent-1 {
+  padding-left: calc(8px * var(--wd-scale, 1));
+}
+.wd-outline-indent-2 {
+  padding-left: calc(16px * var(--wd-scale, 1));
+}
+.wd-outline-indent-3 {
+  padding-left: calc(24px * var(--wd-scale, 1));
+}
+.wd-outline-indent-4 {
+  padding-left: calc(32px * var(--wd-scale, 1));
+}
+.wd-outline-indent-5 {
+  padding-left: calc(40px * var(--wd-scale, 1));
+}
+.wd-outline-indent-6 {
+  padding-left: calc(48px * var(--wd-scale, 1));
+}
+.wd-tree-indent-1 {
+  padding-left: calc(4px * var(--wd-scale, 1));
+}
+.wd-tree-indent-2 {
+  padding-left: calc(18px * var(--wd-scale, 1));
+}
+.wd-tree-indent-3 {
+  padding-left: calc(32px * var(--wd-scale, 1));
+}
+.wd-tree-indent-4 {
+  padding-left: calc(46px * var(--wd-scale, 1));
+}
+.wd-tree-indent-5 {
+  padding-left: calc(60px * var(--wd-scale, 1));
+}
+.wd-tree-indent-6 {
+  padding-left: calc(74px * var(--wd-scale, 1));
+}
+.wd-tree-indent-7 {
+  padding-left: calc(88px * var(--wd-scale, 1));
+}
+.wd-tree-indent-8 {
+  padding-left: calc(102px * var(--wd-scale, 1));
+}
+.wd-tree-indent-9 {
+  padding-left: calc(116px * var(--wd-scale, 1));
+}
+.wd-tree-indent-10 {
+  padding-left: calc(130px * var(--wd-scale, 1));
+}
+.wd-tree-indent-11 {
+  padding-left: calc(144px * var(--wd-scale, 1));
+}
+.wd-tree-indent-12 {
+  padding-left: calc(158px * var(--wd-scale, 1));
+}
+.wd-tree-indent-13 {
+  padding-left: calc(172px * var(--wd-scale, 1));
+}
+.wd-tree-indent-14 {
+  padding-left: calc(186px * var(--wd-scale, 1));
+}
+.wd-tree-indent-15 {
+  padding-left: calc(200px * var(--wd-scale, 1));
+}
+.wd-tree-indent-16 {
+  padding-left: calc(214px * var(--wd-scale, 1));
+}
+.wd-tree-indent-17 {
+  padding-left: calc(228px * var(--wd-scale, 1));
+}
+.wd-tree-indent-18 {
+  padding-left: calc(242px * var(--wd-scale, 1));
+}
+.wd-tree-indent-19 {
+  padding-left: calc(256px * var(--wd-scale, 1));
+}
+.wd-tree-indent-20 {
+  padding-left: calc(270px * var(--wd-scale, 1));
+}
+.wd-tree-indent-21 {
+  padding-left: calc(284px * var(--wd-scale, 1));
+}
+.wd-tree-indent-22 {
+  padding-left: calc(298px * var(--wd-scale, 1));
+}
+.wd-tree-indent-23 {
+  padding-left: calc(312px * var(--wd-scale, 1));
+}
+.wd-tree-indent-24 {
+  padding-left: calc(326px * var(--wd-scale, 1));
+}
+.wd-tree-indent-25 {
+  padding-left: calc(340px * var(--wd-scale, 1));
+}
+.wd-tree-indent-26 {
+  padding-left: calc(354px * var(--wd-scale, 1));
+}
+.wd-tree-indent-27 {
+  padding-left: calc(368px * var(--wd-scale, 1));
+}
+.wd-tree-indent-28 {
+  padding-left: calc(382px * var(--wd-scale, 1));
+}
+.wd-tree-indent-29 {
+  padding-left: calc(396px * var(--wd-scale, 1));
+}
+.wd-tree-indent-30 {
+  padding-left: calc(410px * var(--wd-scale, 1));
+}
+.wd-tree-indent-31 {
+  padding-left: calc(424px * var(--wd-scale, 1));
+}
+.wd-tree-indent-32 {
+  padding-left: calc(438px * var(--wd-scale, 1));
+}

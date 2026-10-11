@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Preview harness</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--wd-surface-container-lowest, #fff);
+      }
+      #scroll {
+        box-sizing: border-box;
+        height: 100vh;
+        overflow-y: auto;
+        padding: 32px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- A page that mounts the preview pipeline and controller, for the tests in tests/ui. -->
+    <div id="scroll" data-testid="scroll">
+      <article id="preview" class="wd-preview" data-testid="preview"></article>
+    </div>
+    <script type="module" src="./preview.ts"></script>
+  </body>
+</html>
