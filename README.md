@@ -1,5 +1,7 @@
 # Writedown
 
+[![Latest release](https://img.shields.io/github/v/release/masud90/writedown?label=release)](https://github.com/masud90/writedown/releases/latest)
+
 Writedown is a Markdown reader and writer for macOS. It shows your document as you write it, in one
 window with tabs, and handles six Markdown flavors: CommonMark, GitHub Flavored Markdown, Obsidian,
 Pandoc / MultiMarkdown, Quarto / R Markdown and MDX. It is built with Tauri 2, Svelte 5 and CodeMirror 6,
