@@ -69,6 +69,7 @@ const FALLBACK_SETTINGS: Settings = {
     autoPair: false,
     continueLists: true,
     typewriter: false,
+    livePreview: false,
     paneHeaders: true,
     softWrap: true,
     lineNumbers: true,
@@ -173,6 +174,7 @@ export class Shell implements WorkspaceHost {
     sidebarVisible: this.settings.view.sidebarVisible,
     syncScroll: this.settings.view.syncScroll,
     typewriter: this.settings.editor.typewriter,
+    livePreview: this.settings.editor.livePreview,
     tabCount: this.tabs.length,
     hasPath: this.active?.path != null,
     canExportDocx: this.pandocFound,
@@ -243,6 +245,8 @@ export class Shell implements WorkspaceHost {
     // Listeners first, so nothing that arrives while the rest of startup runs is lost.
     this.cleanups.push(
       await p.onOpenFiles((paths) => void this.enqueue(() => this.openPaths(paths))),
+      // Images go to the document on show now, where they were dropped (not after queued work).
+      await p.onDropImages((drop) => void this.workspace?.dropImages(drop)),
       await p.onMenuAction((action) => void this.enqueue(() => this.handleAction(action))),
       await p.onCloseRequested((reason) => void this.enqueue(() => this.closeRequested(reason))),
       await p.onSettingsChanged((next) => this.applySettings(next)),
@@ -800,6 +804,8 @@ export class Shell implements WorkspaceHost {
     tab.savedLineEnding = this.settings.saving.newLineEnding;
     this.addTab(tab);
     await this.activate(tab.id);
+    // A new document is for typing: the caret is in the editor right away.
+    if (this.activeId === tab.id && tab.view !== 'preview') this.workspace?.focusEditor();
   }
 
   async openGuide(): Promise<void> {
@@ -993,6 +999,9 @@ export class Shell implements WorkspaceHost {
     const next = wasActive ? (remaining[index] ?? remaining[index - 1] ?? null) : null;
     this.saveDocState(id);
     this.workspace?.drop(id);
+    // The next tab becomes active in the same step: with no active tab for a moment the
+    // workspace would be taken down and made again.
+    if (wasActive && next) this.activeId = next.id;
     this.tabs = remaining;
     if (!wasActive) return;
     if (next) {

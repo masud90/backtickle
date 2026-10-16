@@ -23,7 +23,7 @@ const MENU_ACTIONS: MenuAction[] = [
   'image', 'quote', 'bullet-list', 'numbered-list', 'task-list', 'code-block', 'table', 'rule',
   'heading-1', 'heading-2', 'heading-3', 'heading-4', 'heading-5', 'heading-6', 'paragraph',
   'command-palette', 'view-editor', 'view-split', 'view-preview', 'toggle-sidebar',
-  'toggle-sync-scroll', 'toggle-typewriter', 'toggle-exact-preview', 'render-quarto', 'zoom-in', 'zoom-out', 'zoom-reset', 'next-tab', 'previous-tab',
+  'toggle-sync-scroll', 'toggle-typewriter', 'toggle-live-preview', 'toggle-exact-preview', 'render-quarto', 'zoom-in', 'zoom-out', 'zoom-reset', 'next-tab', 'previous-tab',
   'markdown-guide', 'move-tab-to-new-window',
 ]; // biome-ignore format: a long list
 

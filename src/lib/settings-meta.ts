@@ -273,6 +273,16 @@ export const SETTINGS_META: readonly SettingMeta[] = [
     keywords: ['typewriter', 'center', 'centre', 'scroll', 'middle', 'focus'],
   },
   {
+    key: 'editor.livePreview',
+    kind: 'boolean',
+    default: false,
+    label: 'Live preview in the editor',
+    description:
+      'Hide Markdown syntax outside the lines you are editing: headings, emphasis, links, lists and images look as they will.',
+    category: 'editor',
+    keywords: ['live preview', 'wysiwyg', 'hide syntax', 'markup', 'inline', 'typora', 'obsidian'],
+  },
+  {
     key: 'editor.continueLists',
     kind: 'boolean',
     default: true,

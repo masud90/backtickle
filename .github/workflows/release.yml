@@ -1,0 +1,87 @@
+name: Release
+
+# Builds the universal app and DMG for a version tag (v0.2.0) and attaches them to a draft
+# release, which is published by hand. The app is signed and notarized when the Apple secrets
+# below are set in the repository; without them it is built unsigned, as before.
+#
+#   APPLE_CERTIFICATE           base64 of the Developer ID Application .p12
+#   APPLE_CERTIFICATE_PASSWORD  password of the .p12
+#   APPLE_SIGNING_IDENTITY      "Developer ID Application: Name (TEAMID)"
+#   APPLE_ID                    Apple ID email used for notarization
+#   APPLE_PASSWORD              app-specific password of that Apple ID
+#   APPLE_TEAM_ID               team ID
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag to build (it must already exist, e.g. v0.2.0)
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Check the tag matches the app version
+        run: |
+          version="$(node -p "require('./src-tauri/tauri.conf.json').version")"
+          if [[ "$TAG" != "v$version" ]]; then
+            echo "::error::Tag $TAG does not match version $version in src-tauri/tauri.conf.json"
+            exit 1
+          fi
+
+      - run: npm ci
+
+      - name: Build the universal app
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # Tauri signs when it finds a certificate and notarizes when it finds the Apple ID
+          # variables; an empty variable would make it try, so the unset ones are removed.
+          if [[ -z "$APPLE_CERTIFICATE" || -z "$APPLE_SIGNING_IDENTITY" ]]; then
+            echo "::warning::No signing certificate: the app is built unsigned and not notarized."
+            unset APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY
+            unset APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID
+          elif [[ -z "$APPLE_ID" || -z "$APPLE_PASSWORD" || -z "$APPLE_TEAM_ID" ]]; then
+            echo "::warning::No notarization credentials: the app is signed but not notarized."
+            unset APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID
+          fi
+          npm run build:app:universal
+
+      - name: Make the DMG
+        run: |
+          npm run dmg
+          cd outputs
+          for dmg in Writedown-*.dmg; do shasum -a 256 "$dmg" > "$dmg.sha256"; done
+
+      - name: Attach to a draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --draft --title "Writedown ${TAG#v}" --notes "See CHANGELOG.md."
+          fi
+          gh release upload "$TAG" outputs/Writedown-*.dmg outputs/Writedown-*.dmg.sha256 --clobber

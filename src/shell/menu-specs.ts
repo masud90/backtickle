@@ -76,6 +76,7 @@ export const SPECS: Record<MenuAction, Spec> = {
   'toggle-sidebar': ['Show or Hide Sidebar', 'window', '^⌘S'],
   'toggle-sync-scroll': ['Sync Scroll', 'document'],
   'toggle-typewriter': ['Typewriter Scrolling', 'document'],
+  'toggle-live-preview': ['Live Preview in Editor', 'document'],
   'render-quarto': ['Render with Quarto…', 'can-render'],
   'toggle-exact-preview': ['Exact Preview (Pandoc)', 'can-exact-preview'],
   'zoom-in': ['Zoom In', 'document', '⌘='],

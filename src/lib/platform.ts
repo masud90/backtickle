@@ -270,6 +270,8 @@ export interface Settings {
     continueLists: boolean;
     /** false. Keep the cursor line in the vertical middle of the editor. */
     typewriter: boolean;
+    /** false. Live preview: hide Markdown syntax outside the lines being edited. */
+    livePreview: boolean;
     /** true. Show the "Editor" and "Preview" pane headers. */
     paneHeaders: boolean;
     softWrap: boolean;
@@ -365,6 +367,13 @@ export interface DocState {
 }
 
 // ---- Folders, search, export, session (Phase 3) ---------------------------------------------
+
+/** Image files dropped on a window (`onDropImages`). */
+export interface ImageDrop {
+  paths: string[];
+  x: number;
+  y: number;
+}
 
 export interface FolderEntry {
   name: string;
@@ -588,6 +597,7 @@ export type MenuAction =
   | 'toggle-sidebar'
   | 'toggle-sync-scroll'
   | 'toggle-typewriter'
+  | 'toggle-live-preview'
   | 'toggle-exact-preview'
   | 'render-quarto'
   | 'zoom-in'
@@ -623,6 +633,8 @@ export interface MenuState {
   syncScroll: boolean;
   /** Typewriter scrolling is on (Phase 5). Missing means false. */
   typewriter?: boolean;
+  /** Live preview in the editor is on. Missing means false. */
+  livePreview?: boolean;
   tabCount: number;
   /** The active document is saved in a file (Duplicate, Rename, Move To, Revert, Copy as HTML). Missing means false. */
   hasPath?: boolean;
@@ -708,6 +720,18 @@ export interface Platform {
    */
   readImageBytes(docPath: string, src: string, maxBytes: number): Promise<Uint8Array>;
   /**
+   * Saves a pasted image (PNG, JPEG, GIF or WebP bytes) into the `assets` folder next to a
+   * saved document, under `name` (cleaned, numbered if taken). Resolves to the `src` to write in
+   * the Markdown, relative to the document. Rejects with `not-allowed` for other bytes.
+   */
+  savePastedImage(docPath: string, bytes: Uint8Array, name: string): Promise<string>;
+  /**
+   * Links an image that was dropped on the window (a path from `onDropImages`): an image in the
+   * document's folder is linked where it is, any other is copied into `assets`. Resolves to the
+   * Markdown `src`.
+   */
+  importDroppedImage(docPath: string, source: string): Promise<string>;
+  /**
    * Reads a bibliography, an included file or an embedded note that a document refers to
    * (resolved like `openLinkedDocument`). Embeds only inside the document's vault. The target is
    * read-only: it is not saved, not in the recents. Rejects with `not-found`, `not-allowed`,
@@ -743,6 +767,8 @@ export interface Platform {
   /** Replaces the whole watch set. */
   watch(set: WatchSet): Promise<void>;
   onFileChanged(handler: (changes: FileChange[]) => void): Promise<() => void>;
+  /** Image files dropped on this window, and where (CSS pixels from the top left of the page). */
+  onDropImages(handler: (drop: ImageDrop) => void): Promise<() => void>;
   searchFolder(request: SearchRequest): Promise<SearchResult>;
   cancelSearch(id: number): Promise<void>;
 
@@ -962,6 +988,21 @@ function createTauriPlatform(): Platform {
     resolveImage: (docPath, src) => call<string>('resolve_image', { docPath, src }),
     readImageBytes: async (docPath, src, maxBytes) =>
       new Uint8Array(await call<ArrayBuffer>('read_image_bytes', { docPath, src, maxBytes })),
+    savePastedImage: async (docPath, bytes, name) => {
+      try {
+        // The bytes travel as the raw body; the strings as headers, which must be ASCII.
+        return await invoke<string>('save_pasted_image', bytes, {
+          headers: {
+            'x-doc-path': encodeURIComponent(docPath),
+            'x-image-name': encodeURIComponent(name),
+          },
+        });
+      } catch (error) {
+        throw toPlatformError(error);
+      }
+    },
+    importDroppedImage: (docPath, source) =>
+      call<string>('import_dropped_image', { docPath, source }),
     readLinkedText: (fromPath, href, purpose) =>
       call<LinkedText>('read_linked_text', { fromPath, href, purpose }),
     vaultIndex: (docPath) => call<VaultIndex | null>('vault_index', { docPath }),
@@ -979,6 +1020,7 @@ function createTauriPlatform(): Platform {
 
     watch: (set) => call<void>('watch', { set }),
     onFileChanged: (handler) => subscribe<FileChange[]>('file-changed', handler),
+    onDropImages: (handler) => subscribe<ImageDrop>('drop-images', handler),
     searchFolder: (request) => call<SearchResult>('search_folder', { request }),
     cancelSearch: (id) => call<void>('cancel_search', { id }),
 

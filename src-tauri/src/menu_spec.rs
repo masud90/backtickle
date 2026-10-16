@@ -389,6 +389,12 @@ const VIEW_MENU: &[Entry] = &[
         Need::Document,
     ),
     check(
+        "toggle-live-preview",
+        "Live Preview in Editor",
+        None,
+        Need::Document,
+    ),
+    check(
         "toggle-exact-preview",
         "Exact Preview (Pandoc)",
         None,
@@ -755,6 +761,9 @@ pub struct MenuState {
     /// Typewriter scrolling is on (Phase 5). Missing means false.
     #[serde(default)]
     pub typewriter: bool,
+    /// Live preview in the editor is on. Missing means false.
+    #[serde(default)]
+    pub live_preview: bool,
     pub tab_count: u32,
     /// The active document is saved in a file (Phase 3). Missing means false.
     #[serde(default)]
@@ -785,6 +794,7 @@ impl MenuState {
             sidebar_visible: true,
             sync_scroll: true,
             typewriter: false,
+            live_preview: false,
             tab_count: 0,
             has_path: false,
             can_export_docx: false,
@@ -829,6 +839,7 @@ fn checked(id: &str, state: &MenuState, window_open: bool) -> bool {
         "toggle-sidebar" => state.sidebar_visible,
         "toggle-sync-scroll" => state.sync_scroll,
         "toggle-typewriter" => state.typewriter,
+        "toggle-live-preview" => state.live_preview,
         "toggle-exact-preview" => state.exact_preview,
         _ => false,
     }
@@ -939,8 +950,8 @@ mod tests {
         assert_eq!(ours, frontend_actions());
         assert_eq!(
             ours.len(),
-            62,
-            "44 from Phase 1 and 2, 13 added in Phase 3, 5 in Phase 5 (typewriter, move tab to new window, export-pdf, exact preview, render with Quarto)"
+            63,
+            "44 from Phase 1 and 2, 13 added in Phase 3, 5 in Phase 5 (typewriter, move tab to new window, export-pdf, exact preview, render with Quarto), 1 for live preview"
         );
     }
 
@@ -1112,6 +1123,7 @@ mod tests {
                 "toggle-sidebar",
                 "toggle-sync-scroll",
                 "toggle-typewriter",
+                "toggle-live-preview",
                 "toggle-exact-preview"
             ])
         );

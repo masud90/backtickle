@@ -155,6 +155,9 @@ function runnerFor(shell: Shell, action: MenuAction): () => Promise<void> | void
     case 'toggle-typewriter':
       return () =>
         shell.patchSettings({ editor: { typewriter: !shell.settings.editor.typewriter } });
+    case 'toggle-live-preview':
+      return () =>
+        shell.patchSettings({ editor: { livePreview: !shell.settings.editor.livePreview } });
     case 'toggle-exact-preview':
       return () => shell.toggleExactPreview();
     case 'zoom-in':

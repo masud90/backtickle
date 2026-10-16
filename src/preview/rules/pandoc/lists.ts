@@ -188,7 +188,11 @@ function list(state: StateBlock, startLine: number, endLine: number, silent: boo
     if (fancy) token.attrJoin('class', 'fancy-list');
     if (first.style === 'example') token.attrJoin('class', 'example');
     const type = TYPES[first.style];
-    if (fancy && type !== '') token.attrSet('type', type);
+    if (fancy && type !== '') {
+      token.attrSet('type', type);
+      // CSS matches `type` without regard to case: the class tells `a` from `A` for the marker.
+      token.attrJoin('class', `wd-list-${first.style}`);
+    }
     // The start of an example list is known only from the whole document (see `examples.ts`).
     const start = first.style === 'example' ? exampleNumber(state, nextLine) : first.value;
     if (start !== 1) token.attrSet('start', String(start));

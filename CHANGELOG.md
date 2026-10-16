@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Paste a screenshot or drop image files into the editor: the images are saved in an `assets` folder next to
+  the document and linked where the caret or the drop was.
+- Live Preview in Editor (View menu, off by default): the editor shows the Markdown formatted, with the source
+  shown on the lines being edited.
+- A new document takes the keyboard focus, so typing goes straight into it.
+- Fixed: closing a tab could leave the other open tabs showing empty documents.
+- Fixed: bullets and numbers were missing from lists in the preview.
+- Runs on macOS 14 Sonoma or later (with Safari 26), not only macOS 26.
+- Releases are built by a GitHub workflow from a version tag, signed and notarized when the Apple Developer
+  ID secrets are set.
+
 ## 0.1.0 (2026-10-11)
 
 First release.

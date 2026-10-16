@@ -14,7 +14,8 @@ import { type EditorState, Text } from '@codemirror/state';
 import { tick } from 'svelte';
 import type { FormatCommand } from '@/editor/commands';
 import { EditorController } from '@/editor/controller';
-import type { Settings, ViewMode } from '@/lib/platform';
+import { pastedImageName, stemOf } from '@/editor/image-input';
+import type { ImageDrop, Settings, ViewMode } from '@/lib/platform';
 import { afterNextPaint, whenSettled } from '@/perf/marks';
 import { type BenchTarget, runTypingBench } from '@/perf/typing-bench';
 import { linkFromEvent, PreviewController, taskLineFromEvent } from '@/preview/controller';
@@ -51,6 +52,16 @@ function withCaret(state: EditorState, cursor: Tab['restoreCursor']): EditorStat
   const line = state.doc.line(cursor.line);
   const anchor = line.from + Math.max(0, Math.min(cursor.column, line.length));
   return state.update({ selection: { anchor } }).state;
+}
+
+function imageError(error: unknown): string {
+  const message =
+    typeof error === 'object' && error !== null && 'message' in error
+      ? String((error as { message: unknown }).message)
+      : '';
+  return message === ''
+    ? 'The image could not be saved.'
+    : `The image could not be saved. ${message}`;
 }
 
 export class WorkspaceController implements WorkspaceApi {
@@ -130,6 +141,7 @@ export class WorkspaceController implements WorkspaceApi {
     this.stopInserts = this.editor.onInserts((inserts) =>
       this.host.setInserts(inserts.map(({ id, label, icon }) => ({ id, label, icon }))),
     );
+    this.editor.onImages((files, pos, source) => void this.pasteImages(files, pos, source));
     this.syncWasOn = host.settings.view.syncScroll;
     this.scroll = new ScrollSync({
       editor: this.editor,
@@ -151,6 +163,64 @@ export class WorkspaceController implements WorkspaceApi {
     hosts.preview.addEventListener('auxclick', this.onPreviewAuxClick);
     hosts.preview.addEventListener('keydown', this.onPreviewKeyDown);
     document.addEventListener('visibilitychange', this.onVisibilityChange);
+  }
+
+  // ---- images pasted or dropped into the editor --------------------------------------------
+
+  /** The saved document on show that images can go next to, or null (and the reader is told). */
+  private imageTarget(): { id: number; path: string } | null {
+    const tab = this.currentId === null ? undefined : this.host.getTab(this.currentId);
+    if (!tab || this.mode === 'preview') return null;
+    if (!tab.path) {
+      this.host.showError(
+        'Save the document first. Pasted and dropped images are saved in an “assets” folder next to it.',
+      );
+      return null;
+    }
+    return { id: tab.id, path: tab.path };
+  }
+
+  /** Image files from a paste or a drop on the page: saved next to the document, then linked. */
+  private async pasteImages(files: File[], pos: number, source: 'paste' | 'drop'): Promise<void> {
+    const target = this.imageTarget();
+    if (!target) return;
+    const links: Array<{ src: string; alt: string }> = [];
+    for (const file of files) {
+      const name = source === 'paste' ? pastedImageName() : stemOf(file.name);
+      try {
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        const src = await this.host.platform.savePastedImage(target.path, bytes, name);
+        links.push({ src, alt: source === 'paste' ? '' : name });
+      } catch (error) {
+        this.host.showError(imageError(error));
+      }
+    }
+    this.insertImages(target.id, pos, links);
+  }
+
+  /** Image files dropped on the window (paths from Rust): linked, or copied next to the document. */
+  async dropImages(drop: ImageDrop): Promise<void> {
+    if (this.destroyed) return;
+    const target = this.imageTarget();
+    if (!target) return;
+    const pos =
+      this.editor.posAtPoint(drop.x, drop.y) ?? this.editor.getState().selection.main.head;
+    const links: Array<{ src: string; alt: string }> = [];
+    for (const path of drop.paths) {
+      try {
+        const src = await this.host.platform.importDroppedImage(target.path, path);
+        links.push({ src, alt: stemOf(path.slice(path.lastIndexOf('/') + 1)) });
+      } catch (error) {
+        this.host.showError(imageError(error));
+      }
+    }
+    this.insertImages(target.id, pos, links);
+  }
+
+  private insertImages(id: number, pos: number, links: Array<{ src: string; alt: string }>): void {
+    // Another tab came on show while the images were saved: they stay in the folder, unlinked.
+    if (this.destroyed || this.currentId !== id || links.length === 0) return;
+    this.editor.insertImageLinks(pos, links);
   }
 
   // ---- showing a tab ------------------------------------------------------------------------
@@ -789,6 +859,8 @@ export class WorkspaceController implements WorkspaceApi {
       this.editor.setCurrentLine(next.currentLine);
     if (!last || last.autoPair !== next.autoPair) this.editor.setAutoPair(next.autoPair);
     if (!last || last.typewriter !== next.typewriter) this.editor.setTypewriter(next.typewriter);
+    if (!last || last.livePreview !== next.livePreview)
+      this.editor.setLivePreview(next.livePreview);
     if (!last || last.continueLists !== next.continueLists)
       this.editor.setContinueLists(next.continueLists);
     this.applied = { ...next };
@@ -879,7 +951,9 @@ export class WorkspaceController implements WorkspaceApi {
   }
 
   private setImageResolver(tab: Tab): void {
-    this.preview?.setImageResolver(this.imageResolver(tab) ?? null);
+    const resolve = this.imageResolver(tab) ?? null;
+    this.preview?.setImageResolver(resolve);
+    this.editor.setImageResolver(resolve);
   }
 
   private readonly onPreviewClick = (event: MouseEvent): void => {
@@ -987,6 +1061,21 @@ export class WorkspaceController implements WorkspaceApi {
   }
 
   destroy(): void {
+    // The tabs outlive the workspace: each keeps its text, undo history and saved text, so a
+    // workspace made later shows them as they were (as a tab moved from another window).
+    // The tabs are patched after the teardown that called this, not during it.
+    if (this.currentId !== null) this.states.set(this.currentId, this.editor.getState());
+    const kept = [...this.states].map(([id, state]) => ({
+      id,
+      transfer: {
+        editorState: EditorController.stateToJSON(state),
+        savedText: (this.saved.get(id) ?? state.doc).toString(),
+      },
+    }));
+    const host = this.host;
+    queueMicrotask(() => {
+      for (const { id, transfer } of kept) host.patchTab(id, { transfer });
+    });
     this.destroyed = true;
     clearTimeout(this.selectionTimer);
     cancelAnimationFrame(this.highlightFrame);

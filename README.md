@@ -59,9 +59,10 @@ uses the system WebKit and aims to keep memory use low. Nothing in a document is
 
 1. Download the DMG from the [Releases](../../releases) page.
 2. Open it and drag Writedown to Applications.
-3. The app is not signed or notarized, because there is no paid Apple Developer ID yet. macOS therefore blocks the
-   first launch. Open the app once, then go to System Settings > Privacy & Security and choose "Open Anyway".
-   Alternatively, remove the quarantine flag in Terminal:
+3. Releases built with an Apple Developer ID are signed and notarized and open like any other app. A release
+   that is not (the release notes say so) is blocked by macOS on its first launch. Open the app once, then go
+   to System Settings > Privacy & Security and choose "Open Anyway". Alternatively, remove the quarantine flag
+   in Terminal:
 
    ```sh
    xattr -dr com.apple.quarantine /Applications/Writedown.app
@@ -69,7 +70,9 @@ uses the system WebKit and aims to keep memory use low. Nothing in a document is
 
 ## Requirements
 
-macOS 26 or later. The release DMG is universal (Apple Silicon and Intel).
+macOS 14 Sonoma or later, with Safari 26 installed (Software Update offers it on Sonoma and Sequoia;
+Writedown draws its window with the system WebKit that Safari brings). The release DMG is universal
+(Apple Silicon and Intel).
 
 ## Optional tools
 
@@ -89,6 +92,15 @@ npm run dmg                   # packs the app into a DMG in outputs/
 npm run app:dev               # the app window with hot reload
 npm run dev                   # the frontend alone in a browser, on a mock platform
 ```
+
+## Releasing
+
+Push a tag that matches the version in `src-tauri/tauri.conf.json` (for example `v0.2.0`). The Release
+workflow builds the universal app and DMG and attaches them, with their SHA-256, to a draft release that you
+publish by hand. To have the app signed and notarized, add these repository secrets: `APPLE_CERTIFICATE`
+(base64 of the Developer ID Application .p12), `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`,
+`APPLE_ID`, `APPLE_PASSWORD` (an app-specific password) and `APPLE_TEAM_ID`. Without them the app is built
+unsigned, as before.
 
 ## Tests
 

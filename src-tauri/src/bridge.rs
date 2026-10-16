@@ -29,6 +29,7 @@ use crate::links;
 use crate::menu::{self, EDIT_COMMAND_EVENT, MENU_ACTION_EVENT};
 use crate::menu_spec::{MenuState, REDO_ID, UNDO_ID};
 use crate::open_files;
+use crate::pasted_images;
 use crate::pending::Pages;
 use crate::recents::RecentEntry;
 use crate::safe_save::{self, SaveFormat, SaveOptions, SaveResult};
@@ -379,6 +380,51 @@ pub async fn read_image_bytes(
     let from = grants.check_document(Path::new(&doc_path))?;
     let bytes = blocking(move || assets::read_image_bytes(&from, &src, max_bytes)).await??;
     Ok(tauri::ipc::Response::new(bytes))
+}
+
+/// A pasted image: the bytes are the raw body of the call, the document path (`x-doc-path`) and
+/// a name for the file (`x-image-name`) are percent-encoded headers. The image is written into
+/// the `assets` folder next to the granted document; the answer is the Markdown `src`.
+#[tauri::command]
+pub async fn save_pasted_image(
+    grants: State<'_, PathGrants>,
+    request: tauri::ipc::Request<'_>,
+) -> PlatformResult<String> {
+    let header = |name: &str| -> PlatformResult<String> {
+        let value = request
+            .headers()
+            .get(name)
+            .and_then(|value| value.to_str().ok())
+            .ok_or_else(|| PlatformError::io("The pasted image came without its document."))?;
+        percent_encoding::percent_decode_str(value)
+            .decode_utf8()
+            .map(|text| text.into_owned())
+            .map_err(|_| PlatformError::io("The pasted image came without its document."))
+    };
+    let doc_path = header("x-doc-path")?;
+    let name = header("x-image-name").unwrap_or_default();
+    let tauri::ipc::InvokeBody::Raw(bytes) = request.body() else {
+        return Err(PlatformError::io(
+            "The pasted image came without its bytes.",
+        ));
+    };
+    let doc = grants.check_for_save(Path::new(&doc_path))?;
+    let bytes = bytes.clone();
+    blocking(move || pasted_images::save_pasted(&doc, &bytes, &name)).await?
+}
+
+/// An image dropped on the window (remembered by the drop, see `pasted_images.rs`): linked
+/// where it is when it is in the document's folder, copied into `assets` otherwise.
+#[tauri::command]
+pub async fn import_dropped_image(
+    grants: State<'_, PathGrants>,
+    dropped: State<'_, pasted_images::DroppedImages>,
+    doc_path: String,
+    source: String,
+) -> PlatformResult<String> {
+    let doc = grants.check_for_save(Path::new(&doc_path))?;
+    let source = dropped.check(Path::new(&source))?;
+    blocking(move || pasted_images::import_dropped(&doc, &source)).await?
 }
 
 /// The text of a bibliography, an included file or an embedded note that a granted document
