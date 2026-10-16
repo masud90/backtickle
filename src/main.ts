@@ -5,7 +5,7 @@ import { markDocumentOs } from '@/lib/os';
 import { getPlatform } from '@/lib/platform';
 import App from '@/shell/App.svelte';
 
-// Before anything is drawn, so the style sheets can adapt to macOS or Windows at once.
+// Before anything is drawn, so the style sheets can adapt to macOS, Windows or Linux at once.
 markDocumentOs();
 
 const target = document.getElementById('app');

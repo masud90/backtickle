@@ -5,7 +5,8 @@
 //! The general pasteboard of macOS is used through the Objective-C runtime (`objc2`). The
 //! functions take the pasteboard as an argument so the tests can use a private one and never
 //! touch the user's clipboard. On Windows the clipboard is used through the Win32 calls, with
-//! the HTML in the system's "HTML Format" (`cf_html`).
+//! the HTML in the system's "HTML Format" (`cf_html`). On Linux it is GTK's clipboard (X11 and
+//! Wayland alike), used on the main thread where GTK runs.
 
 use crate::error::PlatformResult;
 
@@ -282,6 +283,99 @@ mod win {
     }
 }
 
+#[cfg(not(any(target_os = "macos", windows)))]
+mod gtk_board {
+    use super::{MAX_CLIPBOARD_BYTES, Written};
+    use crate::error::{PlatformError, PlatformResult};
+    use gtk::{gdk, glib};
+    use std::sync::mpsc;
+    use std::time::Duration;
+
+    /// The targets plain text is offered as (what text editors and terminals ask for).
+    const TEXT_TARGETS: &[&str] = &[
+        "UTF8_STRING",
+        "text/plain;charset=utf-8",
+        "text/plain",
+        "STRING",
+        "TEXT",
+    ];
+    const HTML_TARGET: &str = "text/html";
+    /// The `info` number of the HTML target (the text targets have 0).
+    const HTML_INFO: u32 = 1;
+
+    /// Runs `task` on the main thread, where GTK runs, and waits for what it sends back (`None`
+    /// if it never does).
+    fn on_main<T: Send + 'static>(
+        task: impl FnOnce(mpsc::Sender<T>) + Send + 'static,
+    ) -> Option<T> {
+        let (done_tx, done_rx) = mpsc::channel();
+        glib::MainContext::default().invoke(move || task(done_tx));
+        done_rx.recv_timeout(Duration::from_secs(10)).ok()
+    }
+
+    pub fn write(text: &str, html: Option<&str>) -> PlatformResult<Written> {
+        if text.len() > MAX_CLIPBOARD_BYTES || html.is_some_and(|h| h.len() > MAX_CLIPBOARD_BYTES) {
+            return Err(PlatformError::io("This is too large to copy."));
+        }
+        let written = Written {
+            bytes: text.len(),
+            html: html.is_some(),
+        };
+        let text = text.to_owned();
+        let html = html.map(str::to_owned);
+        let set = on_main(move |done| {
+            let mut targets: Vec<gtk::TargetEntry> = TEXT_TARGETS
+                .iter()
+                .map(|target| gtk::TargetEntry::new(target, gtk::TargetFlags::empty(), 0))
+                .collect();
+            if html.is_some() {
+                targets.insert(
+                    0,
+                    gtk::TargetEntry::new(HTML_TARGET, gtk::TargetFlags::empty(), HTML_INFO),
+                );
+            }
+            let clipboard = gtk::Clipboard::get(&gdk::SELECTION_CLIPBOARD);
+            // GTK keeps the data and answers other apps from it until something else is copied.
+            let set =
+                clipboard.set_with_data(&targets, move |_, selection, info| match (&html, info) {
+                    (Some(html), HTML_INFO) => {
+                        selection.set(&selection.target(), 8, html.as_bytes())
+                    }
+                    _ => {
+                        selection.set_text(&text);
+                    }
+                });
+            // A clipboard manager may keep the text once Writedown has quit.
+            if set {
+                use glib::translate::ToGlibPtr;
+                // SAFETY: the clipboard is alive; no target list means all targets may be stored.
+                unsafe {
+                    gtk::ffi::gtk_clipboard_set_can_store(
+                        clipboard.to_glib_none().0,
+                        std::ptr::null(),
+                        0,
+                    );
+                }
+            }
+            let _ = done.send(set);
+        });
+        if set == Some(true) {
+            Ok(written)
+        } else {
+            Err(PlatformError::io("The text could not be copied."))
+        }
+    }
+
+    pub fn read_text() -> String {
+        on_main(|done| {
+            gtk::Clipboard::get(&gdk::SELECTION_CLIPBOARD).request_text(move |_, text| {
+                let _ = done.send(text.map(str::to_owned).unwrap_or_default());
+            });
+        })
+        .unwrap_or_default()
+    }
+}
+
 /// Puts text, and HTML if given, on the general pasteboard (replacing its contents).
 pub fn write_clipboard(text: &str, html: Option<&str>) -> PlatformResult<Written> {
     #[cfg(target_os = "macos")]
@@ -294,10 +388,7 @@ pub fn write_clipboard(text: &str, html: Option<&str>) -> PlatformResult<Written
     }
     #[cfg(not(any(target_os = "macos", windows)))]
     {
-        let _ = (text, html);
-        Err(crate::error::PlatformError::io(
-            "The clipboard is not available here.",
-        ))
+        gtk_board::write(text, html)
     }
 }
 
@@ -313,9 +404,7 @@ pub fn read_clipboard_text() -> PlatformResult<String> {
     }
     #[cfg(not(any(target_os = "macos", windows)))]
     {
-        Err(crate::error::PlatformError::io(
-            "The clipboard is not available here.",
-        ))
+        Ok(gtk_board::read_text())
     }
 }
 

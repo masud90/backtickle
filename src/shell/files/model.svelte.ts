@@ -318,12 +318,17 @@ export class FilesModel {
     const name = fileName(path);
     try {
       const yes = await platform.ask({
-        title: byOs(`Move "${name}" to the Trash?`, `Move "${name}" to the Recycle Bin?`),
+        title: byOs(
+          `Move "${name}" to the Trash?`,
+          `Move "${name}" to the Recycle Bin?`,
+          `Move "${name}" to the Trash?`,
+        ),
         message: byOs(
           'You can get it back from the Trash.',
           'You can get it back from the Recycle Bin.',
+          'You can get it back from the Trash.',
         ),
-        ok: byOs('Move to Trash', 'Move to Recycle Bin'),
+        ok: byOs('Move to Trash', 'Move to Recycle Bin', 'Move to Trash'),
         cancel: 'Cancel',
       });
       if (!yes) return;

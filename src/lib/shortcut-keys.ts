@@ -12,8 +12,11 @@
  * ⌘ is Ctrl; ⌃ alone is Ctrl too; ⌃ with ⌘ is Ctrl+Alt; ⌥ is Alt and ⇧ is Shift. A shortcut with
  * ⌃, ⌥ and ⌘ together has no Windows form. Shown, compared and handed to CodeMirror, a shortcut
  * on Windows is always its Windows form, so `^S` and `⌘S` are the same keys there (Ctrl+S).
+ *
+ * Linux has the keys of Windows (Ctrl, Alt, Shift, and a Super key that belongs to the desktop),
+ * so everything said here of Windows holds there too: the "Windows form" is the form of both.
  */
-import { isWindows } from './os';
+import { isLinux, isMac } from './os';
 
 export interface Combo {
   ctrl: boolean;
@@ -148,9 +151,9 @@ export function comboFromEvent(event: KeyEventLike): Combo | null {
     else if (/^F([1-9]|1[0-9]|20)$/.test(event.code)) key = event.code;
   }
   if (!key) return null;
-  if (isWindows()) {
-    // Ctrl is recorded as ⌘, the key every default shortcut uses for it; the Windows key is
-    // refused before this (`eventRefusal`).
+  if (!isMac()) {
+    // Ctrl is recorded as ⌘, the key every default shortcut uses for it; the Windows key (the
+    // Super key on Linux) is refused before this (`eventRefusal`).
     return { ctrl: false, alt: event.altKey, shift: event.shiftKey, cmd: event.ctrlKey, key };
   }
   return {
@@ -162,10 +165,13 @@ export function comboFromEvent(event: KeyEventLike): Combo | null {
   };
 }
 
-/** Why a key event cannot be recorded at all, or null: on Windows the Windows key is the system's. */
+/**
+ * Why a key event cannot be recorded at all, or null: on Windows the Windows key is the system's,
+ * and on Linux the Super key is the desktop's.
+ */
 export function eventRefusal(event: KeyEventLike): string | null {
-  if (isWindows() && event.metaKey) return 'The Windows key cannot be part of a shortcut.';
-  return null;
+  if (isMac() || !event.metaKey) return null;
+  return `The ${isLinux() ? 'Super' : 'Windows'} key cannot be part of a shortcut.`;
 }
 
 /** A shortcut's keys on Windows: Ctrl, Alt and Shift, then the key. */
@@ -215,7 +221,7 @@ export function windowsShortcut(text: string): string | null {
  * it is not shown at all; a string that does not parse is shown as it is.
  */
 export function displayShortcut(text: string | undefined): string | undefined {
-  if (text === undefined || !isWindows()) return text;
+  if (text === undefined || isMac()) return text;
   if (parseShortcut(text) === null) return text;
   return windowsShortcut(text) ?? undefined;
 }
@@ -225,7 +231,7 @@ export function displayShortcut(text: string | undefined): string | undefined {
  * (where `^S` and `⌘S` are both Ctrl+S). Null when it does not parse or has no Windows form.
  */
 export function shortcutIdentity(text: string): string | null {
-  return isWindows() ? windowsShortcut(text) : canonicalShortcut(text);
+  return isMac() ? canonicalShortcut(text) : windowsShortcut(text);
 }
 
 /** True when two shortcut strings are the same keys on this system. */
@@ -250,8 +256,8 @@ export const RESERVED_SHORTCUTS: readonly string[] = [
 ];
 
 /**
- * The same on Windows, in Windows form: the clipboard keys, Quit, Settings and closing the window.
- * Ctrl+Tab is free: it is Show Next Tab.
+ * The same on Windows and Linux, in Windows form: the clipboard keys, Quit, Settings and closing
+ * the window. Ctrl+Tab is free: it is Show Next Tab.
  */
 export const RESERVED_WINDOWS_SHORTCUTS: readonly string[] = [
   'Ctrl+C',
@@ -264,10 +270,11 @@ export const RESERVED_WINDOWS_SHORTCUTS: readonly string[] = [
 
 /**
  * Why a combination cannot be a shortcut, or null when it can: it needs ⌘, ⌃ or ⌥ (function keys
- * excepted), and it must not be one macOS keeps for itself. On Windows the same in Windows terms.
+ * excepted), and it must not be one macOS keeps for itself. On Windows and Linux the same in
+ * Windows terms.
  */
 export function refusal(combo: Combo): string | null {
-  if (isWindows()) return windowsRefusal(combo);
+  if (!isMac()) return windowsRefusal(combo);
   const canonical = formatShortcut(combo);
   if (RESERVED_SHORTCUTS.includes(canonical)) {
     return `${canonical} is reserved by macOS and Writedown.`;
@@ -280,10 +287,11 @@ export function refusal(combo: Combo): string | null {
 
 function windowsRefusal(combo: Combo): string | null {
   const keys = windowsKeys(combo);
-  if (keys === null) return 'This combination cannot be used on Windows.';
+  const linux = isLinux();
+  if (keys === null) return `This combination cannot be used on ${linux ? 'Linux' : 'Windows'}.`;
   const label = formatWindowsKeys(keys);
   if (RESERVED_WINDOWS_SHORTCUTS.includes(label)) {
-    return `${label} is reserved by Windows and Writedown.`;
+    return `${label} is reserved by ${linux ? 'the system' : 'Windows'} and Writedown.`;
   }
   if (!keys.ctrl && !keys.alt && !/^F\d+$/.test(keys.key)) {
     return 'A shortcut needs Ctrl or Alt with a key, or a function key.';
@@ -337,7 +345,7 @@ export function toCodeMirrorKey(shortcut: string): string | null {
   const combo = parseShortcut(shortcut);
   if (!combo) return null;
   const parts: string[] = [];
-  if (isWindows()) {
+  if (!isMac()) {
     const keys = windowsKeys(combo);
     if (!keys) return null;
     if (keys.alt) parts.push('Alt');

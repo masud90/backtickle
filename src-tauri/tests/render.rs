@@ -8,6 +8,14 @@ use std::path::PathBuf;
 use std::process::Command;
 use writedown_lib::render::{script_text, shell_quote, write_command_file};
 
+/// The shell the render script names on its first line: zsh on macOS, bash on Linux (where it
+/// also waits for Enter, so the tests give it no input).
+const SCRIPT_SHELL: &str = if cfg!(target_os = "macos") {
+    "/bin/zsh"
+} else {
+    "/bin/bash"
+};
+
 fn temp(label: &str) -> PathBuf {
     let dir = std::fs::canonicalize(std::env::temp_dir())
         .unwrap()
@@ -83,8 +91,9 @@ fn the_script_runs_quarto_in_the_documents_folder_and_removes_itself() {
         std::fs::metadata(&script).unwrap().permissions().mode() & 0o777,
         0o700
     );
-    let status = Command::new("/bin/zsh")
+    let status = Command::new(SCRIPT_SHELL)
         .arg(&script)
+        .stdin(std::process::Stdio::null())
         .env("PATH", format!("{}:/usr/bin:/bin", bin.display()))
         .status()
         .unwrap();
@@ -107,8 +116,9 @@ fn the_script_runs_quarto_in_the_documents_folder_and_removes_itself() {
 fn without_quarto_or_rscript_the_script_says_so() {
     let base = temp("none");
     let script = write_command_file(&base, "/", "a.Rmd", true).unwrap();
-    let out = Command::new("/bin/zsh")
+    let out = Command::new(SCRIPT_SHELL)
         .arg(&script)
+        .stdin(std::process::Stdio::null())
         .env("PATH", "/usr/bin:/bin")
         .output()
         .unwrap();

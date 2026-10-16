@@ -12,6 +12,9 @@
 - Runs on macOS 14 Sonoma or later (with Safari 26), not only macOS 26.
 - Releases are built by a GitHub workflow from a version tag, signed and notarized when the Apple Developer
   ID secrets are set.
+- Linux version (.deb and AppImage), with the same features as on macOS: native menu bar, Ctrl shortcuts,
+  copy as HTML, one-click PDF, Open Recent in GTK's recent files, default Markdown app, Render with Quarto in a
+  terminal.
 
 ## 0.1.0 (2026-10-11)
 

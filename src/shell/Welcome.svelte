@@ -35,6 +35,7 @@
       Start a new Markdown document or pick up an existing file from your {byOs(
         'Mac or iCloud Drive',
         'PC',
+        'computer',
       )}.
     </p>
 

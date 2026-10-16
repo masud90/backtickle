@@ -78,13 +78,15 @@
         "name": "Markdown document",
         "role": "Editor",
         "rank": "Default",
-        "contentTypes": ["net.daringfireball.markdown"]
+        "contentTypes": ["net.daringfireball.markdown"],
+        "mimeType": "text/markdown"
       },
       {
         "ext": ["mdown", "mkd", "mkdn"],
         "name": "Markdown document",
         "role": "Editor",
-        "rank": "Default"
+        "rank": "Default",
+        "mimeType": "text/x-markdown"
       },
       {
         "ext": ["mdx"],

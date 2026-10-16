@@ -445,7 +445,7 @@ mod tests {
     use crate::test_support::TempDir;
     #[cfg(unix)]
     use std::os::unix::fs::symlink;
-    #[cfg(unix)]
+    #[cfg(target_os = "macos")]
     use std::time::UNIX_EPOCH;
 
     const LF_UTF8: SaveFormat = SaveFormat {
@@ -600,7 +600,32 @@ mod tests {
         }
     }
 
-    #[cfg(unix)]
+    #[cfg(not(any(target_os = "macos", windows)))]
+    #[test]
+    fn extended_attributes_including_file_manager_tags_are_kept() {
+        let dir = TempDir::new();
+        let path = dir.write("tagged.md", b"old");
+        // KDE's Dolphin keeps tags here; other tools use the `user.` namespace too. A file system
+        // without user attributes has nothing to keep.
+        if xattr::set(&path, "user.xdg.tags", b"red,work").is_err() {
+            return;
+        }
+        xattr::set(&path, "user.writedown-test", b"kept").expect("set custom");
+
+        save(&path, "new", LF_UTF8, &options(None), None).expect("saves");
+
+        assert_eq!(std::fs::read(&path).expect("read"), b"new");
+        assert_eq!(
+            xattr::get(&path, "user.xdg.tags").expect("get"),
+            Some(b"red,work".to_vec())
+        );
+        assert_eq!(
+            xattr::get(&path, "user.writedown-test").expect("get"),
+            Some(b"kept".to_vec())
+        );
+    }
+
+    #[cfg(target_os = "macos")]
     #[test]
     fn extended_attributes_including_finder_tags_are_kept() {
         let dir = TempDir::new();

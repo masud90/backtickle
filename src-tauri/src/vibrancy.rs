@@ -11,6 +11,9 @@
 //! On Windows the material is Mica, which Windows 11 draws behind the window. Windows 10 has no
 //! Mica (the request does nothing there), so the page keeps its sidebar opaque on Windows 10
 //! (src/shell/appearance.ts).
+//!
+//! Linux has no material: its windows are opaque, no effect is asked for, and the page keeps the
+//! sidebar opaque.
 
 use tauri::utils::config::WindowEffectsConfig;
 use tauri::window::{Effect, EffectState, EffectsBuilder};
@@ -36,6 +39,9 @@ pub fn sidebar_effect() -> WindowEffectsConfig {
 
 /// Puts the effect on `window`, or takes it off.
 pub fn apply_to<R: Runtime>(window: &WebviewWindow<R>, enabled: bool) {
+    if cfg!(not(any(target_os = "macos", windows))) {
+        return;
+    }
     let effects = enabled.then(sidebar_effect);
     if let Err(error) = window.set_effects(effects) {
         eprintln!("writedown: the sidebar material could not be set ({error}).");

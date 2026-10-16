@@ -8,7 +8,9 @@
 //! rename, clean-up) are unit-tested, the AppKit part is in `imp`.
 //!
 //! On Windows the web view itself writes the file (WebView2's `PrintToPdf`, no print dialog),
-//! with the same temporary file and rename; that part is in `win`.
+//! with the same temporary file and rename; that part is in `win`. On Linux WebKitGTK prints the
+//! page to GTK's "Print to File" printer with no dialog, again to the temporary file; that part is
+//! in `gtk_print`.
 
 use std::path::{Path, PathBuf};
 
@@ -80,7 +82,6 @@ pub type Stage = std::sync::Arc<dyn Fn(&str) + Send + Sync>;
 /// At most one PDF export at a time (a second request while one runs is refused).
 static RUNNING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
-#[cfg(any(target_os = "macos", windows))]
 pub fn export(window: &tauri::WebviewWindow, target: &Path, stage: Stage) -> Result<u32, PdfError> {
     check_target(target)?;
     if RUNNING.swap(true, std::sync::atomic::Ordering::SeqCst) {
@@ -91,8 +92,9 @@ pub fn export(window: &tauri::WebviewWindow, target: &Path, stage: Stage) -> Res
     result
 }
 
-#[cfg(any(target_os = "macos", windows))]
 fn export_one(window: &tauri::WebviewWindow, target: &Path, stage: Stage) -> Result<u32, PdfError> {
+    #[cfg(not(any(target_os = "macos", windows)))]
+    use gtk_print as imp;
     #[cfg(windows)]
     use win as imp;
     let temp = temp_path_for(target);
@@ -217,12 +219,90 @@ mod win {
 }
 
 #[cfg(not(any(target_os = "macos", windows)))]
-pub fn export(
-    _window: &tauri::WebviewWindow,
-    _target: &Path,
-    _stage: Stage,
-) -> Result<u32, PdfError> {
-    Err(PdfError::new("PDF export is only available on macOS."))
+mod gtk_print {
+    use super::PdfError;
+    use std::path::Path;
+    use std::sync::{Arc, Mutex, mpsc};
+    use std::time::Duration;
+    use webkit2gtk::PrintOperationExt;
+
+    type Done = Arc<Mutex<Option<mpsc::Sender<Result<(), PdfError>>>>>;
+
+    /// Prints the page to `temp` and waits for it (call from a blocking task, never from the main
+    /// thread).
+    pub fn run(
+        window: &tauri::WebviewWindow,
+        temp: &Path,
+        stage: super::Stage,
+    ) -> Result<(), PdfError> {
+        let (done_tx, done_rx) = mpsc::channel::<Result<(), PdfError>>();
+        let uri = url::Url::from_file_path(temp)
+            .map_err(|()| PdfError::new("The PDF could not be created (stage: file name)."))?
+            .to_string();
+        window
+            .with_webview(move |webview| {
+                stage("closure-on-main-thread");
+                start(&webview.inner(), &uri, Arc::new(Mutex::new(Some(done_tx))));
+                stage("operation-running");
+            })
+            .map_err(|_| PdfError::new("The PDF could not be created (stage: dispatch)."))?;
+        match done_rx.recv_timeout(Duration::from_secs(300)) {
+            Ok(result) => result,
+            Err(mpsc::RecvTimeoutError::Timeout) => Err(PdfError::new(
+                "The PDF could not be created (stage: the web view never finished).",
+            )),
+            Err(mpsc::RecvTimeoutError::Disconnected) => Err(PdfError::new(
+                "The PDF could not be created (stage: the callback was dropped).",
+            )),
+        }
+    }
+
+    /// Sends the outcome once (a failed print also reports that it finished).
+    fn report(done: &Done, result: Result<(), PdfError>) {
+        if let Some(sender) = done.lock().ok().and_then(|mut done| done.take()) {
+            let _ = sender.send(result);
+        }
+    }
+
+    /// The page margins of src/styles/print.css (`@page { margin: 18mm 16mm }`), top and bottom
+    /// then left and right. WebKitGTK takes the margins from the page setup, not from `@page`.
+    const PAGE_MARGIN_MM: (f64, f64) = (18.0, 16.0);
+
+    /// Main thread: prints to a PDF file on the system's default paper with the page's margins
+    /// and no dialog.
+    fn start(webview: &webkit2gtk::WebView, uri: &str, done: Done) {
+        let settings = gtk::PrintSettings::new();
+        settings.set_printer("Print to File");
+        settings.set(gtk::PRINT_SETTINGS_OUTPUT_FILE_FORMAT, Some("pdf"));
+        settings.set(gtk::PRINT_SETTINGS_OUTPUT_URI, Some(uri));
+        let paper = gtk::PaperSize::new(None);
+        settings.set_paper_size(&paper);
+        let page = gtk::PageSetup::new();
+        page.set_paper_size(&paper);
+        page.set_top_margin(PAGE_MARGIN_MM.0, gtk::Unit::Mm);
+        page.set_bottom_margin(PAGE_MARGIN_MM.0, gtk::Unit::Mm);
+        page.set_left_margin(PAGE_MARGIN_MM.1, gtk::Unit::Mm);
+        page.set_right_margin(PAGE_MARGIN_MM.1, gtk::Unit::Mm);
+        let operation = webkit2gtk::PrintOperation::new(webview);
+        operation.set_print_settings(&settings);
+        operation.set_page_setup(&page);
+        let failed = done.clone();
+        operation.connect_failed(move |_, _| {
+            report(
+                &failed,
+                Err(PdfError::new(
+                    "The PDF could not be created (stage: the web view reported failure).",
+                )),
+            );
+        });
+        operation.connect_finished(move |_| report(&done, Ok(())));
+        operation.print();
+    }
+
+    /// The number of pages of a finished PDF, or 0 if it cannot be read.
+    pub fn page_count(path: &Path) -> u32 {
+        std::fs::read(path).map_or(0, |bytes| super::count_pages(&bytes))
+    }
 }
 
 #[cfg(target_os = "macos")]

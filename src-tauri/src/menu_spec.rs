@@ -220,8 +220,8 @@ const HEADINGS: &[Entry] = &[
 /// The label of the app menu (macOS only; see `windows_extras`).
 pub const APP_MENU_LABEL: &str = "Writedown";
 
-/// What a menu gets at its end on Windows, where there is no app menu: File ends with Settings
-/// and Exit (the Quit item), Help with About.
+/// What a menu gets at its end on Windows and Linux, where there is no app menu: File ends with
+/// Settings and Exit or Quit (the Quit item), Help with About.
 pub fn windows_extras(menu_label: &str) -> &'static [Entry] {
     const FILE_EXTRAS: &[Entry] = &[Entry::Separator, SETTINGS_ITEM, Entry::Separator, QUIT_ITEM];
     const HELP_EXTRAS: &[Entry] = &[Entry::Separator, Entry::Predefined(Predefined::About)];
@@ -648,11 +648,11 @@ pub fn accelerator_for(text: &str) -> Option<String> {
 
 /// An accelerator for the system the app runs on (see `accelerator_on`).
 pub fn platform_accelerator(accelerator: &str) -> Option<String> {
-    accelerator_on(accelerator, cfg!(windows))
+    accelerator_on(accelerator, cfg!(not(target_os = "macos")))
 }
 
-/// An accelerator as `windows` needs it, or as it is elsewhere. Windows has no Command key:
-/// `CmdOrCtrl` is Ctrl there, so a shortcut with both Control and Command (`⌃⌘S`, the sidebar)
+/// An accelerator as `windows` needs it, or as it is on macOS. Windows (and Linux, which follows
+/// the same rule: `windows` is true there) has no Command key: `CmdOrCtrl` is Ctrl there, so a shortcut with both Control and Command (`⌃⌘S`, the sidebar)
 /// turns its Control into Alt. With Alt already in it the shortcut has no Windows form (`None`).
 /// The page applies the same rule to what it shows (src/lib/shortcut-keys.ts).
 pub fn accelerator_on(accelerator: &str, windows: bool) -> Option<String> {
@@ -1202,8 +1202,10 @@ mod tests {
     fn no_two_items_share_a_shortcut() {
         let mut seen: HashMap<muda::accelerator::Accelerator, &str> = HashMap::new();
         for item in all_items() {
-            if let Some(accelerator) = item.accelerator {
-                let parsed = muda::accelerator::Accelerator::from_str(accelerator).expect("parses");
+            // As the menu has it on this system (`⌃⌘S` is `Ctrl+Alt+S` on Windows and Linux).
+            if let Some(accelerator) = item.accelerator.and_then(platform_accelerator) {
+                let parsed =
+                    muda::accelerator::Accelerator::from_str(&accelerator).expect("parses");
                 if let Some(other) = seen.insert(parsed, item.id) {
                     panic!("{other} and {} both use {accelerator}", item.id);
                 }

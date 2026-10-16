@@ -1,7 +1,8 @@
 /**
  * File > Render with Quarto. A lazy chunk. Unsaved changes are saved
  * first (the user is asked); then the backend opens the document in RStudio or runs the render in
- * Terminal. Writedown never runs the document's code itself.
+ * Terminal (on Windows and Linux in a terminal window). Writedown never runs the document's code
+ * itself.
  */
 
 import { byOs } from '@/lib/os';

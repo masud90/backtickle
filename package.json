@@ -18,6 +18,7 @@
     "build:app": "bash scripts/build-app.sh",
     "build:app:universal": "bash scripts/build-app.sh --universal",
     "build:app:windows": "tauri build --bundles nsis,msi",
+    "build:app:linux": "tauri build --bundles deb,appimage",
     "dmg": "bash scripts/make-dmg.sh",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json && tsc -p tsconfig.test.json",
     "lint": "biome check --error-on-warnings .",

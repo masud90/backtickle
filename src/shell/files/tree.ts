@@ -132,7 +132,10 @@ export function finalName(oldName: string, typed: string, kind: 'folder' | 'file
   return MARKDOWN_EXTENSIONS.includes(ext) ? name : `${name}${old}`;
 }
 
-/** What the platform will refuse, caught early so the field can say why (same rules as Rust). */
+/**
+ * What the platform will refuse, caught early so the field can say why (same rules as Rust). Linux
+ * has the rules of macOS: Writedown refuses `:` there too.
+ */
 export function nameProblem(name: string): string | null {
   if (name.trim() === '') return 'Type a name.';
   if (isWindows()) return windowsNameProblem(name);

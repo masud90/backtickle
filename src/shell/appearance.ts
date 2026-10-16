@@ -1,5 +1,5 @@
 /** Appearance and zoom: the settings that become CSS on the document element. */
-import { byOs, isWindows, isWindows11 } from '@/lib/os';
+import { byOs, isLinux, isWindows, isWindows11 } from '@/lib/os';
 import type { Settings } from '@/lib/platform';
 
 export const MIN_ZOOM = 0.5;
@@ -13,14 +13,16 @@ export const EDITOR_FONTS: Record<
   { label: string; css: string | null }
 > = {
   'jetbrains-mono': { label: 'JetBrains Mono', css: null },
-  // On Windows the two system choices are its own monospace fonts, under their own names.
+  // On Windows and Linux the two system choices are their own monospace fonts, under their own
+  // names. On Linux none of the macOS and Windows names is installed, so each stack reaches its
+  // own Linux font.
   'sf-mono': {
-    label: byOs('SF Mono', 'Cascadia Mono'),
-    css: "ui-monospace, 'SF Mono', SFMono-Regular, 'Cascadia Mono', Consolas, monospace",
+    label: byOs('SF Mono', 'Cascadia Mono', 'DejaVu Sans Mono'),
+    css: "ui-monospace, 'SF Mono', SFMono-Regular, 'Cascadia Mono', Consolas, 'DejaVu Sans Mono', monospace",
   },
   menlo: {
-    label: byOs('Menlo', 'Consolas'),
-    css: "Menlo, 'SF Mono', Consolas, 'Cascadia Mono', monospace",
+    label: byOs('Menlo', 'Consolas', 'Liberation Mono'),
+    css: "Menlo, 'SF Mono', Consolas, 'Cascadia Mono', 'Liberation Mono', 'DejaVu Sans Mono', monospace",
   },
 };
 
@@ -199,6 +201,12 @@ export function applyDocumentAppearance(root: HTMLElement, settings: Settings): 
 export function applyVibrancy(root: HTMLElement, settings: Settings): void {
   const native = root.ownerDocument.body?.dataset.platform === 'tauri';
   const wanted = native && settings.vibrancy;
+  if (isLinux()) {
+    // Linux has no material behind the window, as Windows 10 has none: the sidebar stays opaque.
+    vibrancyWanted.delete(root);
+    delete root.dataset.vibrancy;
+    return;
+  }
   if (!isWindows()) {
     if (wanted) root.dataset.vibrancy = 'on';
     else delete root.dataset.vibrancy;

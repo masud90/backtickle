@@ -196,8 +196,8 @@ const APPEARANCES: ReadonlyArray<readonly [Settings['appearance'], string]> = [
 ];
 
 /**
- * A command's shortcut as shown: the user's override, or the default. On Windows in Windows form
- * (`Ctrl+Shift+O`, see `displayShortcut`); on macOS the string as it is.
+ * A command's shortcut as shown: the user's override, or the default. On Windows and Linux in
+ * Windows form (`Ctrl+Shift+O`, see `displayShortcut`); on macOS the string as it is.
  */
 export function shortcutOf(
   shell: Shell,
@@ -215,8 +215,12 @@ export function createCommands(shell: Shell): Command[] {
   for (const [id, [label, need, shortcut]] of Object.entries(SPECS) as Array<[MenuAction, Spec]>) {
     list.push({
       id,
-      // The menu (built by Rust) says File Explorer on Windows; the palette says the same.
-      label: id === 'reveal-in-finder' ? byOs(label, 'Show in File Explorer') : label,
+      // The menu (built by Rust) says File Explorer on Windows and File Manager on Linux; the
+      // palette says the same.
+      label:
+        id === 'reveal-in-finder'
+          ? byOs(label, 'Show in File Explorer', 'Show in File Manager')
+          : label,
       // The user's change (Preferences > Keyboard Shortcuts) shows at once, in every window.
       get shortcut() {
         return shortcutOf(shell, id, shortcut);
