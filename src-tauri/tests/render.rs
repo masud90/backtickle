@@ -112,14 +112,27 @@ fn the_script_runs_quarto_in_the_documents_folder_and_removes_itself() {
     let _ = std::fs::remove_dir_all(&base);
 }
 
+#[cfg(unix)]
 #[test]
 fn without_quarto_or_rscript_the_script_says_so() {
     let base = temp("none");
     let script = write_command_file(&base, "/", "a.Rmd", true).unwrap();
+    // A PATH with only what the script's clean-up needs: R may be installed on the machine (it
+    // is on GitHub's Ubuntu runners).
+    let bin = base.join("bin");
+    std::fs::create_dir(&bin).unwrap();
+    for tool in ["rm", "rmdir"] {
+        let real = ["/bin", "/usr/bin"]
+            .iter()
+            .map(|dir| std::path::Path::new(dir).join(tool))
+            .find(|path| path.exists())
+            .unwrap();
+        std::os::unix::fs::symlink(real, bin.join(tool)).unwrap();
+    }
     let out = Command::new(SCRIPT_SHELL)
         .arg(&script)
         .stdin(std::process::Stdio::null())
-        .env("PATH", "/usr/bin:/bin")
+        .env("PATH", &bin)
         .output()
         .unwrap();
     let text = String::from_utf8_lossy(&out.stdout);

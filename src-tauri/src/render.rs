@@ -124,7 +124,9 @@ pub fn linux_script_text(
 ) -> String {
     let text = script_text(folder, name, rmd, script, script_dir);
     let body = text.split_once('\n').map_or("", |(_, body)| body);
-    format!("#!/bin/bash -l\n{body}printf '\\nPress Enter to close this window.'\nread -r _ || true\n")
+    format!(
+        "#!/bin/bash -l\n{body}printf '\\nPress Enter to close this window.'\nread -r _ || true\n"
+    )
 }
 
 /// The command line GIO runs in a terminal for the Linux script: the path quoted for the shell,
