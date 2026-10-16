@@ -71,6 +71,9 @@ fn main() {
         // Phase 5 (Render with Quarto)
         "render_with_quarto",
         "read_image_bytes",
+        // Images pasted or dropped into the editor (src/pasted_images.rs)
+        "save_pasted_image",
+        "import_dropped_image",
         "get_session",
         // Phase 5 (several document windows)
         "move_tab",

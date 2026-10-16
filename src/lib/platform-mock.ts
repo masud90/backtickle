@@ -23,6 +23,7 @@ import type {
   FileChange,
   FolderEntry,
   FolderListing,
+  ImageDrop,
   LaunchOptions,
   LineEnding,
   LinkedText,
@@ -306,6 +307,10 @@ export interface MockControl {
   // ---- Phase 3 ----
   /** A batch of changes from the (fake) watcher, delivered to every `onFileChanged` handler. */
   fileChanged(changes: FileChange[]): void;
+  /** Image files dropped on the window at a point of the page (CSS pixels). */
+  dropImages(paths: string[], x: number, y: number): void;
+  /** Images written by `savePastedImage` and `importDroppedImage`, in order. */
+  readonly savedImages: Array<{ path: string; bytes: number; from: string | null }>;
   /** Someone else created a file (not recorded as an app operation). */
   externallyCreate(path: string, text?: string): void;
   /** Someone else removed a file or a folder with everything in it. */
@@ -939,6 +944,43 @@ function underFolder(path: string, root: string): boolean {
   return path === base || path.startsWith(`${base}/`);
 }
 
+// ---- pasted and dropped images (the same rules as src-tauri/src/pasted_images.rs) ---------------
+
+/** The image format of pasted bytes, as an extension, judged by the first bytes. */
+export function sniffImage(bytes: Uint8Array): string | null {
+  const starts = (...values: number[]) => values.every((value, i) => bytes[i] === value);
+  if (starts(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) return 'png';
+  if (starts(0xff, 0xd8, 0xff)) return 'jpg';
+  if (starts(0x47, 0x49, 0x46, 0x38) && (bytes[4] === 0x37 || bytes[4] === 0x39)) return 'gif';
+  const text = (from: number, to: number) => String.fromCharCode(...bytes.slice(from, to));
+  if (bytes.length >= 12 && text(0, 4) === 'RIFF' && text(8, 12) === 'WEBP') return 'webp';
+  return null;
+}
+
+/** Letters, digits, `-`, `_` and `.`; anything else becomes `-`. Never empty, no leading dot. */
+export function cleanImageStem(stem: string): string {
+  let cleaned = '';
+  for (const character of stem) {
+    if (/[\p{L}\p{N}_.-]/u.test(character)) cleaned += character;
+    else if (!cleaned.endsWith('-')) cleaned += '-';
+  }
+  const trimmed = [...cleaned.replace(/^[-.]+|[-.]+$/g, '')].slice(0, 80).join('');
+  return trimmed === '' ? 'image' : trimmed;
+}
+
+/** The path of an image relative to a folder, encoded where Markdown needs it. */
+export function relativeImageSrc(folder: string, path: string): string {
+  return path
+    .slice(folder.length + 1)
+    .split('/')
+    .map((part) =>
+      part.replace(/[ ()<>[\]#?%\\"']/g, (c) =>
+        Array.from(new TextEncoder().encode(c), (b) => `%${b.toString(16).toUpperCase()}`).join(''),
+      ),
+    )
+    .join('/');
+}
+
 // ---- the platform ------------------------------------------------------------------------------
 
 export function createMockPlatform(
@@ -1013,6 +1055,17 @@ export function createMockPlatform(
   const defaultFolderAnswers = new Answers<string | null>(null, (v) => Array.isArray(v));
   defaultFolderAnswers.set(seed?.defaultFolderDialog);
   const fileChangedHandlers = new Set<(changes: FileChange[]) => void>();
+  const dropImageHandlers = new Set<(drop: ImageDrop) => void>();
+  const droppedImages = new Set<string>();
+  const savedImages: Array<{ path: string; bytes: number; from: string | null }> = [];
+  /** `stem.ext` in the `assets` folder of `folder`, numbered like Rust if the name is taken. */
+  const freeImagePath = (folder: string, stem: string, extension: string): string => {
+    for (let number = 1; ; number++) {
+      const name = number === 1 ? `${stem}.${extension}` : `${stem}-${number}.${extension}`;
+      const path = `${folder}/assets/${name}`;
+      if (!images.has(path) && !files.has(path) && !existing.has(path)) return path;
+    }
+  };
   const phase3 = {
     folderDialogs: [] as Array<'open' | 'move'>,
     fileOps: [] as Array<{
@@ -1469,6 +1522,13 @@ export function createMockPlatform(
     fileChanged(changes) {
       for (const handler of fileChangedHandlers) handler(structuredClone(changes));
     },
+    dropImages(paths, x, y) {
+      const accepted = paths.filter((path) => IMAGE_EXTENSIONS.includes(extensionOf(path)));
+      for (const path of accepted) droppedImages.add(path);
+      if (accepted.length === 0) return;
+      for (const handler of dropImageHandlers) handler({ paths: accepted, x, y });
+    },
+    savedImages,
     externallyCreate(path, text = '') {
       files.set(path, storeSeed(text));
     },
@@ -1939,6 +1999,33 @@ export function createMockPlatform(
       return images.get(resolved) ?? mockAssetUrl(resolved);
     },
 
+    savePastedImage: async (docPath, bytes, name) => {
+      const refused = requireGranted(docPath);
+      if (refused) return refused;
+      const extension = sniffImage(bytes);
+      if (extension === null) {
+        return fail('not-allowed', 'Only PNG, JPEG, GIF and WebP images can be pasted.');
+      }
+      const path = freeImagePath(parentOf(docPath), cleanImageStem(name), extension);
+      images.set(path, mockAssetUrl(path));
+      savedImages.push({ path, bytes: bytes.length, from: null });
+      return relativeImageSrc(parentOf(docPath), path);
+    },
+
+    importDroppedImage: async (docPath, source) => {
+      const refused = requireGranted(docPath);
+      if (refused) return refused;
+      if (!droppedImages.has(source)) return fail('not-allowed', NOT_ALLOWED);
+      const folder = parentOf(docPath);
+      if (source.startsWith(`${folder}/`)) return relativeImageSrc(folder, source);
+      const name = source.slice(source.lastIndexOf('/') + 1);
+      const dot = name.lastIndexOf('.');
+      const path = freeImagePath(folder, cleanImageStem(name.slice(0, dot)), extensionOf(source));
+      images.set(path, mockAssetUrl(path));
+      savedImages.push({ path, bytes: 0, from: source });
+      return relativeImageSrc(folder, path);
+    },
+
     readImageBytes: async (docPath, src, maxBytes) => {
       const refused = requireGranted(docPath);
       if (refused) return refused;
@@ -2266,6 +2353,7 @@ export function createMockPlatform(
       phase3.watches.push(structuredClone(set));
     },
     onFileChanged: (handler) => subscribe(fileChangedHandlers, handler),
+    onDropImages: (handler) => subscribe(dropImageHandlers, handler),
     searchFolder: (request) => {
       phase3.searches.push({ ...request });
       searchRequests.set(request.id, { ...request });

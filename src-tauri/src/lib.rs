@@ -24,6 +24,7 @@ pub mod menu_spec;
 pub mod native_doc;
 pub mod open_files;
 pub mod pandoc;
+pub mod pasted_images;
 pub mod pdf;
 pub mod pending;
 pub mod perf;
@@ -124,6 +125,7 @@ pub fn run() {
         .manage(state)
         .manage(trace)
         .manage(TrackedFiles::default())
+        .manage(pasted_images::DroppedImages::default())
         .manage(Pages::default())
         .manage(DialogGuard::default())
         .manage(ExportTargets::default())
@@ -261,6 +263,8 @@ pub fn run() {
             bridge::export_pdf,
             bridge::render_with_quarto,
             bridge::read_image_bytes,
+            bridge::save_pasted_image,
+            bridge::import_dropped_image,
             bridge::get_session,
             bridge::set_session,
             bridge::recovery_write,

@@ -682,9 +682,25 @@ pub fn on_window_event(window: &Window<Wry>, event: &WindowEvent) {
             }
         }
         WindowEvent::ThemeChanged(theme) => app.state::<Lifecycle>().set_theme(*theme),
-        WindowEvent::DragDrop(DragDropEvent::Drop { paths, .. }) => {
+        WindowEvent::DragDrop(DragDropEvent::Drop { paths, position }) => {
             let grants = app.state::<crate::grants::PathGrants>();
             open_files::deliver_to(app, label, open_files::accept_paths(&grants, paths));
+            // Images go to the editor of that window, where they were dropped (in CSS pixels).
+            let images = app
+                .state::<crate::pasted_images::DroppedImages>()
+                .accept(paths);
+            if !images.is_empty() {
+                let scale = window.scale_factor().unwrap_or(1.0);
+                let _ = app.emit_to(
+                    label,
+                    crate::pasted_images::DROP_IMAGES_EVENT,
+                    json!({
+                        "paths": images.iter().map(|path| path.to_string_lossy()).collect::<Vec<_>>(),
+                        "x": position.x / scale,
+                        "y": position.y / scale,
+                    }),
+                );
+            }
         }
         _ => {}
     }

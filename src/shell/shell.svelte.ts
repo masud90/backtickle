@@ -243,6 +243,8 @@ export class Shell implements WorkspaceHost {
     // Listeners first, so nothing that arrives while the rest of startup runs is lost.
     this.cleanups.push(
       await p.onOpenFiles((paths) => void this.enqueue(() => this.openPaths(paths))),
+      // Images go to the document on show now, where they were dropped (not after queued work).
+      await p.onDropImages((drop) => void this.workspace?.dropImages(drop)),
       await p.onMenuAction((action) => void this.enqueue(() => this.handleAction(action))),
       await p.onCloseRequested((reason) => void this.enqueue(() => this.closeRequested(reason))),
       await p.onSettingsChanged((next) => this.applySettings(next)),

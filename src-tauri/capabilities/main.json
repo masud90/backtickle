@@ -70,6 +70,8 @@
     "allow-export-pdf",
     "allow-render-with-quarto",
     "allow-read-image-bytes",
+    "allow-save-pasted-image",
+    "allow-import-dropped-image",
     "allow-get-session",
     "allow-set-session",
     "allow-recovery-write",

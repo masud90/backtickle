@@ -5,7 +5,7 @@
  * interfaces, and neither imports the other's code.
  */
 import type { FormatCommand } from '@/editor/commands';
-import type { LaunchOptions, Platform, Settings, ViewMode } from '@/lib/platform';
+import type { ImageDrop, LaunchOptions, Platform, Settings, ViewMode } from '@/lib/platform';
 import type { PreviewLink } from '@/preview/events';
 import type { PreviewFindHost } from '@/preview/find/types';
 import type { Heading, RenderResult } from '@/preview/types';
@@ -96,6 +96,8 @@ export interface WorkspaceApi {
    */
   refreshContext(paths: readonly string[], structural: boolean): Promise<void>;
   focusEditor(): void;
+  /** Image files dropped on the window: linked, or copied next to the document, where dropped. */
+  dropImages(drop: ImageDrop): Promise<void>;
 }
 
 /** Where the reader is in a document (see `WorkspaceApi.position`). */

@@ -46,6 +46,7 @@ import {
   loadedFlavorEditor,
   loadFlavorEditor,
 } from './flavors';
+import { type ImageHandler, imageInput, imageMarkdown, setImageHandler } from './image-input';
 import { editorKeymap, editorKeymapWith } from './keymap';
 import { listKeymap } from './lists';
 import { flavorFacet, markdownSupport, taskMarkers } from './markdown';
@@ -223,6 +224,7 @@ function stateExtensions(flavor: FlavorId): Extension[] {
     listSlot.of(listKeymap),
     autoPairSlot.of(autoPairOff),
     keymapSlot.of(defaultKeymapExtension),
+    imageInput,
     smartPaste,
     flavorSlot.of(markdownSupport(flavor)),
     flavorExtraSlot.of(flavorExtras(flavor)),
@@ -442,6 +444,35 @@ export class EditorController {
   private notifyInserts(): void {
     const inserts = this.inserts;
     for (const handler of [...this.insertHandlers]) handler(inserts);
+  }
+
+  /** What to do with images pasted or dropped into the editor (null: nothing, a plain paste). */
+  onImages(handler: ImageHandler | null): void {
+    setImageHandler(this.view, handler);
+  }
+
+  /** The document position at a point of the page (CSS pixels), or null outside the text. */
+  posAtPoint(x: number, y: number): number | null {
+    const rect = this.view.scrollDOM.getBoundingClientRect();
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) return null;
+    return this.view.posAtCoords({ x, y });
+  }
+
+  /**
+   * Inserts image links at `pos` (as one undo step) and selects the first alt text, so that a
+   * description can be typed right away.
+   */
+  insertImageLinks(pos: number, links: ReadonlyArray<{ src: string; alt: string }>): void {
+    if (links.length === 0 || this.view.state.readOnly) return;
+    const at = Math.min(pos, this.view.state.doc.length);
+    const { text, altFrom, altTo } = imageMarkdown(this.view.state, at, links);
+    this.view.dispatch({
+      changes: { from: at, insert: text },
+      selection: { anchor: at + altFrom, head: at + altTo },
+      userEvent: 'input.paste',
+      scrollIntoView: true,
+    });
+    this.view.focus();
   }
 
   /** Runs an Insert command of the flavor on show and gives the editor focus. */
