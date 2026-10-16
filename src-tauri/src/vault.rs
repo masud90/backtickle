@@ -173,7 +173,7 @@ mod tests {
         let vault = fixture_vault();
         let index = vault_index(&vault.join("Home.md")).expect("in a vault");
 
-        assert_eq!(index.root, vault.to_string_lossy());
+        assert_eq!(index.root, crate::fs_util::path_text(&vault));
         assert!(!index.truncated);
         assert_eq!(
             index.notes,

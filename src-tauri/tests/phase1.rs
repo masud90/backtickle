@@ -674,7 +674,7 @@ mod r08_open_events {
             ],
         );
 
-        assert_eq!(accepted, [md.to_string_lossy()]);
+        assert_eq!(accepted, [writedown_lib::fs_util::path_text(&md)]);
         assert!(grants.is_granted(&md));
         assert!(!grants.is_granted(&png));
         let url = url::Url::from_file_path(&md).expect("url");

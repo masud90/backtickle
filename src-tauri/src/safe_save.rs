@@ -561,7 +561,7 @@ mod tests {
         let saved = save_plain(&path, "hello\n").expect("saves");
 
         let metadata = std::fs::metadata(&path).expect("metadata");
-        assert_eq!(saved.result.path, path.to_string_lossy());
+        assert_eq!(saved.result.path, crate::fs_util::path_text(&path));
         assert_eq!(saved.result.bytes, 6);
         assert_eq!(saved.result.modified_ms, fs_util::modified_ms(&metadata));
         assert_eq!(saved.stamp, FileStamp::of(&metadata));

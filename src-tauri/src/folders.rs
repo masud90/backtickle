@@ -251,7 +251,7 @@ mod tests {
 
         let listing = list_folder(&grants, &root, &no_ignore()).expect("lists");
 
-        assert_eq!(listing.path, root.to_string_lossy());
+        assert_eq!(listing.path, crate::fs_util::path_text(&root));
         assert!(!listing.truncated);
         assert_eq!(
             names(&listing),
@@ -285,7 +285,7 @@ mod tests {
             .expect("a");
         assert_eq!(file.bytes, Some(5));
         assert!(file.modified_ms.is_some_and(|ms| ms > 0));
-        assert_eq!(file.path, root.join("a.md").to_string_lossy());
+        assert_eq!(file.path, crate::fs_util::path_text(&root.join("a.md")));
         let folder = listing
             .entries
             .iter()

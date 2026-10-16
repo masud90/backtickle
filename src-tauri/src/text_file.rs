@@ -100,7 +100,7 @@ mod tests {
 
         assert_eq!(file.text, "# Titel\n\nhéllo €\n");
         assert_eq!(file.bytes, "# Titel\n\nhéllo €\n".len() as u64);
-        assert_eq!(file.path, path.to_string_lossy());
+        assert_eq!(file.path, crate::fs_util::path_text(&path));
     }
 
     #[test]

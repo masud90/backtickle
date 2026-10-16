@@ -140,7 +140,7 @@ mod tests {
         let document = result.document;
         assert_eq!(document.text, "# Titel\n\nhéllo €\n");
         assert_eq!(document.bytes, "# Titel\n\nhéllo €\n".len() as u64);
-        assert_eq!(document.path, path.to_string_lossy());
+        assert_eq!(document.path, crate::fs_util::path_text(&path));
         assert_eq!(document.encoding, Encoding::Utf8);
         assert_eq!(document.legacy_encoding, None);
         assert!(!document.lossy && !document.read_only && !document.mixed_line_endings);

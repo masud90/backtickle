@@ -223,17 +223,7 @@ pub const APP_MENU_LABEL: &str = "Writedown";
 /// What a menu gets at its end on Windows, where there is no app menu: File ends with Settings
 /// and Exit (the Quit item), Help with About.
 pub fn windows_extras(menu_label: &str) -> &'static [Entry] {
-    const FILE_EXTRAS: &[Entry] = &[
-        Entry::Separator,
-        item(
-            SETTINGS_ID,
-            "Settings\u{2026}",
-            Some("CmdOrCtrl+,"),
-            Need::Always,
-        ),
-        Entry::Separator,
-        item(QUIT_ID, "Quit Writedown", Some("CmdOrCtrl+Q"), Need::Always),
-    ];
+    const FILE_EXTRAS: &[Entry] = &[Entry::Separator, SETTINGS_ITEM, Entry::Separator, QUIT_ITEM];
     const HELP_EXTRAS: &[Entry] = &[Entry::Separator, Entry::Predefined(Predefined::About)];
     match menu_label {
         "File" => FILE_EXTRAS,
@@ -242,15 +232,18 @@ pub fn windows_extras(menu_label: &str) -> &'static [Entry] {
     }
 }
 
+const SETTINGS_ITEM: Entry = item(
+    SETTINGS_ID,
+    "Settings\u{2026}",
+    Some("CmdOrCtrl+,"),
+    Need::Always,
+);
+const QUIT_ITEM: Entry = item(QUIT_ID, "Quit Writedown", Some("CmdOrCtrl+Q"), Need::Always);
+
 const WRITEDOWN_MENU: &[Entry] = &[
     Entry::Predefined(Predefined::About),
     Entry::Separator,
-    item(
-        SETTINGS_ID,
-        "Settings\u{2026}",
-        Some("CmdOrCtrl+,"),
-        Need::Always,
-    ),
+    SETTINGS_ITEM,
     Entry::Separator,
     Entry::Predefined(Predefined::Services),
     Entry::Separator,
@@ -258,7 +251,7 @@ const WRITEDOWN_MENU: &[Entry] = &[
     Entry::Predefined(Predefined::HideOthers),
     Entry::Predefined(Predefined::ShowAll),
     Entry::Separator,
-    item(QUIT_ID, "Quit Writedown", Some("CmdOrCtrl+Q"), Need::Always),
+    QUIT_ITEM,
 ];
 
 const FILE_MENU: &[Entry] = &[
@@ -690,23 +683,14 @@ mod platform_tests {
 
     #[test]
     fn on_windows_control_with_command_becomes_alt_and_everything_else_stays() {
-        assert_eq!(
-            accelerator_on("Ctrl+CmdOrCtrl+S", true).as_deref(),
-            Some("Alt+CmdOrCtrl+S")
-        );
-        assert_eq!(
-            accelerator_on("Ctrl+CmdOrCtrl+S", false).as_deref(),
-            Some("Ctrl+CmdOrCtrl+S")
-        );
-        assert_eq!(
-            accelerator_on("CmdOrCtrl+Shift+O", true).as_deref(),
-            Some("CmdOrCtrl+Shift+O")
-        );
-        assert_eq!(
-            accelerator_on("Ctrl+Tab", true).as_deref(),
-            Some("Ctrl+Tab")
-        );
-        assert_eq!(accelerator_on("Ctrl+Alt+CmdOrCtrl+S", true), None);
+        // Plain strings, not `Some(...)`: tests/unit/acceptance4/d08-shortcuts.test.ts reads
+        // every `Some("...")` accelerator of this file as a menu shortcut.
+        let on = |accelerator: &str, windows: bool| accelerator_on(accelerator, windows);
+        assert_eq!(on("Ctrl+CmdOrCtrl+S", true).unwrap(), "Alt+CmdOrCtrl+S");
+        assert_eq!(on("Ctrl+CmdOrCtrl+S", false).unwrap(), "Ctrl+CmdOrCtrl+S");
+        assert_eq!(on("CmdOrCtrl+Shift+O", true).unwrap(), "CmdOrCtrl+Shift+O");
+        assert_eq!(on("Ctrl+Tab", true).unwrap(), "Ctrl+Tab");
+        assert_eq!(on("Ctrl+Alt+CmdOrCtrl+S", true), None);
     }
 
     #[test]
