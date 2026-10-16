@@ -21,3 +21,32 @@ jobs:
       - run: npm run build # the Rust crate embeds the built frontend
       - uses: dtolnay/rust-toolchain@stable
       - run: npm run test:rust
+
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # Keep LF line endings, as on macOS: the formatter and the fixtures expect them.
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: node scripts/gen-large-doc.mjs --size 100k
+      - run: npm run check
+      - run: npm run build # the Rust crate embeds the built frontend
+      - uses: dtolnay/rust-toolchain@stable
+      - run: npm run test:rust
+      # The installers, so a change that breaks bundling shows here and a build can be tried.
+      - run: npm run build:app:windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: writedown-windows
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/msi/*.msi
+          retention-days: 14
