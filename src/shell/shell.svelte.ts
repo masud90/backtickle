@@ -802,6 +802,8 @@ export class Shell implements WorkspaceHost {
     tab.savedLineEnding = this.settings.saving.newLineEnding;
     this.addTab(tab);
     await this.activate(tab.id);
+    // A new document is for typing: the caret is in the editor right away.
+    if (this.activeId === tab.id && tab.view !== 'preview') this.workspace?.focusEditor();
   }
 
   async openGuide(): Promise<void> {
@@ -995,6 +997,9 @@ export class Shell implements WorkspaceHost {
     const next = wasActive ? (remaining[index] ?? remaining[index - 1] ?? null) : null;
     this.saveDocState(id);
     this.workspace?.drop(id);
+    // The next tab becomes active in the same step: with no active tab for a moment the
+    // workspace would be taken down and made again.
+    if (wasActive && next) this.activeId = next.id;
     this.tabs = remaining;
     if (!wasActive) return;
     if (next) {

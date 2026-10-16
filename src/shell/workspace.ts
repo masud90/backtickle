@@ -1057,6 +1057,21 @@ export class WorkspaceController implements WorkspaceApi {
   }
 
   destroy(): void {
+    // The tabs outlive the workspace: each keeps its text, undo history and saved text, so a
+    // workspace made later shows them as they were (as a tab moved from another window).
+    // The tabs are patched after the teardown that called this, not during it.
+    if (this.currentId !== null) this.states.set(this.currentId, this.editor.getState());
+    const kept = [...this.states].map(([id, state]) => ({
+      id,
+      transfer: {
+        editorState: EditorController.stateToJSON(state),
+        savedText: (this.saved.get(id) ?? state.doc).toString(),
+      },
+    }));
+    const host = this.host;
+    queueMicrotask(() => {
+      for (const { id, transfer } of kept) host.patchTab(id, { transfer });
+    });
     this.destroyed = true;
     clearTimeout(this.selectionTimer);
     cancelAnimationFrame(this.highlightFrame);
