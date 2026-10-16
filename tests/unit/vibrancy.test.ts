@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { isWindows11, setOsForTesting } from '@/lib/os';
 import { applyVibrancy } from '@/shell/appearance';
 import { DEFAULT_SETTINGS_FOR_TESTS } from './a11y-helpers';
 
@@ -141,6 +142,67 @@ describe('applyVibrancy', () => {
     expect(el.dataset.vibrancy).toBeUndefined();
     onPlatform('mock');
     applyVibrancy(el, { ...settings, vibrancy: true });
+    expect(el.dataset.vibrancy).toBeUndefined();
+  });
+});
+
+describe('applyVibrancy on Windows', () => {
+  const settings = DEFAULT_SETTINGS_FOR_TESTS();
+  const original = Object.getOwnPropertyDescriptor(navigator, 'userAgentData');
+
+  const withVersion = (answer: () => Promise<{ platformVersion?: string }>) => {
+    Object.defineProperty(navigator, 'userAgentData', {
+      configurable: true,
+      value: { getHighEntropyValues: answer },
+    });
+  };
+
+  beforeEach(() => {
+    setOsForTesting('windows');
+    document.body.dataset.platform = 'tauri';
+  });
+
+  afterEach(() => {
+    setOsForTesting(null);
+    if (original) Object.defineProperty(navigator, 'userAgentData', original);
+    else delete (navigator as { userAgentData?: unknown }).userAgentData;
+  });
+
+  it('turns the material on once Windows 11 is known', async () => {
+    withVersion(async () => ({ platformVersion: '15.0.0' }));
+    const el = document.createElement('html');
+    applyVibrancy(el, { ...settings, vibrancy: true });
+    expect(el.dataset.vibrancy).toBeUndefined();
+    await isWindows11();
+    await Promise.resolve();
+    expect(el.dataset.vibrancy).toBe('on');
+  });
+
+  it('keeps the sidebar opaque on Windows 10', async () => {
+    withVersion(async () => ({ platformVersion: '10.0.0' }));
+    const el = document.createElement('html');
+    applyVibrancy(el, { ...settings, vibrancy: true });
+    await isWindows11();
+    await Promise.resolve();
+    expect(el.dataset.vibrancy).toBeUndefined();
+  });
+
+  it('keeps the sidebar opaque when the version cannot be read', async () => {
+    withVersion(() => Promise.reject(new Error('no')));
+    const el = document.createElement('html');
+    applyVibrancy(el, { ...settings, vibrancy: true });
+    expect(await isWindows11()).toBe(false);
+    await Promise.resolve();
+    expect(el.dataset.vibrancy).toBeUndefined();
+  });
+
+  it('does not turn on when the setting went off before the answer came', async () => {
+    withVersion(async () => ({ platformVersion: '14.0.0' }));
+    const el = document.createElement('html');
+    applyVibrancy(el, { ...settings, vibrancy: true });
+    applyVibrancy(el, { ...settings, vibrancy: false });
+    await isWindows11();
+    await Promise.resolve();
     expect(el.dataset.vibrancy).toBeUndefined();
   });
 });

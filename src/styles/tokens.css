@@ -70,9 +70,11 @@
   --wd-shadow-menu: 0 4px 14px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(0, 0, 0, 0.12);
 
   /* Typography tokens (light) */
-  --wd-font-sans: "Inter Variable", "Inter", -apple-system, system-ui, sans-serif;
+  --wd-font-sans:
+    "Inter Variable", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --wd-font-mono:
-    "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, "Cascadia Mono",
+    Consolas, monospace;
 
   --wd-text-headline-xl-size: 32px;
   --wd-text-headline-xl-line-height: 40px;

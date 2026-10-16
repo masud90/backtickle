@@ -10,6 +10,7 @@
  * own hrefs, so a remembered name from another document can never add a file to this one.
  */
 import { load } from 'js-yaml';
+import { isAbsolutePath, joinPath, parentFolder, pathRoot, samePath } from '@/lib/paths';
 import { hashString } from '../../hash';
 import type { ContextInputs, ContextNeeds, DocContext, Label } from '../../types';
 import { crossrefOptions, type LineOrigin, scanLabels } from './labels';
@@ -87,6 +88,8 @@ function dirParts(path: string): string[] {
 
 /** `target` (absolute) as a path relative to the folder of `from` (absolute). */
 function relativeTo(from: string, target: string): string {
+  // On another drive (Windows) there is no relative way there.
+  if (!samePath(pathRoot(from), pathRoot(target))) return target;
   const base = dirParts(from).filter((part) => part !== '');
   const goal = target.split('/').filter((part) => part !== '');
   let common = 0;
@@ -98,14 +101,8 @@ function relativeTo(from: string, target: string): string {
 
 /** An absolute path from the folder of `file` and an href (`../a.bib`) written next to it. */
 function joinFromFile(file: string, href: string): string {
-  if (href.startsWith('/')) return href;
-  const parts = dirParts(file).filter((part) => part !== '');
-  for (const part of href.split('/')) {
-    if (part === '' || part === '.') continue;
-    if (part === '..') parts.pop();
-    else parts.push(part);
-  }
-  return `/${parts.join('/')}`;
+  if (isAbsolutePath(href)) return href;
+  return joinPath(parentFolder(file) ?? '/', href);
 }
 
 function parseProject(project: ContextInputs['project']): Record<string, unknown> {

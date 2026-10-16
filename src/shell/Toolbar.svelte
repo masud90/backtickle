@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { MenuAction } from '@/lib/platform';
+  import { displayShortcut } from '@/lib/shortcut-keys';
   import Icon from '@/shell/icons/Icon.svelte';
   import Menu from './Menu.svelte';
   import type { MenuItem } from './menu';
@@ -243,7 +244,7 @@
       type="button"
       data-testid="open-preferences"
       aria-label="Preferences"
-      title={tooltip('Preferences', '⌘,')}
+      title={tooltip('Preferences', displayShortcut('⌘,'))}
       onclick={() => void shell.openPreferences()}
       class={base}
     >

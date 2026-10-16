@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { byOs } from '@/lib/os';
+  import { displayShortcut } from '@/lib/shortcut-keys';
   import AppMark from '@/shell/icons/AppMark.svelte';
   import Icon from '@/shell/icons/Icon.svelte';
   import { formatBytes } from './document';
@@ -30,7 +32,10 @@
       Welcome to Writedown
     </h1>
     <p class="mb-8 max-w-lg text-center font-body-lg text-body-lg text-on-surface-variant">
-      Start a new Markdown document or pick up an existing file from your Mac or iCloud Drive.
+      Start a new Markdown document or pick up an existing file from your {byOs(
+        'Mac or iCloud Drive',
+        'PC',
+      )}.
     </p>
 
     <div class="mb-10 flex items-center gap-3">
@@ -187,7 +192,7 @@
       <span class="flex items-center gap-1">
         <kbd
           class="rounded border border-outline-variant/40 bg-surface-container-lowest px-1.5 py-0.5 font-medium text-on-surface"
-          >⌘,</kbd
+          >{displayShortcut('⌘,')}</kbd
         >
         Preferences
       </span>

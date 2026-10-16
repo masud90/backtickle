@@ -1,4 +1,6 @@
 /** The pure side of the Files sidebar: ordering, rows, names, keys. */
+import { isWindows } from '@/lib/os';
+import { parentFolder } from '@/lib/paths';
 import type { FolderEntry } from '@/lib/platform';
 
 export interface Level {
@@ -63,8 +65,7 @@ export function flattenTree(
 }
 
 export function parentPath(path: string): string {
-  const slash = path.lastIndexOf('/');
-  return slash <= 0 ? '/' : path.slice(0, slash);
+  return parentFolder(path) ?? '/';
 }
 
 /** True when `path` is `folder` or lies below it. */
@@ -77,9 +78,12 @@ export function ancestorsBelow(root: string, path: string): string[] {
   if (!isUnder(path, root) || path === root) return [];
   const folders: string[] = [];
   let current = parentPath(path);
-  while (current !== root && isUnder(current, root)) {
+  // A share root comes back from `parentPath` with its slash (`//server/share/`).
+  while (current !== root && current !== `${root}/` && isUnder(current, root)) {
     folders.unshift(current);
-    current = parentPath(current);
+    const parent = parentPath(current);
+    if (parent === current) break; // a root (`/`, `C:/`) is its own parent
+    current = parent;
   }
   return folders;
 }
@@ -131,8 +135,20 @@ export function finalName(oldName: string, typed: string, kind: 'folder' | 'file
 /** What the platform will refuse, caught early so the field can say why (same rules as Rust). */
 export function nameProblem(name: string): string | null {
   if (name.trim() === '') return 'Type a name.';
+  if (isWindows()) return windowsNameProblem(name);
   if (name.includes('/') || name.includes(':')) return 'A name cannot contain "/" or ":".';
   if (name.startsWith('.')) return 'A name cannot start with a dot.';
+  return null;
+}
+
+/** Windows also keeps `\ * ? " < > |`, a dot or a space at the end, and device names such as CON. */
+function windowsNameProblem(name: string): string | null {
+  if (/[\\/:*?"<>|]/.test(name)) return 'A name cannot contain \\ / : * ? " < > or |.';
+  if (name.startsWith('.')) return 'A name cannot start with a dot.';
+  if (/[. ]$/.test(name)) return 'A name cannot end with a dot or a space.';
+  if (/^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(name)) {
+    return 'That name is reserved by Windows.';
+  }
   return null;
 }
 

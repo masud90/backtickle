@@ -4,21 +4,27 @@
  * editor. Read-only. No imports from CodeMirror or the shell, so the window stays small.
  */
 import { EDITOR_KEY_TABLE } from '@/editor/keymap-table';
+import { isWindows } from '@/lib/os';
 import type { MenuAction } from '@/lib/platform';
 import {
   type Combo,
   canonicalShortcut,
+  displayShortcut,
   EDITOR_PREFIX,
   findConflict,
   formatShortcut,
   refusal,
+  sameShortcut,
 } from '@/lib/shortcut-keys';
 import { SPECS } from '@/shell/menu-specs';
 
 export interface ShortcutRow {
   id: string;
   name: string;
-  /** Symbols as macOS shows them, for example `⇧⌘O`; empty when the shortcut was removed. */
+  /**
+   * Symbols as macOS shows them, for example `⇧⌘O`; empty when the shortcut was removed. Windows
+   * shows the same keys in Windows form (`displayShortcut`).
+   */
   keys: string;
   /** The default keys, empty for none. */
   defaultKeys: string;
@@ -223,7 +229,10 @@ export function checkChange(groups: readonly ShortcutGroup[], id: string, combo:
   return { kind: 'conflict', otherId, otherName: rowById(groups, otherId)?.name ?? otherId };
 }
 
-/** The overrides after `id` takes `shortcut` (null: none); a value equal to the default is no override. */
+/**
+ * The overrides after `id` takes `shortcut` (null: none); a value equal to the default is no
+ * override. On Windows "equal" means the same Windows keys (`⌥⌘S` recorded there is `^⌘S`).
+ */
 export function withShortcut(
   overrides: Overrides,
   id: string,
@@ -233,7 +242,11 @@ export function withShortcut(
   const next = { ...overrides };
   const defaultCanonical = defaultKeys === '' ? null : canonicalShortcut(defaultKeys);
   const wanted = shortcut === null ? null : canonicalShortcut(shortcut);
-  if (wanted === defaultCanonical) delete next[id];
+  const same =
+    wanted === null || defaultCanonical === null
+      ? wanted === defaultCanonical
+      : sameShortcut(wanted, defaultCanonical);
+  if (same) delete next[id];
   else next[id] = wanted;
   return next;
 }
@@ -245,8 +258,12 @@ const WORD_SYMBOLS: Array<[RegExp, string]> = [
   [/\bshift\b/g, '⇧'],
 ];
 
-/** Lowercase, words for modifiers become symbols, spaces and plus signs go: `cmd k` is `⌘k`. */
+/**
+ * Lowercase, words for modifiers become symbols, spaces and plus signs go: `cmd k` is `⌘k`. On
+ * Windows the words stay words, as the list shows them: `ctrl + s` is `ctrls`.
+ */
 export function normalizeKeys(text: string): string {
+  if (isWindows()) return text.toLowerCase().replace(/[\s+]/g, '');
   let out = text.toLowerCase().replaceAll('^', '⌃');
   for (const [pattern, symbol] of WORD_SYMBOLS) out = out.replace(pattern, symbol);
   return out.replace(/[\s+]/g, '');
@@ -270,7 +287,7 @@ export function filterShortcuts(groups: ShortcutGroup[], query: string): Shortcu
     const rows = group.rows.filter((row) => {
       const name = fold(`${row.name} ${group.title}`);
       if (words.every((word) => name.includes(word))) return true;
-      return normalizeKeys(row.keys).includes(typedKeys);
+      return normalizeKeys(displayShortcut(row.keys) ?? '').includes(typedKeys);
     });
     if (rows.length > 0) out.push({ title: group.title, rows });
   }

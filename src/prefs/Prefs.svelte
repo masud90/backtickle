@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
+  import { isWindows } from '@/lib/os';
   import type { Platform } from '@/lib/platform';
   import {
     SETTING_CATEGORIES,
@@ -192,8 +193,11 @@
 <svelte:window onkeydown={onKeydown} />
 
 <div class="window">
-  <!-- The overlay title bar floats over this strip; dragging it moves the window. -->
-  <header data-tauri-drag-region class="strip">
+  <!--
+    On macOS the overlay title bar floats over this strip and dragging it moves the window. Windows
+    has a native title bar above the page, so there the strip is plain.
+  -->
+  <header data-tauri-drag-region={isWindows() ? undefined : ''} class="strip">
     <div class="titlebox" data-testid="prefs-title">
       <Icon name="settings" size={18} />
       <h1>Preferences</h1>
@@ -346,6 +350,10 @@
     padding: 0 16px 0 84px;
     border-bottom: 1px solid var(--wd-outline-variant);
     user-select: none;
+  }
+  /* No traffic lights to keep clear of on Windows. */
+  :global([data-os='windows']) .strip {
+    padding-left: 16px;
   }
   .titlebox {
     display: flex;

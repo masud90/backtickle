@@ -10,6 +10,8 @@
  *   the missing-image placeholder at once.
  */
 
+import { isWindows } from '@/lib/os';
+
 export type ImageSourceKind = 'keep' | 'local' | 'blocked';
 
 const SCHEME = /^([a-z][a-z0-9+.-]*):/i;
@@ -18,6 +20,8 @@ const IMAGE_DATA_URL = /^data:image\/(?:png|jpe?g|gif|webp|avif|bmp|svg\+xml)[;,
 export function classifyImageSource(source: string): ImageSourceKind {
   const value = source.trim();
   if (value === '' || value.startsWith('//')) return 'blocked';
+  // On Windows `C:/Pictures/a.png` is a path on a drive, not an address with the scheme `c:`.
+  if (isWindows() && /^[A-Za-z]:[\\/]/.test(value)) return 'local';
   const scheme = SCHEME.exec(value)?.[1]?.toLowerCase();
   if (scheme === undefined) return 'local';
   if (scheme === 'https') return 'keep';

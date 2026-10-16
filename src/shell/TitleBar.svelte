@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { byOs, isWindows } from '@/lib/os';
   import AppMark from '@/shell/icons/AppMark.svelte';
   import Icon from '@/shell/icons/Icon.svelte';
   import { shortcutOf } from './commands';
@@ -10,6 +11,9 @@
   import { locationName, saveStatusText } from './time';
 
   let { shell }: { shell: Shell } = $props();
+
+  /** Windows draws a native title bar above the page (see the comment on the header). */
+  const windows = isWindows();
 
   const tab = $derived(shell.active);
   const dirty = $derived(tab ? tabIsDirty(tab) : false);
@@ -55,7 +59,7 @@
     },
     {
       id: 'reveal',
-      label: 'Reveal in Finder',
+      label: byOs('Reveal in Finder', 'Show in File Explorer'),
       disabled: !tab?.path,
       onSelect: () => void shell.enqueue(() => shell.revealActive()),
     },
@@ -122,14 +126,20 @@
   position is set in tauri.conf.json, trafficLightPosition). The left padding keeps the content
   clear of them. The header is a drag region for the whole subtree: buttons stay clickable, the
   rest drags the window. Text here is not selectable.
+  On Windows the window has a native title bar and menu bar above the page: this header is a plain
+  bar there, with no drag region and no space for traffic lights.
 -->
 <header
   bind:this={header}
-  data-tauri-drag-region="deep"
+  data-tauri-drag-region={windows ? undefined : 'deep'}
   data-testid="title-bar"
-  class="relative flex h-[44px] shrink-0 cursor-default select-none items-center gap-3 border-b border-outline-variant/30 bg-surface-container-low/80 pl-[84px] pr-space-md"
+  class="relative flex h-[44px] shrink-0 cursor-default select-none items-center gap-3 border-b border-outline-variant/30 bg-surface-container-low/80 {windows
+    ? 'pl-space-md'
+    : 'pl-[84px]'} pr-space-md"
 >
-  <span class="h-4 w-px bg-outline-variant/40" aria-hidden="true"></span>
+  {#if !windows}
+    <span class="h-4 w-px bg-outline-variant/40" aria-hidden="true"></span>
+  {/if}
 
   <button
     type="button"

@@ -1,5 +1,11 @@
 <script lang="ts">
-  import { comboFromEvent, formatShortcut, parseShortcut } from '@/lib/shortcut-keys';
+  import {
+    comboFromEvent,
+    displayShortcut,
+    eventRefusal,
+    formatShortcut,
+    parseShortcut,
+  } from '@/lib/shortcut-keys';
   import {
     checkChange,
     filterShortcuts,
@@ -55,7 +61,9 @@
     }
     onchange(next);
     status =
-      shortcut === null ? `Removed the shortcut of ${row?.name}` : `${row?.name}: ${shortcut}`;
+      shortcut === null
+        ? `Removed the shortcut of ${row?.name}`
+        : `${row?.name}: ${displayShortcut(shortcut) ?? shortcut}`;
   }
 
   function onKey(event: KeyboardEvent) {
@@ -72,6 +80,11 @@
     if (plain && (event.key === 'Delete' || event.key === 'Backspace')) {
       apply(recording, null);
       stop();
+      return;
+    }
+    const unusable = eventRefusal(event);
+    if (unusable !== null) {
+      refused = { id: recording, message: unusable };
       return;
     }
     const combo = comboFromEvent(event);
@@ -151,10 +164,10 @@
               <kbd data-testid="shortcut-keys" class:recording={recording === row.id}>
                 {#if recording === row.id}
                   Type a shortcut
-                {:else if row.keys === ''}
+                {:else if row.keys === '' || displayShortcut(row.keys) === undefined}
                   <span class="none">None</span>
                 {:else}
-                  {row.keys}
+                  {displayShortcut(row.keys)}
                 {/if}
               </kbd>
               {#if onchange && row.editable}
@@ -200,7 +213,7 @@
           {/if}
           {#if conflict && conflict.id === row.id}
             <p class="problem" role="alert" data-testid="shortcut-conflict">
-              <span>{conflict.shortcut} is used by {conflict.otherName}.</span>
+              <span>{displayShortcut(conflict.shortcut)} is used by {conflict.otherName}.</span>
               <span class="actions">
                 <button type="button" class="small" data-testid="shortcut-replace" onclick={replace}>
                   Replace
