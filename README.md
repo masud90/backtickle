@@ -95,7 +95,9 @@ npm run dev                   # the frontend alone in a browser, on a mock platf
 
 ## Releasing
 
-Push a tag that matches the version in `src-tauri/tauri.conf.json` (for example `v0.2.0`). The Release
+Set the new version in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json` (the tests check
+that they agree; run `npm install` and `cargo check` so the lockfiles follow), then push a matching tag (for
+example `v0.2.0`). The Release
 workflow builds the universal app and DMG and attaches them, with their SHA-256, to a draft release that you
 publish by hand. To have the app signed and notarized, add these repository secrets: `APPLE_CERTIFICATE`
 (base64 of the Developer ID Application .p12), `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`,
