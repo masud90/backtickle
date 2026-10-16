@@ -423,7 +423,12 @@ mod tests {
         let kind = ("WRITEDOWN_BENCH", "pdf");
         assert_eq!(parse(&[], &[kind]).bench_pdf, None);
         let path = |value| parse(&[], &[kind, ("WRITEDOWN_BENCH_PDF", value)]).bench_pdf;
-        assert_eq!(path("/tmp/a.pdf").as_deref(), Some("/tmp/a.pdf"));
+        let absolute = if cfg!(windows) {
+            "C:/tmp/a.pdf"
+        } else {
+            "/tmp/a.pdf"
+        };
+        assert_eq!(path(absolute).as_deref(), Some(absolute));
         assert_eq!(path("a.pdf"), None);
         assert_eq!(path("/tmp/a.txt"), None);
         let other = parse(

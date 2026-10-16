@@ -23,6 +23,8 @@ pub const OPEN_FILES_EVENT: &str = "open-files";
 pub fn urls_to_paths(urls: &[Url]) -> Vec<PathBuf> {
     urls.iter()
         .filter(|url| url.scheme() == "file")
+        // On Windows `to_file_path` turns a host into a network share; that is another machine.
+        .filter(|url| matches!(url.host_str(), None | Some("") | Some("localhost")))
         .filter_map(|url| url.to_file_path().ok())
         .collect()
 }
@@ -174,10 +176,7 @@ mod tests {
     use std::os::unix::fs::symlink;
 
     fn canonical(path: &PathBuf) -> String {
-        crate::fs_util::canonicalize(path)
-            .expect("canonical")
-            .to_string_lossy()
-            .into_owned()
+        crate::fs_util::path_text(&crate::fs_util::canonicalize(path).expect("canonical"))
     }
 
     #[test]
@@ -309,12 +308,15 @@ mod tests {
 
     #[test]
     fn r08_file_urls_become_paths_and_other_urls_are_ignored() {
+        // A drive on Windows, so the paths are absolute there too.
+        let drive = if cfg!(windows) { "C:/" } else { "" };
+        let root = if cfg!(windows) { "C:/" } else { "/" };
         let urls: Vec<Url> = [
-            "file:///Users/me/a%20b.md",
-            "https://example.org/a.md",
-            "file://localhost/Users/me/c.md",
-            "writedown://open?file=/etc/hosts",
-            "file://example.org/share/d.md",
+            format!("file:///{drive}Users/me/a%20b.md"),
+            "https://example.org/a.md".to_owned(),
+            format!("file://localhost/{drive}Users/me/c.md"),
+            "writedown://open?file=/etc/hosts".to_owned(),
+            "file://example.org/share/d.md".to_owned(),
         ]
         .iter()
         .map(|text| Url::parse(text).expect("url"))
@@ -325,8 +327,8 @@ mod tests {
         assert_eq!(
             paths,
             [
-                PathBuf::from("/Users/me/a b.md"),
-                PathBuf::from("/Users/me/c.md")
+                PathBuf::from(format!("{root}Users/me/a b.md")),
+                PathBuf::from(format!("{root}Users/me/c.md"))
             ]
         );
     }

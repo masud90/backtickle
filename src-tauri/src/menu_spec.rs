@@ -1202,8 +1202,10 @@ mod tests {
     fn no_two_items_share_a_shortcut() {
         let mut seen: HashMap<muda::accelerator::Accelerator, &str> = HashMap::new();
         for item in all_items() {
-            if let Some(accelerator) = item.accelerator {
-                let parsed = muda::accelerator::Accelerator::from_str(accelerator).expect("parses");
+            // As this system sees it: on Windows CmdOrCtrl is Ctrl, so the platform form counts.
+            if let Some(accelerator) = item.accelerator.and_then(platform_accelerator) {
+                let parsed =
+                    muda::accelerator::Accelerator::from_str(&accelerator).expect("parses");
                 if let Some(other) = seen.insert(parsed, item.id) {
                     panic!("{other} and {} both use {accelerator}", item.id);
                 }

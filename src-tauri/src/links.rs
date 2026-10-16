@@ -82,6 +82,10 @@ pub fn external_url(url: &str) -> PlatformResult<Url> {
 fn scheme_of(href: &str) -> Option<&str> {
     let end = href.find(':')?;
     let scheme = &href[..end];
+    // `C:\notes\a.md` or `C:/notes/a.md` on Windows: a drive letter, not a scheme.
+    if cfg!(windows) && scheme.len() == 1 {
+        return None;
+    }
     let mut characters = scheme.chars();
     let starts_like_a_scheme = characters.next().is_some_and(|c| c.is_ascii_alphabetic());
     (starts_like_a_scheme
@@ -175,6 +179,21 @@ mod tests {
     #[cfg(unix)]
     use std::os::unix::fs::{PermissionsExt, symlink};
 
+    /// A system file that exists, relative to the root of the drive the tests run on.
+    #[cfg(windows)]
+    const SYSTEM_FILE: &str = "Windows/System32/drivers/etc/hosts";
+    #[cfg(not(windows))]
+    const SYSTEM_FILE: &str = "etc/hosts";
+
+    fn system_file() -> PathBuf {
+        let root = if cfg!(windows) { "C:/" } else { "/" };
+        crate::fs_util::canonicalize(Path::new(root).join(SYSTEM_FILE)).expect("system file")
+    }
+
+    fn file_url(path: &Path) -> String {
+        Url::from_file_path(path).expect("absolute").to_string()
+    }
+
     /// A folder with `index.md` (the document that holds the links) and a few neighbors.
     fn workspace() -> (TempDir, PathBuf) {
         let dir = TempDir::new();
@@ -182,7 +201,10 @@ mod tests {
         dir.write("second.md", b"# Second");
         dir.write("my notes.md", b"# Spaced");
         dir.write("café.md", b"# Accent");
-        dir.write("what?.md", b"# Question");
+        if cfg!(unix) {
+            // Windows does not allow `?` in a name.
+            dir.write("what?.md", b"# Question");
+        }
         dir.write("a#b.md", b"# Hash");
         dir.write("plain.txt", b"text");
         dir.write("report.pdf", b"%PDF-1.4");
@@ -328,10 +350,12 @@ mod tests {
             resolve_document(&index, "caf%C3%A9.md").expect("accent"),
             dir.path().join("café.md")
         );
-        assert_eq!(
-            resolve_document(&index, "what%3F.md").expect("an encoded question mark is a name"),
-            dir.path().join("what?.md")
-        );
+        if cfg!(unix) {
+            assert_eq!(
+                resolve_document(&index, "what%3F.md").expect("an encoded question mark is a name"),
+                dir.path().join("what?.md")
+            );
+        }
         assert_eq!(
             resolve_document(&index, "a%23b.md#real-fragment").expect("an encoded hash is a name"),
             dir.path().join("a#b.md")
@@ -369,17 +393,14 @@ mod tests {
         let (_dir, index) = workspace();
         let climb = "../".repeat(40);
 
-        let document = resolve_document(&index, &format!("{climb}etc/hosts"));
-        let any = resolve(&index, &format!("{climb}etc/hosts"));
+        let document = resolve_document(&index, &format!("{climb}{SYSTEM_FILE}"));
+        let any = resolve(&index, &format!("{climb}{SYSTEM_FILE}"));
 
         assert_eq!(
             document.expect_err("not a document").code,
             ErrorCode::NotMarkdown
         );
-        assert_eq!(
-            any.expect("exists, so it may be revealed"),
-            Path::new("/etc/hosts").canonicalize().expect("canonical")
-        );
+        assert_eq!(any.expect("exists, so it may be revealed"), system_file());
     }
 
     #[test]
@@ -505,7 +526,7 @@ mod tests {
             absolute
         );
         assert_eq!(
-            resolve_document(&index, "/etc/hosts")
+            resolve_document(&index, &system_file().to_string_lossy())
                 .expect_err("not a document")
                 .code,
             ErrorCode::NotMarkdown
@@ -629,20 +650,21 @@ mod tests {
     fn r04_absolute_file_links_follow_the_same_rules() {
         let (dir, index) = workspace();
         let second = dir.path().join("second.md");
-        let encoded = format!(
-            "file://{}/my%20notes.md#top",
-            dir.path().to_string_lossy().replace(' ', "%20")
-        );
+        let encoded = format!("{}#top", file_url(&dir.path().join("my notes.md")));
+        let missing = if cfg!(windows) {
+            "file:///C:/does/not/exist.md"
+        } else {
+            "file:///does/not/exist.md"
+        };
 
         assert_eq!(
-            resolve_document(&index, &format!("file://{}", second.to_string_lossy()))
-                .expect("file url"),
+            resolve_document(&index, &file_url(&second)).expect("file url"),
             second
         );
         assert_eq!(
             resolve_document(
                 &index,
-                &format!("file://localhost{}", second.to_string_lossy())
+                &file_url(&second).replacen("file://", "file://localhost", 1)
             )
             .expect("localhost"),
             second
@@ -652,16 +674,36 @@ mod tests {
             dir.path().join("my notes.md")
         );
         assert_eq!(
-            resolve_document(&index, "file:///etc/hosts")
+            resolve_document(&index, &file_url(&system_file()))
                 .expect_err("not a document")
                 .code,
             ErrorCode::NotMarkdown
         );
         assert_eq!(
-            resolve_document(&index, "file:///does/not/exist.md")
-                .expect_err("missing")
-                .code,
+            resolve_document(&index, missing).expect_err("missing").code,
             ErrorCode::NotFound
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn a_drive_letter_is_not_a_scheme_and_a_share_is_refused() {
+        let (dir, index) = workspace();
+        let second = dir.path().join("second.md");
+        let forward = second.to_string_lossy().replace('\\', "/");
+
+        assert_eq!(resolve_document(&index, &forward).expect("C:/..."), second);
+        assert_eq!(
+            resolve_document(&index, "\\\\example.org\\share\\a.md")
+                .expect_err("a share")
+                .code,
+            ErrorCode::NotAllowed
+        );
+        assert_eq!(
+            resolve_document(&index, "//example.org/share/a.md")
+                .expect_err("a share")
+                .code,
+            ErrorCode::NotAllowed
         );
     }
 
@@ -703,6 +745,7 @@ mod tests {
         }
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_relative_name_with_a_colon_must_be_written_with_a_dot_slash() {
         let (dir, index) = workspace();

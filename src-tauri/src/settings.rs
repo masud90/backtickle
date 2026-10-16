@@ -1328,19 +1328,24 @@ mod tests {
         assert_eq!(wrong, Settings::default());
     }
 
+    /// `path` as an absolute path on this system (Windows wants a drive).
+    fn absolute(path: &str) -> String {
+        if cfg!(windows) {
+            format!("C:{path}")
+        } else {
+            path.to_owned()
+        }
+    }
+
     #[test]
     fn the_default_folder_is_an_absolute_path_or_null() {
-        let set = after(json!({ "saving": { "defaultFolder": "/Users/someone/Documents" } }));
-        assert_eq!(
-            set.saving.default_folder.as_deref(),
-            Some("/Users/someone/Documents")
-        );
+        let documents = absolute("/Users/someone/Documents");
+        let set = after(json!({ "saving": { "defaultFolder": documents } }));
+        assert_eq!(set.saving.default_folder, Some(documents));
         // It need not exist: that is checked when the folder is used.
-        let missing = after(json!({ "saving": { "defaultFolder": "/no/such/folder" } }));
-        assert_eq!(
-            missing.saving.default_folder.as_deref(),
-            Some("/no/such/folder")
-        );
+        let nowhere = absolute("/no/such/folder");
+        let missing = after(json!({ "saving": { "defaultFolder": nowhere } }));
+        assert_eq!(missing.saving.default_folder, Some(nowhere));
 
         assert_eq!(
             set.apply_patch(&json!({ "saving": { "defaultFolder": null } })),
@@ -1372,7 +1377,7 @@ mod tests {
             "editor": { "fontFamily": "sf-mono", "lineHeight": 2.0, "autoPair": true },
             "preview": { "font": "literata", "columnWidth": 880, "codeCards": "light" },
             "a11y": { "dyslexia": true, "scale": 1.2, "reduceMotion": "on" },
-            "saving": { "autoSave": true, "newLineEnding": "crlf", "defaultFolder": "/tmp/notes" },
+            "saving": { "autoSave": true, "newLineEnding": "crlf", "defaultFolder": absolute("/tmp/notes") },
         });
         let updated = store.update(&patch);
         assert!(updated.changed && updated.saved);
@@ -1383,7 +1388,7 @@ mod tests {
         assert_eq!(file["editor"]["fontFamily"], "sf-mono");
         assert_eq!(file["preview"]["columnWidth"], 880);
         assert_eq!(file["a11y"]["scale"], 1.2);
-        assert_eq!(file["saving"]["defaultFolder"], "/tmp/notes");
+        assert_eq!(file["saving"]["defaultFolder"], absolute("/tmp/notes"));
     }
 
     #[test]

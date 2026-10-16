@@ -68,6 +68,15 @@ pub fn detect_location(path: &Path, home: Option<&Path>) -> LocationKind {
     if first == "dropbox" {
         return LocationKind::Dropbox;
     }
+    // Windows keeps the synced folders right in the home folder.
+    if cfg!(windows) {
+        if first.starts_with("onedrive") {
+            return LocationKind::Onedrive;
+        }
+        if first == "iclouddrive" {
+            return LocationKind::Icloud;
+        }
+    }
     if first != "library" {
         return LocationKind::Local;
     }
@@ -189,6 +198,30 @@ mod tests {
         ] {
             assert_eq!(location(path), LocationKind::Local, "{path}");
         }
+    }
+
+    #[test]
+    fn on_windows_onedrive_and_icloud_drive_are_folders_in_the_home_folder() {
+        let expected = |kind| {
+            if cfg!(windows) {
+                kind
+            } else {
+                LocationKind::Local
+            }
+        };
+        assert_eq!(
+            location("/Users/alex/OneDrive/a.md"),
+            expected(LocationKind::Onedrive)
+        );
+        assert_eq!(
+            location("/Users/alex/OneDrive - Work/notes/a.md"),
+            expected(LocationKind::Onedrive)
+        );
+        assert_eq!(
+            location("/Users/alex/iCloudDrive/a.md"),
+            expected(LocationKind::Icloud)
+        );
+        assert_eq!(location("/Users/alex/OneDrive"), LocationKind::Local);
     }
 
     #[test]

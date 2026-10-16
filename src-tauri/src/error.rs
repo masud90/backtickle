@@ -210,8 +210,8 @@ mod tests {
     fn write_errors_map_to_read_only_for_permission_problems() {
         let denied = PlatformError::from_write(&io::Error::from(io::ErrorKind::PermissionDenied));
         let read_only_volume =
-            PlatformError::from_write(&io::Error::from_raw_os_error(libc::EROFS));
-        let full = PlatformError::from_write(&io::Error::from_raw_os_error(libc::ENOSPC));
+            PlatformError::from_write(&io::Error::from_raw_os_error(os_code::READ_ONLY[0]));
+        let full = PlatformError::from_write(&io::Error::from_raw_os_error(os_code::DISK_FULL[0]));
         let other = PlatformError::from_write(&io::Error::other("boom"));
 
         assert_eq!(denied.code, ErrorCode::ReadOnly);
