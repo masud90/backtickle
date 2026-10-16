@@ -270,6 +270,8 @@ export interface Settings {
     continueLists: boolean;
     /** false. Keep the cursor line in the vertical middle of the editor. */
     typewriter: boolean;
+    /** false. Live preview: hide Markdown syntax outside the lines being edited. */
+    livePreview: boolean;
     /** true. Show the "Editor" and "Preview" pane headers. */
     paneHeaders: boolean;
     softWrap: boolean;
@@ -595,6 +597,7 @@ export type MenuAction =
   | 'toggle-sidebar'
   | 'toggle-sync-scroll'
   | 'toggle-typewriter'
+  | 'toggle-live-preview'
   | 'toggle-exact-preview'
   | 'render-quarto'
   | 'zoom-in'
@@ -630,6 +633,8 @@ export interface MenuState {
   syncScroll: boolean;
   /** Typewriter scrolling is on (Phase 5). Missing means false. */
   typewriter?: boolean;
+  /** Live preview in the editor is on. Missing means false. */
+  livePreview?: boolean;
   tabCount: number;
   /** The active document is saved in a file (Duplicate, Rename, Move To, Revert, Copy as HTML). Missing means false. */
   hasPath?: boolean;

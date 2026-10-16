@@ -14,6 +14,7 @@
     "autoPair": false,
     "continueLists": true,
     "typewriter": false,
+    "livePreview": false,
     "paneHeaders": true,
     "fontSize": 13,
     "tabSize": 2,

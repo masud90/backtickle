@@ -117,6 +117,7 @@ interface GlobalSettings {
   autoPair: boolean;
   continueLists: boolean;
   typewriter: boolean;
+  livePreview: boolean;
   aids: A11yEditorOptions;
   /** The `shortcuts` setting (Phase 5); the editing keys in it replace the defaults. */
   shortcuts: Record<string, string | null>;
@@ -140,6 +141,10 @@ const a11ySlot = new Compartment();
 const typewriterSlot = new Compartment();
 const typewriterOff: Extension = [];
 let typewriterLoaded: Extension | null = null;
+/** Live preview in the editor (hidden syntax), a lazy chunk loaded once the setting is on. */
+const livePreviewSlot = new Compartment();
+const livePreviewOff: Extension = [];
+let livePreviewModule: typeof import('./live-preview') | null = null;
 
 // Extension values are shared so a compartment can be compared by identity (see `withSettings`).
 const tabExtensions = new Map<number, Extension>();
@@ -178,6 +183,7 @@ const DEFAULT_SETTINGS: GlobalSettings = {
   autoPair: false,
   continueLists: true,
   typewriter: false,
+  livePreview: false,
   aids: { ruler: false, spotlight: false },
   shortcuts: {},
 };
@@ -235,6 +241,7 @@ function stateExtensions(flavor: FlavorId): Extension[] {
     readOnlySlot.of(readOnlyOff),
     a11ySlot.of(a11yExtension({ ruler: false, spotlight: false })),
     typewriterSlot.of(typewriterOff),
+    livePreviewSlot.of(livePreviewOff),
     editorAppearance,
     // The scrollable editor must be reachable by keyboard (axe: scrollable-region-focusable).
     EditorView.contentAttributes.of({ 'aria-label': 'Markdown source', tabindex: '0' }),
@@ -259,6 +266,10 @@ function keymapFor(shortcuts: Record<string, string | null>): Extension {
     keymapCache.set(key, extension);
   }
   return extension;
+}
+
+function livePreviewFor(on: boolean): Extension {
+  return on && livePreviewModule ? livePreviewModule.livePreviewExtension : livePreviewOff;
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
@@ -613,6 +624,36 @@ export class EditorController {
     this.applyTypewriter();
   }
 
+  /** Live preview in the editor: syntax marks hidden outside the lines being edited. */
+  setLivePreview(on: boolean): void {
+    this.settings.livePreview = on;
+    if (on && !livePreviewModule) {
+      void import('./live-preview')
+        .then((module) => {
+          livePreviewModule = module;
+          module.setLivePreviewImages(this.view, this.imageResolver);
+          if (this.settings.livePreview && !this.destroyed) this.applyLivePreview();
+        })
+        .catch(() => {});
+      return;
+    }
+    this.applyLivePreview();
+  }
+
+  private imageResolver: ((source: string) => Promise<string>) | null = null;
+
+  /** How live preview finds the local images of the document on show (null: not drawn). */
+  setImageResolver(resolve: ((source: string) => Promise<string>) | null): void {
+    this.imageResolver = resolve;
+    livePreviewModule?.setLivePreviewImages(this.view, resolve);
+  }
+
+  private applyLivePreview(): void {
+    const wanted = livePreviewFor(this.settings.livePreview);
+    if (livePreviewSlot.get(this.view.state) === wanted) return;
+    this.view.dispatch({ effects: livePreviewSlot.reconfigure(wanted) });
+  }
+
   private applyTypewriter(): void {
     const wanted = this.settings.typewriter && typewriterLoaded ? typewriterLoaded : typewriterOff;
     this.view.dispatch({ effects: typewriterSlot.reconfigure(wanted) });
@@ -642,6 +683,7 @@ export class EditorController {
       autoPair,
       continueLists,
       typewriter,
+      livePreview,
       aids,
       shortcuts,
     } = this.settings;
@@ -655,6 +697,7 @@ export class EditorController {
       [spellSlot, spellcheck ? spellOn : spellOff],
       [a11ySlot, a11yExtension(aids)],
       [typewriterSlot, typewriter && typewriterLoaded ? typewriterLoaded : typewriterOff],
+      [livePreviewSlot, livePreviewFor(livePreview)],
       [keymapSlot, keymapFor(shortcuts)],
     ];
     const effects: StateEffect<unknown>[] = [];

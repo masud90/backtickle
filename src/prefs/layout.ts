@@ -32,6 +32,7 @@ export const CARDS: Record<SettingCategory, CardLayout[]> = {
         'editor.autoPair',
         'editor.continueLists',
         'editor.typewriter',
+        'editor.livePreview',
       ],
     },
     {

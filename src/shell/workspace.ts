@@ -859,6 +859,8 @@ export class WorkspaceController implements WorkspaceApi {
       this.editor.setCurrentLine(next.currentLine);
     if (!last || last.autoPair !== next.autoPair) this.editor.setAutoPair(next.autoPair);
     if (!last || last.typewriter !== next.typewriter) this.editor.setTypewriter(next.typewriter);
+    if (!last || last.livePreview !== next.livePreview)
+      this.editor.setLivePreview(next.livePreview);
     if (!last || last.continueLists !== next.continueLists)
       this.editor.setContinueLists(next.continueLists);
     this.applied = { ...next };
@@ -949,7 +951,9 @@ export class WorkspaceController implements WorkspaceApi {
   }
 
   private setImageResolver(tab: Tab): void {
-    this.preview?.setImageResolver(this.imageResolver(tab) ?? null);
+    const resolve = this.imageResolver(tab) ?? null;
+    this.preview?.setImageResolver(resolve);
+    this.editor.setImageResolver(resolve);
   }
 
   private readonly onPreviewClick = (event: MouseEvent): void => {
