@@ -315,9 +315,11 @@ mod tests {
             .join("tests")
             .join("fixtures")
             .join("flavors");
-        let in_vault = std::fs::canonicalize(fixtures.join("vault").join("notes").join("idea.md"))
-            .expect("fixture exists");
-        let outside = std::fs::canonicalize(fixtures.join("plain.md")).expect("fixture exists");
+        let in_vault =
+            crate::fs_util::canonicalize(fixtures.join("vault").join("notes").join("idea.md"))
+                .expect("fixture exists");
+        let outside =
+            crate::fs_util::canonicalize(fixtures.join("plain.md")).expect("fixture exists");
 
         assert!(in_obsidian_vault(&in_vault));
         assert!(!in_obsidian_vault(&outside));

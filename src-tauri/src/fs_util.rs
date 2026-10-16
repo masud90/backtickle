@@ -1,9 +1,7 @@
 //! Small file system helpers shared by the document code and the JSON stores.
 
-use std::ffi::CString;
 use std::fs::{File, Metadata};
 use std::io;
-use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -45,7 +43,10 @@ pub fn now_ms() -> u64 {
     system_time_ms(SystemTime::now())
 }
 
+#[cfg(unix)]
 fn access(path: &Path, mode: libc::c_int) -> bool {
+    use std::ffi::CString;
+    use std::os::unix::ffi::OsStrExt;
     match CString::new(path.as_os_str().as_bytes()) {
         // SAFETY: `c_path` is a valid NUL-terminated string that outlives the call.
         Ok(c_path) => unsafe { libc::access(c_path.as_ptr(), mode) == 0 },
@@ -55,12 +56,14 @@ fn access(path: &Path, mode: libc::c_int) -> bool {
 
 /// True if the current user may write to `path` (mode bits, ACLs, read-only volumes and the
 /// locked flag are all taken into account by the system).
+#[cfg(unix)]
 pub fn is_writable(path: &Path) -> bool {
     access(path, libc::W_OK)
 }
 
 /// True if a safe save can replace the file at `path`: the file itself can be written (so a
 /// read-only file is not silently replaced) and its folder can take a temporary file.
+#[cfg(unix)]
 pub fn can_replace(path: &Path) -> bool {
     let Some(folder) = path.parent() else {
         return false;
@@ -69,9 +72,46 @@ pub fn can_replace(path: &Path) -> bool {
 }
 
 /// True if a new file can be created in the folder of `path`.
+#[cfg(unix)]
 pub fn can_create_in_folder_of(path: &Path) -> bool {
     path.parent()
         .is_some_and(|folder| access(folder, libc::W_OK | libc::X_OK))
+}
+
+/// Windows has no `access`: a file is writable when it exists and has no read-only attribute (a
+/// folder's read-only attribute means nothing to Windows, so a folder only has to exist). ACLs
+/// that forbid writing show up as an error when the save is made.
+#[cfg(windows)]
+pub fn is_writable(path: &Path) -> bool {
+    std::fs::metadata(path).is_ok_and(|meta| meta.is_dir() || !meta.permissions().readonly())
+}
+
+#[cfg(windows)]
+pub fn can_replace(path: &Path) -> bool {
+    path.parent().is_some_and(Path::is_dir) && is_writable(path)
+}
+
+#[cfg(windows)]
+pub fn can_create_in_folder_of(path: &Path) -> bool {
+    path.parent().is_some_and(Path::is_dir)
+}
+
+/// A path as the page sees it. On Windows the separators become `/` and the `\\?\` prefix that
+/// `canonicalize` adds is dropped (`C:/Users/me/a.md`, `//server/share/a.md`), so the page can
+/// keep treating `/` as the only separator; Windows accepts that form back everywhere. On macOS
+/// it is the path unchanged.
+pub fn path_text(path: &Path) -> String {
+    #[cfg(windows)]
+    let text = dunce::simplified(path).to_string_lossy().replace('\\', "/");
+    #[cfg(not(windows))]
+    let text = path.to_string_lossy().into_owned();
+    text
+}
+
+/// `std::fs::canonicalize`, without the `\\?\` prefix on Windows (when the path can be written
+/// without it), so canonical paths compare equal to the ones dialogs and the page hand over.
+pub fn canonicalize(path: impl AsRef<Path>) -> io::Result<PathBuf> {
+    dunce::canonicalize(path)
 }
 
 /// Flushes a file to disk. Volumes that cannot flush (some network shares answer "not
@@ -147,6 +187,7 @@ pub fn write_atomic(target: &Path, bytes: &[u8]) -> io::Result<()> {
 mod tests {
     use super::*;
     use crate::test_support::TempDir;
+    #[cfg(unix)]
     use std::os::unix::fs::PermissionsExt;
 
     #[test]
@@ -159,6 +200,7 @@ mod tests {
         assert!(can_create_in_folder_of(&path));
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_file_without_write_permission_is_not_writable_or_replaceable() {
         let dir = TempDir::new();
@@ -173,6 +215,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_file_in_a_read_only_folder_cannot_be_replaced() {
         let dir = TempDir::new();

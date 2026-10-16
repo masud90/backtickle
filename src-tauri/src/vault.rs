@@ -97,7 +97,7 @@ pub fn index_of(root: &Path, cap: usize) -> VaultIndex {
     }
 
     VaultIndex {
-        root: root.to_string_lossy().into_owned(),
+        root: crate::fs_util::path_text(root),
         notes,
         attachments,
         truncated,
@@ -108,10 +108,11 @@ pub fn index_of(root: &Path, cap: usize) -> VaultIndex {
 mod tests {
     use super::*;
     use crate::test_support::TempDir;
+    #[cfg(unix)]
     use std::os::unix::fs::symlink;
 
     fn fixture_vault() -> PathBuf {
-        std::fs::canonicalize(
+        crate::fs_util::canonicalize(
             PathBuf::from(env!("CARGO_MANIFEST_DIR"))
                 .join("..")
                 .join("tests")
@@ -162,7 +163,7 @@ mod tests {
         assert_eq!(vault_index(&doc), None);
         let outside = fixture_vault().join("..").join("outside.md");
         assert_eq!(
-            vault_root(&std::fs::canonicalize(outside).expect("fixture")),
+            vault_root(&crate::fs_util::canonicalize(outside).expect("fixture")),
             None
         );
     }
@@ -213,6 +214,7 @@ mod tests {
         assert_eq!(index.attachments, vec!["a/pic.JPG"]);
     }
 
+    #[cfg(unix)]
     #[test]
     fn symbolic_links_are_not_followed_or_listed() {
         let dir = TempDir::new();

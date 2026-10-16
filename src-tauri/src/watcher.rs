@@ -428,7 +428,7 @@ fn changes_for(
         };
         for scope in scopes {
             changes.push(FileChange {
-                path: path.to_string_lossy().into_owned(),
+                path: crate::fs_util::path_text(&path),
                 kind,
                 scope,
             });

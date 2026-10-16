@@ -75,7 +75,7 @@ pub fn read_text_file_with_limit(path: &Path, limit: u64) -> Result<TextFile, St
     };
 
     Ok(TextFile {
-        path: path.to_string_lossy().into_owned(),
+        path: crate::fs_util::path_text(path),
         text,
         bytes: size,
     })

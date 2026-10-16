@@ -5,6 +5,7 @@
 //! only inside its own temporary folder.
 
 use std::fs;
+#[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -72,6 +73,7 @@ fn b31_wrong_extensions_are_refused_for_every_purpose() {
     assert!(read_linked_text(&doc, "ok.qmd", Purpose::Include).is_ok());
 }
 
+#[cfg(unix)]
 #[test]
 fn b31_an_executable_file_is_not_read_whatever_its_name_says_about_content() {
     let dir = temp();
@@ -109,6 +111,7 @@ fn b31_oversized_and_missing_files_are_refused() {
     assert!(read_linked_text(&doc, "sub/", Purpose::Include).is_err());
 }
 
+#[cfg(unix)]
 #[test]
 fn b31_embeds_stay_inside_the_vault() {
     let dir = temp();

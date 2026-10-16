@@ -8,6 +8,7 @@
 use serde_json::Value;
 use std::collections::BTreeMap;
 use std::fs;
+#[cfg(unix)]
 use std::os::unix::fs::symlink;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -343,6 +344,7 @@ fn c18_a_cancelled_search_stops() {
     assert_eq!(result.file_count, 200);
 }
 
+#[cfg(unix)]
 #[test]
 fn c18_never_leaves_the_folder_through_a_symlink() {
     let base = temp();

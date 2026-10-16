@@ -2,6 +2,7 @@
 //! shell. This file lives outside `src/`, so the process-source scan (`config.rs` B31) does not
 //! see it; the app itself starts nothing.
 
+#[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::Command;
@@ -53,6 +54,7 @@ fn a_real_shell_reads_the_quoted_text_back_unchanged() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
+#[cfg(unix)]
 #[test]
 fn the_script_runs_quarto_in_the_documents_folder_and_removes_itself() {
     let base = temp("script");

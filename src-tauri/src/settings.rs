@@ -343,19 +343,16 @@ fn pick_shortcuts(
 }
 
 /// The Pandoc path: null (or an empty string) clears it, an absolute path to a file named
-/// `pandoc` sets it, anything else keeps `fallback`.
+/// `pandoc` (`pandoc.exe` on Windows) sets it, anything else keeps `fallback`.
 fn pick_pandoc_path(source: Option<&Value>, fallback: &Option<String>) -> Option<String> {
     match source {
         Some(Value::Null) => None,
         Some(Value::String(path)) if path.is_empty() => None,
         Some(Value::String(path))
-            if path.starts_with('/')
+            if std::path::Path::new(path).is_absolute()
                 && path.len() <= 1024
                 && !path.contains('\0')
-                && std::path::Path::new(path)
-                    .file_name()
-                    .and_then(|name| name.to_str())
-                    == Some("pandoc") =>
+                && crate::dialogs::is_pandoc_name(std::path::Path::new(path)) =>
         {
             Some(path.clone())
         }
@@ -370,7 +367,9 @@ fn pick_folder_path(source: Option<&Value>, fallback: &Option<String>) -> Option
         Some(Value::Null) => None,
         Some(Value::String(path)) if path.is_empty() => None,
         Some(Value::String(path))
-            if path.starts_with('/') && path.len() <= 1024 && !path.contains('\0') =>
+            if std::path::Path::new(path).is_absolute()
+                && path.len() <= 1024
+                && !path.contains('\0') =>
         {
             Some(path.clone())
         }

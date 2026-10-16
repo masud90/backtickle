@@ -59,12 +59,12 @@ where
 }
 
 fn as_text(path: &Path) -> String {
-    path.to_string_lossy().into_owned()
+    crate::fs_util::path_text(path)
 }
 
 /// Grants a file the user chose in a dialog: it must exist and be a file.
 fn grant_chosen(grants: &PathGrants, path: &Path) -> PlatformResult<PathBuf> {
-    let canonical = std::fs::canonicalize(path).map_err(|e| PlatformError::from_read(&e))?;
+    let canonical = crate::fs_util::canonicalize(path).map_err(|e| PlatformError::from_read(&e))?;
     if !canonical.is_file() {
         return Err(PlatformError::io("The chosen item is not a file."));
     }
@@ -504,7 +504,8 @@ pub async fn open_recent(
     if !stores.recents().contains(&path) {
         return Err(PlatformError::not_allowed());
     }
-    let canonical = std::fs::canonicalize(&path).map_err(|e| PlatformError::from_read(&e))?;
+    let canonical =
+        crate::fs_util::canonicalize(&path).map_err(|e| PlatformError::from_read(&e))?;
     if !canonical.is_file() {
         return Err(PlatformError::not_found());
     }
@@ -1332,8 +1333,7 @@ pub async fn set_document_edited(
 
 #[tauri::command]
 pub async fn set_window_title(window: WebviewWindow, title: String) -> PlatformResult<()> {
-    window
-        .set_title(&dialogs::clean_line(&title, 200))
+    crate::native_doc::set_title(&window, &dialogs::clean_line(&title, 200))
         .map_err(|_| PlatformError::io("The window title could not be set."))
 }
 

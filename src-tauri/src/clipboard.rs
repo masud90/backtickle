@@ -4,7 +4,8 @@
 //!
 //! The general pasteboard of macOS is used through the Objective-C runtime (`objc2`). The
 //! functions take the pasteboard as an argument so the tests can use a private one and never
-//! touch the user's clipboard.
+//! touch the user's clipboard. On Windows the clipboard is used through the Win32 calls, with
+//! the HTML in the system's "HTML Format" (`cf_html`).
 
 use crate::error::PlatformResult;
 
@@ -12,8 +13,34 @@ use crate::error::PlatformResult;
 pub const MAX_CLIPBOARD_BYTES: usize = 64 * 1024 * 1024;
 
 /// The pasteboard types: plain text and HTML (`NSPasteboardTypeString`, `NSPasteboardTypeHTML`).
+#[cfg(target_os = "macos")]
 const TYPE_TEXT: &str = "public.utf8-plain-text";
+#[cfg(target_os = "macos")]
 const TYPE_HTML: &str = "public.html";
+
+/// HTML in the Windows clipboard format "HTML Format": a header with the byte offsets of the
+/// document and of the fragment, then the HTML wrapped in a document with fragment markers. The
+/// offsets count UTF-8 bytes from the start.
+pub fn cf_html(fragment: &str) -> String {
+    const PREFIX: &str = "<html><body>\r\n<!--StartFragment-->";
+    const SUFFIX: &str = "<!--EndFragment-->\r\n</body></html>";
+    let header = |start_html: usize,
+                  end_html: usize,
+                  start_fragment: usize,
+                  end_fragment: usize| {
+        format!(
+            "Version:0.9\r\nStartHTML:{start_html:010}\r\nEndHTML:{end_html:010}\r\nStartFragment:{start_fragment:010}\r\nEndFragment:{end_fragment:010}\r\n"
+        )
+    };
+    let header_len = header(0, 0, 0, 0).len();
+    let start_fragment = header_len + PREFIX.len();
+    let end_fragment = start_fragment + fragment.len();
+    let end_html = end_fragment + SUFFIX.len();
+    format!(
+        "{}{PREFIX}{fragment}{SUFFIX}",
+        header(header_len, end_html, start_fragment, end_fragment)
+    )
+}
 
 /// What a write put on the pasteboard, for the trace line.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -138,13 +165,134 @@ mod imp {
     }
 }
 
+#[cfg(windows)]
+mod win {
+    use super::{MAX_CLIPBOARD_BYTES, Written, cf_html};
+    use crate::error::{PlatformError, PlatformResult};
+    use ::windows::Win32::Foundation::{GlobalFree, HANDLE, HGLOBAL};
+    use ::windows::Win32::System::DataExchange::{
+        CloseClipboard, EmptyClipboard, GetClipboardData, OpenClipboard, RegisterClipboardFormatW,
+        SetClipboardData,
+    };
+    use ::windows::Win32::System::Memory::{
+        GMEM_MOVEABLE, GlobalAlloc, GlobalLock, GlobalSize, GlobalUnlock,
+    };
+    use ::windows::core::w;
+
+    /// CF_UNICODETEXT.
+    const UNICODE_TEXT: u32 = 13;
+
+    /// The clipboard, open until dropped. Another app may hold it for a moment, so opening is
+    /// tried a few times.
+    struct Open;
+
+    impl Open {
+        fn new() -> Option<Open> {
+            for _ in 0..10 {
+                // SAFETY: no owner window; the clipboard is closed again in `drop`.
+                if unsafe { OpenClipboard(None) }.is_ok() {
+                    return Some(Open);
+                }
+                std::thread::sleep(std::time::Duration::from_millis(20));
+            }
+            None
+        }
+    }
+
+    impl Drop for Open {
+        fn drop(&mut self) {
+            // SAFETY: this thread opened the clipboard.
+            let _ = unsafe { CloseClipboard() };
+        }
+    }
+
+    /// Hands `bytes` to the clipboard as `format`. The clipboard owns the memory once it is set.
+    fn set(format: u32, bytes: &[u8]) -> bool {
+        // SAFETY: a movable block of the right size is allocated, filled while locked and given
+        // to the clipboard; it is freed here only if the clipboard did not take it.
+        unsafe {
+            let Ok(memory) = GlobalAlloc(GMEM_MOVEABLE, bytes.len()) else {
+                return false;
+            };
+            let target = GlobalLock(memory).cast::<u8>();
+            if target.is_null() {
+                let _ = GlobalFree(Some(memory));
+                return false;
+            }
+            std::ptr::copy_nonoverlapping(bytes.as_ptr(), target, bytes.len());
+            let _ = GlobalUnlock(memory);
+            if SetClipboardData(format, Some(HANDLE(memory.0))).is_err() {
+                let _ = GlobalFree(Some(memory));
+                return false;
+            }
+            true
+        }
+    }
+
+    pub fn write(text: &str, html: Option<&str>) -> PlatformResult<Written> {
+        if text.len() > MAX_CLIPBOARD_BYTES || html.is_some_and(|h| h.len() > MAX_CLIPBOARD_BYTES) {
+            return Err(PlatformError::io("This is too large to copy."));
+        }
+        let failed = || PlatformError::io("The text could not be copied.");
+        let _open = Open::new().ok_or_else(failed)?;
+        // SAFETY: the clipboard is open on this thread.
+        unsafe { EmptyClipboard() }.map_err(|_| failed())?;
+        let wide: Vec<u16> = text.encode_utf16().chain(std::iter::once(0)).collect();
+        let bytes: Vec<u8> = wide.iter().flat_map(|unit| unit.to_le_bytes()).collect();
+        if !set(UNICODE_TEXT, &bytes) {
+            return Err(failed());
+        }
+        if let Some(html) = html {
+            // SAFETY: a constant, NUL-terminated wide string.
+            let format = unsafe { RegisterClipboardFormatW(w!("HTML Format")) };
+            let mut data = cf_html(html).into_bytes();
+            data.push(0);
+            if format == 0 || !set(format, &data) {
+                return Err(failed());
+            }
+        }
+        Ok(Written {
+            bytes: text.len(),
+            html: html.is_some(),
+        })
+    }
+
+    pub fn read_text() -> String {
+        let Some(_open) = Open::new() else {
+            return String::new();
+        };
+        // SAFETY: the clipboard is open; the handle is locked only while it is copied, and the
+        // copy stops at the first NUL or at the end of the block.
+        unsafe {
+            let Ok(handle) = GetClipboardData(UNICODE_TEXT) else {
+                return String::new();
+            };
+            let memory = HGLOBAL(handle.0);
+            let source = GlobalLock(memory).cast::<u16>();
+            if source.is_null() {
+                return String::new();
+            }
+            let units = GlobalSize(memory) / 2;
+            let all = std::slice::from_raw_parts(source, units);
+            let end = all.iter().position(|&unit| unit == 0).unwrap_or(units);
+            let text = String::from_utf16_lossy(&all[..end]);
+            let _ = GlobalUnlock(memory);
+            text
+        }
+    }
+}
+
 /// Puts text, and HTML if given, on the general pasteboard (replacing its contents).
 pub fn write_clipboard(text: &str, html: Option<&str>) -> PlatformResult<Written> {
     #[cfg(target_os = "macos")]
     {
         imp::write(&imp::Board::general(), text, html)
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(windows)]
+    {
+        win::write(text, html)
+    }
+    #[cfg(not(any(target_os = "macos", windows)))]
     {
         let _ = (text, html);
         Err(crate::error::PlatformError::io(
@@ -159,11 +307,36 @@ pub fn read_clipboard_text() -> PlatformResult<String> {
     {
         Ok(imp::read_text(&imp::Board::general()))
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(windows)]
+    {
+        Ok(win::read_text())
+    }
+    #[cfg(not(any(target_os = "macos", windows)))]
     {
         Err(crate::error::PlatformError::io(
             "The clipboard is not available here.",
         ))
+    }
+}
+
+#[cfg(test)]
+mod cf_html_tests {
+    use super::cf_html;
+
+    fn offset(text: &str, name: &str) -> usize {
+        let start = text.find(&format!("{name}:")).expect(name) + name.len() + 1;
+        text[start..start + 10].parse().expect("number")
+    }
+
+    #[test]
+    fn the_offsets_point_at_the_document_and_the_fragment_in_bytes() {
+        let fragment = "<p>Grüße &amp; <b>bold</b></p>";
+        let text = cf_html(fragment);
+        let start_fragment = offset(&text, "StartFragment");
+        let end_fragment = offset(&text, "EndFragment");
+        assert_eq!(&text[start_fragment..end_fragment], fragment);
+        assert!(text[offset(&text, "StartHTML")..].starts_with("<html>"));
+        assert_eq!(offset(&text, "EndHTML"), text.len());
     }
 }
 

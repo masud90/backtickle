@@ -6,6 +6,9 @@
 //! target. No process is started. The path is checked by the caller against the export targets
 //! (it came from the save dialog); the plain-Rust parts here (target check, temporary name, final
 //! rename, clean-up) are unit-tested, the AppKit part is in `imp`.
+//!
+//! On Windows the web view itself writes the file (WebView2's `PrintToPdf`, no print dialog),
+//! with the same temporary file and rename; that part is in `win`.
 
 use std::path::{Path, PathBuf};
 
@@ -77,7 +80,7 @@ pub type Stage = std::sync::Arc<dyn Fn(&str) + Send + Sync>;
 /// At most one PDF export at a time (a second request while one runs is refused).
 static RUNNING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", windows))]
 pub fn export(window: &tauri::WebviewWindow, target: &Path, stage: Stage) -> Result<u32, PdfError> {
     check_target(target)?;
     if RUNNING.swap(true, std::sync::atomic::Ordering::SeqCst) {
@@ -88,8 +91,10 @@ pub fn export(window: &tauri::WebviewWindow, target: &Path, stage: Stage) -> Res
     result
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", windows))]
 fn export_one(window: &tauri::WebviewWindow, target: &Path, stage: Stage) -> Result<u32, PdfError> {
+    #[cfg(windows)]
+    use win as imp;
     let temp = temp_path_for(target);
     discard(&temp);
     let written = imp::run(window, &temp, stage);
@@ -102,7 +107,116 @@ fn export_one(window: &tauri::WebviewWindow, target: &Path, stage: Stage) -> Res
     }
 }
 
-#[cfg(not(target_os = "macos"))]
+/// The number of pages of a PDF, counted from its page objects (`/Type /Page`, not `/Pages`), as
+/// WebView2 writes them; 0 if there are none.
+pub fn count_pages(bytes: &[u8]) -> u32 {
+    let mut count = 0;
+    let mut rest = bytes;
+    while let Some(at) = rest.windows(5).position(|window| window == b"/Type") {
+        rest = &rest[at + 5..];
+        let after = rest
+            .iter()
+            .position(|byte| !byte.is_ascii_whitespace())
+            .map_or(&[][..], |start| &rest[start..]);
+        if after.starts_with(b"/Page") && !after[5..].first().is_some_and(u8::is_ascii_alphanumeric)
+        {
+            count += 1;
+        }
+    }
+    count
+}
+
+#[cfg(windows)]
+mod win {
+    use super::PdfError;
+    use std::path::Path;
+    use std::sync::mpsc;
+    use std::time::Duration;
+    use webview2_com::Microsoft::Web::WebView2::Win32::{
+        ICoreWebView2_7, ICoreWebView2Environment6,
+    };
+    use webview2_com::PrintToPdfCompletedHandler;
+    use windows::core::{HSTRING, Interface};
+
+    /// Asks the web view for the PDF and waits for it (call from a blocking task, never from the
+    /// main thread). `temp` is where WebView2 writes.
+    pub fn run(
+        window: &tauri::WebviewWindow,
+        temp: &Path,
+        stage: super::Stage,
+    ) -> Result<(), PdfError> {
+        let (done_tx, done_rx) = mpsc::channel::<Result<(), PdfError>>();
+        let temp = HSTRING::from(temp);
+        window
+            .with_webview(move |webview| {
+                stage("closure-on-main-thread");
+                let started_tx = done_tx.clone();
+                let started = start(&webview, &temp, done_tx);
+                stage("operation-running");
+                if let Err(error) = started {
+                    let _ = started_tx.send(Err(error));
+                }
+            })
+            .map_err(|_| PdfError::new("The PDF could not be created (stage: dispatch)."))?;
+        match done_rx.recv_timeout(Duration::from_secs(300)) {
+            Ok(result) => result,
+            Err(mpsc::RecvTimeoutError::Timeout) => Err(PdfError::new(
+                "The PDF could not be created (stage: the web view never finished).",
+            )),
+            Err(mpsc::RecvTimeoutError::Disconnected) => Err(PdfError::new(
+                "The PDF could not be created (stage: the callback was dropped).",
+            )),
+        }
+    }
+
+    /// Main thread: starts `PrintToPdf` with no margins (the page sets its own, as on macOS) and
+    /// no header or footer.
+    fn start(
+        webview: &tauri::webview::PlatformWebview,
+        temp: &HSTRING,
+        done: mpsc::Sender<Result<(), PdfError>>,
+    ) -> Result<(), PdfError> {
+        let failed = || PdfError::new("The PDF could not be created.");
+        // SAFETY: COM calls on the web view's own thread, with objects the web view owns.
+        unsafe {
+            let core = webview.controller().CoreWebView2().map_err(|_| failed())?;
+            let core: ICoreWebView2_7 = core.cast().map_err(|_| {
+                PdfError::new("The PDF could not be created: this WebView2 runtime is too old.")
+            })?;
+            let settings = match webview.environment().cast::<ICoreWebView2Environment6>() {
+                Ok(environment) => {
+                    let settings = environment.CreatePrintSettings().map_err(|_| failed())?;
+                    let _ = settings.SetMarginTop(0.0);
+                    let _ = settings.SetMarginBottom(0.0);
+                    let _ = settings.SetMarginLeft(0.0);
+                    let _ = settings.SetMarginRight(0.0);
+                    let _ = settings.SetShouldPrintHeaderAndFooter(false);
+                    Some(settings)
+                }
+                Err(_) => None,
+            };
+            let handler = PrintToPdfCompletedHandler::create(Box::new(move |result, success| {
+                let _ = done.send(if result.is_ok() && success {
+                    Ok(())
+                } else {
+                    Err(PdfError::new(
+                        "The PDF could not be created (stage: the web view reported failure).",
+                    ))
+                });
+                Ok(())
+            }));
+            core.PrintToPdf(temp, settings.as_ref(), &handler)
+                .map_err(|_| failed())
+        }
+    }
+
+    /// The number of pages of a finished PDF, or 0 if it cannot be read.
+    pub fn page_count(path: &Path) -> u32 {
+        std::fs::read(path).map_or(0, |bytes| super::count_pages(&bytes))
+    }
+}
+
+#[cfg(not(any(target_os = "macos", windows)))]
 pub fn export(
     _window: &tauri::WebviewWindow,
     _target: &Path,
@@ -305,6 +419,17 @@ mod imp {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn pages_are_counted_from_the_page_objects_not_the_page_tree() {
+        let pdf = b"%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n\
+            2 0 obj << /Type /Pages /Kids [3 0 R 4 0 R] /Count 2 >> endobj\n\
+            3 0 obj << /Type /Page /Parent 2 0 R >> endobj\n\
+            4 0 obj <</Type/Page/Parent 2 0 R>> endobj\n";
+        assert_eq!(count_pages(pdf), 2);
+        assert_eq!(count_pages(b"not a pdf"), 0);
+        assert_eq!(count_pages(b"/Type"), 0, "a truncated file");
+    }
 
     fn folder(name: &str) -> PathBuf {
         let path = std::env::temp_dir().join(format!("wd-pdf-{name}-{}", std::process::id()));

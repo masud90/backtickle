@@ -311,9 +311,15 @@ pub fn pick_default_folder(app: &AppHandle<Wry>, window: &WebviewWindow<Wry>) ->
         .ok()
 }
 
-/// True if the file is named exactly `pandoc` (the only name `export.pandocPath` accepts).
+/// True if the file is named exactly `pandoc` (the only name `export.pandocPath` accepts), or
+/// `pandoc.exe` in any letter case on Windows.
 pub fn is_pandoc_name(path: &Path) -> bool {
-    path.file_name().and_then(|name| name.to_str()) == Some("pandoc")
+    let name = path.file_name().and_then(|name| name.to_str());
+    if cfg!(windows) {
+        name.is_some_and(|name| name.eq_ignore_ascii_case(crate::pandoc::PANDOC_FILE))
+    } else {
+        name == Some(crate::pandoc::PANDOC_FILE)
+    }
 }
 
 /// What the folder sheet is for (`purpose` of `folderDialog`).
@@ -596,9 +602,22 @@ mod tests {
 
     #[test]
     fn only_a_file_named_pandoc_is_taken_for_pandoc() {
-        assert!(is_pandoc_name(Path::new("/usr/local/bin/pandoc")));
-        assert!(!is_pandoc_name(Path::new("/usr/local/bin/pandoc.sh")));
-        assert!(!is_pandoc_name(Path::new("/usr/local/bin/Pandoc")));
+        #[cfg(not(windows))]
+        {
+            assert!(is_pandoc_name(Path::new("/usr/local/bin/pandoc")));
+            assert!(!is_pandoc_name(Path::new("/usr/local/bin/pandoc.sh")));
+            assert!(!is_pandoc_name(Path::new("/usr/local/bin/Pandoc")));
+        }
+        #[cfg(windows)]
+        {
+            assert!(is_pandoc_name(Path::new(
+                "C:/Program Files/Pandoc/pandoc.exe"
+            )));
+            assert!(is_pandoc_name(Path::new(
+                "C:/Program Files/Pandoc/Pandoc.EXE"
+            )));
+            assert!(!is_pandoc_name(Path::new("C:/Program Files/Pandoc/pandoc")));
+        }
         assert!(!is_pandoc_name(Path::new("/")));
     }
 }

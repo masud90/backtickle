@@ -89,7 +89,7 @@ pub async fn pick_file(
         .into_path()
         .map_err(|_| "The chosen item is not a file on this Mac.".to_string())?;
     let canonical = grants.grant(&path)?;
-    Ok(Some(canonical.to_string_lossy().into_owned()))
+    Ok(Some(crate::fs_util::path_text(&canonical)))
 }
 
 /// Reads a file chosen with `pick_file` or given with `--open`. Any other path is refused.

@@ -304,7 +304,7 @@ impl Session {
     pub fn regrant(&self, grants: &PathGrants) -> usize {
         let mut granted = 0;
         if let Some(folder) = &self.folder
-            && let Ok(canonical) = std::fs::canonicalize(folder)
+            && let Ok(canonical) = crate::fs_util::canonicalize(folder)
             && canonical == Path::new(folder)
             && grants.grant_folder(&canonical).is_ok()
         {
@@ -316,7 +316,7 @@ impl Session {
             .chain(self.windows.iter().flat_map(|window| window.tabs.iter()));
         for tab in all_tabs {
             let path = Path::new(&tab.path);
-            if let Ok(canonical) = std::fs::canonicalize(path)
+            if let Ok(canonical) = crate::fs_util::canonicalize(path)
                 && canonical == path
                 && canonical.is_file()
                 && grants.grant(&canonical).is_ok()
@@ -643,6 +643,7 @@ mod tests {
         assert!(!grants.is_granted(&dir.path().join("gone.md")));
     }
 
+    #[cfg(unix)]
     #[test]
     fn regranting_skips_a_missing_folder_and_a_path_that_became_a_link() {
         let dir = TempDir::new();

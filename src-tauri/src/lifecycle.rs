@@ -695,7 +695,7 @@ pub fn on_window_event(window: &Window<Wry>, event: &WindowEvent) {
                     label,
                     crate::pasted_images::DROP_IMAGES_EVENT,
                     json!({
-                        "paths": images.iter().map(|path| path.to_string_lossy()).collect::<Vec<_>>(),
+                        "paths": images.iter().map(|path| crate::fs_util::path_text(path)).collect::<Vec<_>>(),
                         "x": position.x / scale,
                         "y": position.y / scale,
                     }),
@@ -739,7 +739,9 @@ pub fn on_run_event(app: &AppHandle<Wry>, event: RunEvent) {
     match event {
         RunEvent::Ready => install_system_quit(app),
         RunEvent::ExitRequested { code, api, .. } => {
-            let prevented = code.is_none();
+            // Windows has no Dock icon to bring a window back, so there the app ends with its
+            // last window, as Windows apps do.
+            let prevented = code.is_none() && cfg!(not(windows));
             if prevented {
                 api.prevent_exit();
             }
@@ -756,17 +758,24 @@ pub fn on_run_event(app: &AppHandle<Wry>, event: RunEvent) {
             open_files::deliver(app, open_files::accept_paths(&grants, &paths));
         }
         #[cfg(target_os = "macos")]
-        RunEvent::Reopen { .. } => {
-            // Reopen can arrive before Tauri has created the configured windows: wait for setup.
-            if should_create_main(
-                windows::document_labels(app).is_empty(),
-                app.state::<Lifecycle>().is_setup_done(),
-            ) && let Err(error) = create_main_window(app)
-            {
-                eprintln!("writedown: the main window could not be created: {error}");
-            }
-        }
+        RunEvent::Reopen { .. } => reopen(app),
         _ => {}
+    }
+}
+
+/// A click on the Dock icon (macOS), or a second launch without files (Windows): `main` is
+/// created if no document window is open, otherwise the last focused one comes to the front.
+pub fn reopen(app: &AppHandle<Wry>) {
+    // Reopen can arrive before Tauri has created the configured windows: wait for setup.
+    if should_create_main(
+        windows::document_labels(app).is_empty(),
+        app.state::<Lifecycle>().is_setup_done(),
+    ) {
+        if let Err(error) = create_main_window(app) {
+            eprintln!("writedown: the main window could not be created: {error}");
+        }
+    } else if cfg!(windows) && app.state::<Lifecycle>().is_setup_done() {
+        focus_target_window(app);
     }
 }
 

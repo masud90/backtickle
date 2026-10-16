@@ -2,7 +2,11 @@
 //! backend, with the fixtures of `tests/fixtures`. Each module is one test id; run one with, for
 //! example, `cargo test --test phase1 r03`. Every test writes only inside a temporary folder.
 
+// Some tests here need symbolic links or Unix permissions and run on macOS only.
+#![cfg_attr(windows, allow(unused))]
+
 use serde_json::{Value, json};
+#[cfg(unix)]
 use std::os::unix::fs::{PermissionsExt, symlink};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -238,6 +242,7 @@ mod r01_encodings_and_line_endings {
 mod r02_safe_save_guarantees {
     use super::*;
 
+    #[cfg(unix)]
     #[test]
     fn permissions_tags_other_attributes_and_the_link_survive_and_nothing_is_left_behind() {
         let temp = Temp::new();
@@ -301,6 +306,7 @@ mod r03_refusals {
         }
     }
 
+    #[cfg(unix)]
     #[test]
     fn modified_externally_lossy_and_read_only_are_returned() {
         let temp = Temp::new();
@@ -429,6 +435,7 @@ mod r04_grants_links_images {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn executables_and_bundles_are_never_opened() {
         let temp = Temp::new();

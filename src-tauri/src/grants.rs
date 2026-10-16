@@ -59,7 +59,7 @@ impl PathGrants {
     /// Allows reading one file for the rest of this session. Returns its canonical path, which
     /// is the only spelling `check` accepts afterwards.
     pub fn grant(&self, path: &Path) -> Result<PathBuf, String> {
-        let canonical = std::fs::canonicalize(path).map_err(|e| describe_io_error(&e))?;
+        let canonical = crate::fs_util::canonicalize(path).map_err(|e| describe_io_error(&e))?;
         if !canonical.is_file() {
             return Err("The chosen item is not a file.".to_string());
         }
@@ -76,7 +76,7 @@ impl PathGrants {
         if !self.lock().contains(path) {
             return Err(NOT_CHOSEN.to_string());
         }
-        match std::fs::canonicalize(path) {
+        match crate::fs_util::canonicalize(path) {
             Ok(canonical) if canonical == path => Ok(canonical),
             Ok(_) => Err("The file changed since it was chosen. Choose it again.".to_string()),
             Err(error) => Err(describe_io_error(&error)),
@@ -94,7 +94,7 @@ impl PathGrants {
     /// The canonical spelling of a path the user chose in a save dialog (the file may not exist
     /// yet), without granting it. `grant_new` is this plus the grant.
     pub fn resolve_new(&self, path: &Path) -> PlatformResult<PathBuf> {
-        let target = match std::fs::canonicalize(path) {
+        let target = match crate::fs_util::canonicalize(path) {
             Ok(existing) => {
                 if !existing.is_file() {
                     return Err(PlatformError::io("The chosen item is not a file."));
@@ -105,8 +105,8 @@ impl PathGrants {
                 let (Some(folder), Some(name)) = (path.parent(), path.file_name()) else {
                     return Err(PlatformError::io("The chosen item is not a file name."));
                 };
-                let folder =
-                    std::fs::canonicalize(folder).map_err(|e| PlatformError::from_write(&e))?;
+                let folder = crate::fs_util::canonicalize(folder)
+                    .map_err(|e| PlatformError::from_write(&e))?;
                 folder.join(name)
             }
             Err(error) => return Err(PlatformError::from_read(&error)),
@@ -140,7 +140,7 @@ impl PathGrants {
         if !read_only {
             return self.check_document(path);
         }
-        match std::fs::canonicalize(path) {
+        match crate::fs_util::canonicalize(path) {
             Ok(canonical) if canonical == path => Ok(canonical),
             Ok(_) => Err(changed_since_granted()),
             Err(error) => Err(PlatformError::from_read(&error)),
@@ -164,7 +164,7 @@ impl PathGrants {
         if !exact && root.is_none() {
             return Err(PlatformError::not_allowed());
         }
-        match std::fs::canonicalize(path) {
+        match crate::fs_util::canonicalize(path) {
             Ok(canonical) if canonical == path => Ok(canonical),
             // A link below a granted folder is fine as long as it stays inside that folder.
             Ok(canonical)
@@ -186,13 +186,17 @@ impl PathGrants {
         if !self.is_permitted(path) {
             return Err(PlatformError::not_allowed());
         }
-        match std::fs::canonicalize(path) {
+        match crate::fs_util::canonicalize(path) {
             Ok(canonical) if canonical == path => Ok(canonical),
             Ok(_) => Err(changed_since_granted()),
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
                 let folder_unchanged = path
                     .parent()
-                    .and_then(|folder| std::fs::canonicalize(folder).ok().map(|c| c == folder))
+                    .and_then(|folder| {
+                        crate::fs_util::canonicalize(folder)
+                            .ok()
+                            .map(|c| c == folder)
+                    })
                     .unwrap_or(false);
                 // symlink_metadata also sees a link that points nowhere.
                 if folder_unchanged && std::fs::symlink_metadata(path).is_err() {
@@ -209,7 +213,8 @@ impl PathGrants {
 
     /// Allows a folder the user chose and everything below it. Returns its canonical path.
     pub fn grant_folder(&self, path: &Path) -> PlatformResult<PathBuf> {
-        let canonical = std::fs::canonicalize(path).map_err(|e| PlatformError::from_read(&e))?;
+        let canonical =
+            crate::fs_util::canonicalize(path).map_err(|e| PlatformError::from_read(&e))?;
         if !canonical.is_dir() {
             return Err(PlatformError::io("The chosen item is not a folder."));
         }
@@ -251,7 +256,7 @@ impl PathGrants {
         if self.folder_root_of(path).is_none() {
             return Err(PlatformError::not_allowed());
         }
-        match std::fs::canonicalize(path) {
+        match crate::fs_util::canonicalize(path) {
             Ok(canonical) if canonical == path => {
                 if canonical.is_dir() {
                     Ok(canonical)
@@ -280,7 +285,7 @@ impl PathGrants {
             Ok(_) => {}
             Err(error) => return Err(PlatformError::from_read(&error)),
         }
-        match std::fs::canonicalize(path) {
+        match crate::fs_util::canonicalize(path) {
             Ok(canonical) if canonical == path => Ok(canonical),
             Ok(_) => Err(changed_since_granted()),
             Err(error) => Err(PlatformError::from_read(&error)),
@@ -405,6 +410,7 @@ mod tests {
         assert_eq!(grants.check(&detour), Err(NOT_CHOSEN.to_string()));
     }
 
+    #[cfg(unix)]
     #[test]
     fn granting_follows_links_so_only_the_real_file_is_listed() {
         let dir = TempDir::new();
@@ -415,11 +421,15 @@ mod tests {
 
         let canonical = grants.grant(&link).expect("grants");
 
-        assert_eq!(canonical, std::fs::canonicalize(&real).expect("canonical"));
+        assert_eq!(
+            canonical,
+            crate::fs_util::canonicalize(&real).expect("canonical")
+        );
         assert_eq!(grants.check(&link), Err(NOT_CHOSEN.to_string()));
         assert!(grants.check(&canonical).is_ok());
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_granted_file_that_becomes_a_link_elsewhere_is_refused() {
         let dir = TempDir::new();
@@ -479,6 +489,7 @@ mod tests {
         assert!(!wanted.exists(), "granting creates nothing");
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_new_file_in_a_folder_reached_through_a_link_is_granted_by_its_canonical_path() {
         let dir = TempDir::new();
@@ -492,7 +503,7 @@ mod tests {
 
         assert_eq!(
             granted,
-            std::fs::canonicalize(&real)
+            crate::fs_util::canonicalize(&real)
                 .expect("canonical")
                 .join("new.md")
         );
@@ -544,6 +555,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn check_document_refuses_a_granted_file_that_became_a_link_elsewhere() {
         let dir = TempDir::new();
@@ -592,6 +604,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn check_for_save_refuses_a_new_file_whose_name_became_a_link() {
         let dir = TempDir::new();
@@ -612,7 +625,7 @@ mod tests {
     fn a_resolved_link_target_can_be_granted() {
         let dir = TempDir::new();
         let target = dir.write("linked.md", b"x");
-        let canonical = std::fs::canonicalize(&target).expect("canonical");
+        let canonical = crate::fs_util::canonicalize(&target).expect("canonical");
         let grants = PathGrants::default();
 
         assert!(!grants.is_granted(&canonical));
@@ -638,7 +651,7 @@ mod tests {
         });
 
         for path in &paths {
-            let canonical = std::fs::canonicalize(path).expect("canonical");
+            let canonical = crate::fs_util::canonicalize(path).expect("canonical");
             assert!(grants.check(&canonical).is_ok());
         }
     }
@@ -646,7 +659,7 @@ mod tests {
     #[test]
     fn a_read_only_grant_starts_linked_reads_and_nothing_else() {
         let dir = TempDir::new();
-        let path = std::fs::canonicalize(dir.write("inc.md", b"x")).expect("canonical");
+        let path = crate::fs_util::canonicalize(dir.write("inc.md", b"x")).expect("canonical");
         let grants = PathGrants::default();
 
         assert!(grants.check_readable(&path).is_err());

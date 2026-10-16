@@ -127,8 +127,8 @@ pub fn quarto_project(doc: &Path, home: Option<&Path>) -> PlatformResult<Option<
         if !std::fs::metadata(&candidate).is_ok_and(|metadata| metadata.is_file()) {
             continue;
         }
-        let canonical =
-            std::fs::canonicalize(&candidate).map_err(|error| PlatformError::from_read(&error))?;
+        let canonical = crate::fs_util::canonicalize(&candidate)
+            .map_err(|error| PlatformError::from_read(&error))?;
         return read(&canonical, MAX_QUARTO_PROJECT_BYTES).map(Some);
     }
     Ok(None)
@@ -138,10 +138,11 @@ pub fn quarto_project(doc: &Path, home: Option<&Path>) -> PlatformResult<Option<
 mod tests {
     use super::*;
     use crate::test_support::TempDir;
+    #[cfg(unix)]
     use std::os::unix::fs::{PermissionsExt, symlink};
 
     fn fixtures() -> PathBuf {
-        std::fs::canonicalize(
+        crate::fs_util::canonicalize(
             PathBuf::from(env!("CARGO_MANIFEST_DIR"))
                 .join("..")
                 .join("tests")
@@ -281,6 +282,7 @@ mod tests {
         }
     }
 
+    #[cfg(unix)]
     #[test]
     fn the_extension_is_judged_on_the_resolved_target() {
         let (dir, doc) = workspace();
@@ -410,6 +412,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn an_embed_through_a_link_that_leaves_the_vault_is_refused() {
         let dir = TempDir::new();

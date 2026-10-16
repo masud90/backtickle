@@ -1,7 +1,7 @@
 [package]
 name = "writedown"
 version = "0.1.2"
-description = "A Markdown reader and writer for macOS"
+description = "A Markdown reader and writer for macOS and Windows"
 license = "MIT"
 repository = "https://github.com/masud90/writedown"
 authors = ["Masud Rahman"]
@@ -47,6 +47,9 @@ notify = { version = "=8.2.0", default-features = false, features = ["macos_fsev
 grep-searcher = "=0.1.17"
 grep-regex = "=0.1.14"
 grep-matcher = "=0.1.9"
+# Canonical paths without the `\\?\` prefix on Windows (src/fs_util.rs); a no-op elsewhere. Already
+# in the lock file through Tauri. CC0-1.0 OR MIT-0 OR Apache-2.0.
+dunce = "=1.0.5"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 # One small module (src/terminate.rs) answers system-initiated quits through the Objective-C
@@ -60,6 +63,18 @@ objc2-foundation = { version = "=0.3.2", default-features = false, features = ["
 # The default-app button (src/native_doc.rs) passes a completion block to NSWorkspace; the crate is
 # already in the lock file (MIT), used here only for the block type.
 block2 = "=0.6.2"
+
+[target.'cfg(windows)'.dependencies]
+# A second launch (a file opened from File Explorer while the app runs) hands its arguments to the
+# running app instead of starting a second one, as macOS does by itself (src/launch.rs). It talks
+# to the running app through a window message, never the network. MIT OR Apache-2.0.
+tauri-plugin-single-instance = "2"
+# The one-click PDF export (src/pdf.rs) uses WebView2's own PrintToPdf. Same version as Tauri's
+# web view library already uses (MIT).
+webview2-com = "=0.39.1"
+# The shell calls of src/native_doc.rs (recent documents, the default app for Markdown) and
+# src/terminate.rs. Same version as webview2-com uses (MIT OR Apache-2.0); only the features needed.
+windows = { version = "=0.62.2", features = ["Win32_Foundation", "Win32_UI_Shell", "Win32_UI_Shell_Common", "Win32_UI_WindowsAndMessaging", "Win32_System_Com", "Win32_Storage_FileSystem", "Win32_System_DataExchange", "Win32_System_Memory"] }
 
 [target.'cfg(unix)'.dependencies]
 # Finder tags and other extended attributes are copied by the safe save.

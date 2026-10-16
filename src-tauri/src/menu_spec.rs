@@ -217,6 +217,31 @@ const HEADINGS: &[Entry] = &[
     ),
 ];
 
+/// The label of the app menu (macOS only; see `windows_extras`).
+pub const APP_MENU_LABEL: &str = "Writedown";
+
+/// What a menu gets at its end on Windows, where there is no app menu: File ends with Settings
+/// and Exit (the Quit item), Help with About.
+pub fn windows_extras(menu_label: &str) -> &'static [Entry] {
+    const FILE_EXTRAS: &[Entry] = &[
+        Entry::Separator,
+        item(
+            SETTINGS_ID,
+            "Settings\u{2026}",
+            Some("CmdOrCtrl+,"),
+            Need::Always,
+        ),
+        Entry::Separator,
+        item(QUIT_ID, "Quit Writedown", Some("CmdOrCtrl+Q"), Need::Always),
+    ];
+    const HELP_EXTRAS: &[Entry] = &[Entry::Separator, Entry::Predefined(Predefined::About)];
+    match menu_label {
+        "File" => FILE_EXTRAS,
+        "Help" => HELP_EXTRAS,
+        _ => &[],
+    }
+}
+
 const WRITEDOWN_MENU: &[Entry] = &[
     Entry::Predefined(Predefined::About),
     Entry::Separator,
@@ -439,7 +464,7 @@ const HELP_MENU: &[Entry] = &[item("markdown-guide", "Markdown Guide", None, Nee
 /// The menu bar, left to right.
 pub const MENUS: &[Menu] = &[
     Menu {
-        label: "Writedown",
+        label: APP_MENU_LABEL,
         special: None,
         entries: WRITEDOWN_MENU,
     },
@@ -626,6 +651,103 @@ pub fn accelerator_for(text: &str) -> Option<String> {
     }
     parts.push(shortcut.key.as_str());
     Some(parts.join("+"))
+}
+
+/// An accelerator for the system the app runs on (see `accelerator_on`).
+pub fn platform_accelerator(accelerator: &str) -> Option<String> {
+    accelerator_on(accelerator, cfg!(windows))
+}
+
+/// An accelerator as `windows` needs it, or as it is elsewhere. Windows has no Command key:
+/// `CmdOrCtrl` is Ctrl there, so a shortcut with both Control and Command (`⌃⌘S`, the sidebar)
+/// turns its Control into Alt. With Alt already in it the shortcut has no Windows form (`None`).
+/// The page applies the same rule to what it shows (src/lib/shortcut-keys.ts).
+pub fn accelerator_on(accelerator: &str, windows: bool) -> Option<String> {
+    let parts: Vec<&str> = accelerator.split('+').collect();
+    let has = |name: &str| parts.iter().any(|part| part.eq_ignore_ascii_case(name));
+    if !windows || !(has("Ctrl") && has("CmdOrCtrl")) {
+        return Some(accelerator.to_owned());
+    }
+    if has("Alt") {
+        return None;
+    }
+    let mapped: Vec<&str> = parts
+        .iter()
+        .map(|part| {
+            if part.eq_ignore_ascii_case("Ctrl") {
+                "Alt"
+            } else {
+                part
+            }
+        })
+        .collect();
+    Some(mapped.join("+"))
+}
+
+#[cfg(test)]
+mod platform_tests {
+    use super::*;
+
+    #[test]
+    fn on_windows_control_with_command_becomes_alt_and_everything_else_stays() {
+        assert_eq!(
+            accelerator_on("Ctrl+CmdOrCtrl+S", true).as_deref(),
+            Some("Alt+CmdOrCtrl+S")
+        );
+        assert_eq!(
+            accelerator_on("Ctrl+CmdOrCtrl+S", false).as_deref(),
+            Some("Ctrl+CmdOrCtrl+S")
+        );
+        assert_eq!(
+            accelerator_on("CmdOrCtrl+Shift+O", true).as_deref(),
+            Some("CmdOrCtrl+Shift+O")
+        );
+        assert_eq!(
+            accelerator_on("Ctrl+Tab", true).as_deref(),
+            Some("Ctrl+Tab")
+        );
+        assert_eq!(accelerator_on("Ctrl+Alt+CmdOrCtrl+S", true), None);
+    }
+
+    #[test]
+    fn every_default_accelerator_has_a_windows_form_and_no_two_collide() {
+        let mut seen = std::collections::BTreeMap::new();
+        for item in all_items() {
+            let Some(accelerator) = item.accelerator else {
+                continue;
+            };
+            let windows = accelerator_on(accelerator, true).expect(item.id);
+            let key = windows
+                .replace("CmdOrCtrl", "Ctrl")
+                .to_ascii_lowercase()
+                .split('+')
+                .map(str::to_owned)
+                .collect::<std::collections::BTreeSet<_>>();
+            if let Some(other) = seen.insert(key, item.id) {
+                panic!("{} and {} share {windows} on Windows", item.id, other);
+            }
+        }
+    }
+
+    #[test]
+    fn windows_puts_settings_and_exit_in_file_and_about_in_help() {
+        let ids = |label: &str| -> Vec<&str> {
+            windows_extras(label)
+                .iter()
+                .filter_map(|entry| match entry {
+                    Entry::Item(item) => Some(item.id),
+                    _ => None,
+                })
+                .collect()
+        };
+        assert_eq!(ids("File"), [SETTINGS_ID, QUIT_ID]);
+        assert!(
+            windows_extras("Help").contains(&Entry::Predefined(Predefined::About)),
+            "About"
+        );
+        assert!(windows_extras("Edit").is_empty());
+        assert_eq!(MENUS[0].label, APP_MENU_LABEL);
+    }
 }
 
 /// The id prefix of the editor's own commands in the `shortcuts` setting.

@@ -185,10 +185,10 @@ pub fn display_folder(folder: &Path, home: Option<&Path>) -> String {
             return "~".to_owned();
         }
         if let Ok(rest) = folder.strip_prefix(home) {
-            return format!("~/{}", rest.to_string_lossy());
+            return format!("~/{}", crate::fs_util::path_text(rest));
         }
     }
-    folder.to_string_lossy().into_owned()
+    crate::fs_util::path_text(folder)
 }
 
 /// Turns stored entries into what the frontend gets, looking at the file system for the size

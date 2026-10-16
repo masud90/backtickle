@@ -102,6 +102,7 @@ pub fn asset_url(path: &Path) -> String {
 mod tests {
     use super::*;
     use crate::test_support::TempDir;
+    #[cfg(unix)]
     use std::os::unix::fs::symlink;
 
     /// A folder with `doc.md` and an image next to it.
@@ -169,7 +170,7 @@ mod tests {
             .join("tests")
             .join("fixtures")
             .join("links");
-        let index = std::fs::canonicalize(root.join("index.md")).expect("fixture exists");
+        let index = crate::fs_util::canonicalize(root.join("index.md")).expect("fixture exists");
 
         let image = resolve_image(&index, "images/sample.png").expect("resolves");
 
@@ -220,6 +221,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn r04_a_link_named_like_an_image_that_points_to_another_kind_of_file_is_refused() {
         let (dir, doc) = workspace();
@@ -342,7 +344,7 @@ mod tests {
     // ---- vault-relative images ----------------------------------------------------
 
     fn vault_fixture() -> PathBuf {
-        std::fs::canonicalize(
+        crate::fs_util::canonicalize(
             PathBuf::from(env!("CARGO_MANIFEST_DIR"))
                 .join("..")
                 .join("tests")
@@ -384,6 +386,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn the_vault_reading_keeps_every_other_check() {
         let dir = TempDir::new();
@@ -417,6 +420,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn the_vault_reading_cannot_leave_the_vault() {
         let outside = TempDir::new();

@@ -412,7 +412,7 @@ fn run(
             }
             total += collector.rows.len();
             result.files.push(SearchFileResult {
-                path: entry.path().to_string_lossy().into_owned(),
+                path: crate::fs_util::path_text(entry.path()),
                 matches: collector.rows,
             });
         }
@@ -487,7 +487,7 @@ mod tests {
 
     fn fixture() -> (PathBuf, Value) {
         let folder = Path::new(env!("CARGO_MANIFEST_DIR")).join("../tests/fixtures/folder");
-        let folder = std::fs::canonicalize(folder).expect("fixture folder");
+        let folder = crate::fs_util::canonicalize(folder).expect("fixture folder");
         let expected: Value = serde_json::from_slice(
             &std::fs::read(folder.join("expected-search.json")).expect("expected file"),
         )
@@ -765,6 +765,7 @@ mod tests {
         assert_eq!(again.file_count, 50);
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_link_out_of_the_folder_is_not_followed_but_one_inside_is() {
         let outer = TempDir::new();

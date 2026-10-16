@@ -31,11 +31,62 @@ const MAX_PREVIEW_BYTES: u64 = 32 * 1024 * 1024;
 /// How many lines of Pandoc's error output the banner shows.
 const ERROR_LINES: usize = 3;
 
+/// The file name of the Pandoc program.
+#[cfg(not(windows))]
+pub const PANDOC_FILE: &str = "pandoc";
+#[cfg(windows)]
+pub const PANDOC_FILE: &str = "pandoc.exe";
+
+#[cfg(not(windows))]
 const RSTUDIO_PANDOC: [&str; 2] = [
     "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64/pandoc",
     "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/x86_64/pandoc",
 ];
+#[cfg(not(windows))]
 const PANDOC_FOLDERS: [&str; 3] = ["/opt/homebrew/bin", "/usr/local/bin", "/usr/bin"];
+
+/// Where Pandoc is installed on Windows, below `Program Files` or the user's local app folder:
+/// its own installer, the copy inside RStudio, the copy inside Quarto.
+#[cfg(windows)]
+const WINDOWS_PANDOC: [&str; 4] = [
+    "Pandoc/pandoc.exe",
+    "RStudio/resources/app/bin/quarto/bin/tools/pandoc.exe",
+    "RStudio/resources/app/quarto/bin/tools/pandoc.exe",
+    "Quarto/bin/tools/pandoc.exe",
+];
+
+/// The places Pandoc is looked for after the setting, in order.
+#[cfg(not(windows))]
+fn usual_places() -> Vec<PathBuf> {
+    let mut places: Vec<PathBuf> = RSTUDIO_PANDOC.iter().map(PathBuf::from).collect();
+    places.extend(
+        PANDOC_FOLDERS
+            .iter()
+            .map(|folder| Path::new(folder).join(PANDOC_FILE)),
+    );
+    places
+}
+
+#[cfg(windows)]
+fn usual_places() -> Vec<PathBuf> {
+    let roots: Vec<PathBuf> = ["ProgramFiles", "ProgramW6432", "LOCALAPPDATA"]
+        .into_iter()
+        .filter_map(std::env::var_os)
+        .map(PathBuf::from)
+        .collect();
+    let mut places: Vec<PathBuf> = Vec::new();
+    for relative in WINDOWS_PANDOC {
+        for root in &roots {
+            places.push(root.join(relative));
+            places.push(root.join("Programs").join(relative));
+        }
+    }
+    // Then every folder on PATH (winget and Chocolatey put Pandoc there).
+    if let Some(path) = std::env::var_os("PATH") {
+        places.extend(std::env::split_paths(&path).map(|folder| folder.join(PANDOC_FILE)));
+    }
+    places
+}
 
 /// The input formats a Word export may use. Anything else is refused.
 pub const ROUTES: [&str; 5] = [
@@ -69,12 +120,7 @@ pub fn discover(setting: Option<&str>) -> Option<PathBuf> {
     if let Some(path) = setting {
         candidates.push(PathBuf::from(path));
     }
-    candidates.extend(RSTUDIO_PANDOC.iter().map(PathBuf::from));
-    candidates.extend(
-        PANDOC_FOLDERS
-            .iter()
-            .map(|folder| Path::new(folder).join("pandoc")),
-    );
+    candidates.extend(usual_places());
     candidates.into_iter().find(|path| path.is_file())
 }
 
@@ -85,11 +131,39 @@ pub fn parse_version(output: &str) -> Option<String> {
     (!version.is_empty()).then(|| version.to_string())
 }
 
+#[cfg(not(windows))]
 fn clean_command(program: &Path) -> Command {
     let mut command = Command::new(program);
     let path = std::env::var_os("PATH").unwrap_or_else(|| OsString::from("/usr/bin:/bin"));
     let home = std::env::var_os("HOME").unwrap_or_else(|| OsString::from("/"));
     command.env_clear().env("PATH", path).env("HOME", home);
+    command
+}
+
+/// Windows: the same clean environment, plus the variables a Windows program needs to start
+/// (`SystemRoot`) and to find the user's folders. No console window is shown.
+#[cfg(windows)]
+fn clean_command(program: &Path) -> Command {
+    use std::os::windows::process::CommandExt;
+    /// CREATE_NO_WINDOW
+    const NO_WINDOW: u32 = 0x0800_0000;
+    let mut command = Command::new(program);
+    command.env_clear();
+    for name in [
+        "PATH",
+        "SystemRoot",
+        "SystemDrive",
+        "TEMP",
+        "TMP",
+        "USERPROFILE",
+        "APPDATA",
+        "LOCALAPPDATA",
+    ] {
+        if let Some(value) = std::env::var_os(name) {
+            command.env(name, value);
+        }
+    }
+    command.creation_flags(NO_WINDOW);
     command
 }
 
@@ -125,7 +199,7 @@ pub fn info(setting: Option<&str>) -> Option<PandocInfo> {
             && *known == path
         {
             return Some(PandocInfo {
-                path: path.to_string_lossy().into_owned(),
+                path: crate::fs_util::path_text(&path),
                 version: version.clone(),
             });
         }
@@ -142,7 +216,7 @@ pub fn info(setting: Option<&str>) -> Option<PandocInfo> {
     let version = parse_version(&String::from_utf8_lossy(&output.stdout))?;
     *cache().lock().unwrap_or_else(PoisonError::into_inner) = Some((path.clone(), version.clone()));
     Some(PandocInfo {
-        path: path.to_string_lossy().into_owned(),
+        path: crate::fs_util::path_text(&path),
         version,
     })
 }

@@ -16,7 +16,7 @@
 //! the grants pointing at the new path of a rename or a move is done by the caller (`bridge.rs`
 //! and `grants.rs`).
 
-use crate::error::{ErrorCode, PlatformError, PlatformResult};
+use crate::error::{ErrorCode, PlatformError, PlatformResult, os_code};
 use crate::grants::PathGrants;
 use crate::watcher::OwnWrites;
 use std::io;
@@ -53,7 +53,9 @@ impl Trasher for SystemTrash {
 
 /// The name as it will be used, or an `invalid-name` error: not empty, no `/` or `:` (macOS
 /// shows a slash as a colon), no control characters, no leading dot (which also rules out `.`
-/// and `..`), at most 255 bytes. White space around the name is dropped.
+/// and `..`), at most 255 bytes. White space around the name is dropped. On Windows the
+/// characters `\ * ? " < > |`, a trailing dot and the device names (`CON`, `NUL`, `COM1`, ...)
+/// are refused as well, as File Explorer refuses them.
 pub fn clean_name(name: &str) -> PlatformResult<String> {
     let trimmed = name.trim();
     let bad = trimmed.is_empty()
@@ -61,7 +63,8 @@ pub fn clean_name(name: &str) -> PlatformResult<String> {
         || trimmed.len() > MAX_NAME_BYTES
         || trimmed
             .chars()
-            .any(|c| c == '/' || c == ':' || c.is_control());
+            .any(|c| c == '/' || c == ':' || c.is_control())
+        || (cfg!(windows) && !windows_name_ok(trimmed));
     if bad {
         Err(PlatformError::invalid_name())
     } else {
@@ -69,27 +72,46 @@ pub fn clean_name(name: &str) -> PlatformResult<String> {
     }
 }
 
+/// The extra rules of Windows names (see `clean_name`). Plain string checks, so they are tested
+/// on every system.
+pub fn windows_name_ok(name: &str) -> bool {
+    const DEVICES: &[&str] = &[
+        "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8",
+        "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+    ];
+    let stem = name.split('.').next().unwrap_or_default().trim_end();
+    !name.ends_with('.')
+        && !name
+            .chars()
+            .any(|c| matches!(c, '\\' | '*' | '?' | '"' | '<' | '>' | '|'))
+        && !DEVICES
+            .iter()
+            .any(|device| stem.eq_ignore_ascii_case(device))
+}
+
+fn cannot_change() -> PlatformError {
+    PlatformError::new(
+        ErrorCode::ReadOnly,
+        format!(
+            "Writedown cannot change this location. Check its permissions in {}.",
+            crate::os_text::FILE_MANAGER
+        ),
+    )
+}
+
 /// An I/O error of an operation as a platform error.
 fn failed(error: &io::Error) -> PlatformError {
     match error.kind() {
         io::ErrorKind::AlreadyExists => PlatformError::exists(),
         io::ErrorKind::NotFound => PlatformError::not_found(),
-        io::ErrorKind::PermissionDenied => PlatformError::new(
-            ErrorCode::ReadOnly,
-            "Writedown cannot change this location. Check its permissions in Finder.",
-        ),
+        io::ErrorKind::PermissionDenied => cannot_change(),
         _ => match error.raw_os_error() {
-            Some(code) if code == libc::ENAMETOOLONG => PlatformError::invalid_name(),
-            Some(code) if code == libc::EROFS || code == libc::EACCES || code == libc::EPERM => {
-                PlatformError::new(
-                    ErrorCode::ReadOnly,
-                    "Writedown cannot change this location. Check its permissions in Finder.",
-                )
-            }
-            Some(code) if code == libc::EXDEV => PlatformError::io(
+            Some(code) if os_code::NAME_TOO_LONG.contains(&code) => PlatformError::invalid_name(),
+            Some(code) if os_code::READ_ONLY.contains(&code) => cannot_change(),
+            Some(code) if os_code::OTHER_VOLUME.contains(&code) => PlatformError::io(
                 "This folder is on another disk. Writedown moves items within one disk only.",
             ),
-            Some(code) if code == libc::ENOSPC || code == libc::EDQUOT => {
+            Some(code) if os_code::DISK_FULL.contains(&code) => {
                 PlatformError::io("The disk is full.")
             }
             _ => PlatformError::io("The operation could not be completed."),
@@ -98,7 +120,7 @@ fn failed(error: &io::Error) -> PlatformError {
 }
 
 fn canonical(path: &Path) -> PlatformResult<PathBuf> {
-    std::fs::canonicalize(path).map_err(|e| PlatformError::from_read(&e))
+    crate::fs_util::canonicalize(path).map_err(|e| PlatformError::from_read(&e))
 }
 
 /// Renames without replacing an existing item, atomically: the kernel refuses if `to` exists.
@@ -120,7 +142,17 @@ fn rename_no_replace(from: &Path, to: &Path) -> io::Result<()> {
             Err(io::Error::last_os_error())
         }
     }
-    #[cfg(not(target_os = "macos"))]
+    // Without MOVEFILE_REPLACE_EXISTING, Windows refuses when `to` exists (ERROR_ALREADY_EXISTS
+    // or ERROR_FILE_EXISTS, which std reads as `AlreadyExists`).
+    #[cfg(windows)]
+    {
+        use ::windows::Win32::Storage::FileSystem::{MOVE_FILE_FLAGS, MoveFileExW};
+        use ::windows::core::HSTRING;
+        // SAFETY: both arguments are NUL-terminated wide strings that live through the call.
+        unsafe { MoveFileExW(&HSTRING::from(from), &HSTRING::from(to), MOVE_FILE_FLAGS(0)) }
+            .map_err(|error| io::Error::from_raw_os_error(error.code().0 & 0xFFFF))
+    }
+    #[cfg(not(any(target_os = "macos", windows)))]
     {
         if to.symlink_metadata().is_ok() {
             return Err(io::Error::from(io::ErrorKind::AlreadyExists));
@@ -130,10 +162,24 @@ fn rename_no_replace(from: &Path, to: &Path) -> io::Result<()> {
 }
 
 /// True if both paths are the same file or folder (same device and inode).
+#[cfg(unix)]
 fn same_item(a: &Path, b: &Path) -> bool {
     use std::os::unix::fs::MetadataExt;
     match (std::fs::symlink_metadata(a), std::fs::symlink_metadata(b)) {
         (Ok(left), Ok(right)) => left.dev() == right.dev() && left.ino() == right.ino(),
+        _ => false,
+    }
+}
+
+/// True if both paths are the same file or folder. Windows names ignore letter case, and the
+/// canonical path is spelled as the item is on disk, so two spellings of one item compare equal.
+#[cfg(windows)]
+fn same_item(a: &Path, b: &Path) -> bool {
+    match (
+        crate::fs_util::canonicalize(a),
+        crate::fs_util::canonicalize(b),
+    ) {
+        (Ok(left), Ok(right)) => left == right,
         _ => false,
     }
 }
@@ -290,12 +336,17 @@ pub fn duplicate_path(grants: &PathGrants, path: &Path) -> PlatformResult<PathBu
 pub fn trash_path(grants: &PathGrants, path: &Path, trasher: &dyn Trasher) -> PlatformResult<()> {
     let source = grants.check_item(path)?;
     if grants.is_folder_root(&source) {
-        return Err(PlatformError::io(
-            "The open folder cannot be moved to the Trash from here. Close it first or use Finder.",
-        ));
+        return Err(PlatformError::io(format!(
+            "The open folder cannot be moved to the {} from here. Close it first or use {}.",
+            crate::os_text::TRASH,
+            crate::os_text::FILE_MANAGER
+        )));
     }
     trasher.trash(&source).map_err(|_| {
-        PlatformError::io("The item could not be moved to the Trash. It is still where it was.")
+        PlatformError::io(format!(
+            "The item could not be moved to the {}. It is still where it was.",
+            crate::os_text::TRASH
+        ))
     })?;
     grants.forget(&source);
     OwnWrites::global().removed(&source);
@@ -334,6 +385,7 @@ mod tests {
         }
     }
 
+    #[cfg_attr(not(unix), allow(dead_code))]
     struct FailingTrash;
 
     impl Trasher for FailingTrash {
@@ -547,6 +599,7 @@ mod tests {
         assert_eq!(names, ["Note.md"]);
     }
 
+    #[cfg(unix)]
     #[test]
     fn rename_refuses_paths_outside_the_grant_and_links() {
         let s = setup();
@@ -684,8 +737,10 @@ mod tests {
         }
     }
 
+    #[cfg(unix)]
     #[test]
     fn duplicate_keeps_the_permissions_and_refuses_folders() {
+        #[cfg(unix)]
         use std::os::unix::fs::PermissionsExt;
         let s = setup();
         let a = create_file(&s.grants, &s.root, "a.md").expect("a");
@@ -731,6 +786,7 @@ mod tests {
         assert!(!s.grants.is_granted(&file));
     }
 
+    #[cfg(unix)]
     #[test]
     fn trash_refuses_outside_paths_links_the_open_folder_and_failures_keep_the_item() {
         let s = setup();

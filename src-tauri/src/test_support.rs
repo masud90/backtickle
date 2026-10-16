@@ -17,7 +17,7 @@ impl TempDir {
             std::process::id(),
             COUNTER.fetch_add(1, Ordering::Relaxed)
         );
-        let base = std::fs::canonicalize(std::env::temp_dir()).expect("temp dir");
+        let base = crate::fs_util::canonicalize(std::env::temp_dir()).expect("temp dir");
         let path = base.join(unique);
         std::fs::create_dir_all(&path).expect("create temp dir");
         TempDir { path }
