@@ -11,6 +11,7 @@
  * (Playwright: `page.addInitScript`). While the page runs they fire events and read what the
  * app did through `window.__WRITEDOWN_MOCK__` (see `MockControl`).
  */
+import { isAbsolutePath, joinPath, parentFolder, pathRoot } from './paths';
 import type {
   BenchReport,
   CloseReason,
@@ -464,19 +465,12 @@ function baseName(path: string): string {
 }
 
 function parentOf(path: string): string {
-  const slash = path.lastIndexOf('/');
-  return slash <= 0 ? '/' : path.slice(0, slash);
+  return parentFolder(path) ?? '/';
 }
 
-/** Collapses `.` and `..` like the real path resolution does. */
+/** Collapses `.` and `..` like the real path resolution does (a relative path is read from `/`). */
 function normalizePath(path: string): string {
-  const parts: string[] = [];
-  for (const part of path.split('/')) {
-    if (part === '' || part === '.') continue;
-    if (part === '..') parts.pop();
-    else parts.push(part);
-  }
-  return `/${parts.join('/')}`;
+  return joinPath('/', path);
 }
 
 /** Normalizes line endings to `\n` and reports the majority, like the Rust reader. */
@@ -617,7 +611,7 @@ function pickFolderPath(value: unknown, fallback: string | null): string | null 
   if (value === null || value === '') return null;
   if (
     typeof value === 'string' &&
-    value.startsWith('/') &&
+    isAbsolutePath(value) &&
     value.length <= 1024 &&
     !value.includes('\0')
   ) {
@@ -1265,7 +1259,7 @@ export function createMockPlatform(
         return { code: 'not-found', message: NOT_FOUND };
       }
       if (decoded.includes('\0')) return { code: 'not-found', message: NOT_FOUND };
-      candidate = decoded.startsWith('/') ? decoded : `${parentOf(fromPath)}/${decoded}`;
+      candidate = isAbsolutePath(decoded) ? decoded : joinPath(parentOf(fromPath), decoded);
     }
     const resolved = normalizePath(candidate);
     if (!pathExists(resolved)) {
@@ -1358,7 +1352,7 @@ export function createMockPlatform(
     for (const root of grantedFolders) folders.add(root);
     for (const known of [...files.keys(), ...explicitFolders]) {
       let parent = parentOf(known);
-      while (parent !== '/' && !folders.has(parent)) {
+      while (parent !== pathRoot(parent) && !folders.has(parent)) {
         folders.add(parent);
         parent = parentOf(parent);
       }
@@ -2005,7 +1999,7 @@ export function createMockPlatform(
       if (refused) return refused;
       let folder = parentOf(docPath);
       for (let level = 0; level < QUARTO_LEVELS; level++) {
-        if (folder === home || folder === '/') break;
+        if (folder === home || folder === pathRoot(folder)) break;
         const candidate = `${folder}/_quarto.yml`;
         if (files.has(candidate)) return readTextOf(candidate, MAX_QUARTO_PROJECT_BYTES);
         folder = parentOf(folder);

@@ -12,7 +12,9 @@
  * runs, so none of them loads at startup.
  */
 import { FLAVORS, type FlavorId } from '@/flavors';
+import { byOs } from '@/lib/os';
 import type { MenuAction, MenuState, Settings } from '@/lib/platform';
+import { displayShortcut } from '@/lib/shortcut-keys';
 import { type Need, SPECS, type Spec } from './menu-specs';
 import type { Shell } from './shell.svelte';
 
@@ -190,15 +192,18 @@ const APPEARANCES: ReadonlyArray<readonly [Settings['appearance'], string]> = [
   ['dark', 'Appearance: Dark'],
 ];
 
-/** A command's shortcut as shown: the user's override, or the default. */
+/**
+ * A command's shortcut as shown: the user's override, or the default. On Windows in Windows form
+ * (`Ctrl+Shift+O`, see `displayShortcut`); on macOS the string as it is.
+ */
 export function shortcutOf(
   shell: Shell,
   id: string,
   fallback: string | undefined,
 ): string | undefined {
   const overrides = shell.settings.shortcuts;
-  if (overrides && Object.hasOwn(overrides, id)) return overrides[id] ?? undefined;
-  return fallback;
+  if (overrides && Object.hasOwn(overrides, id)) return displayShortcut(overrides[id] ?? undefined);
+  return displayShortcut(fallback);
 }
 
 /** Every command, menu actions first, then the palette-only ones. */
@@ -207,7 +212,8 @@ export function createCommands(shell: Shell): Command[] {
   for (const [id, [label, need, shortcut]] of Object.entries(SPECS) as Array<[MenuAction, Spec]>) {
     list.push({
       id,
-      label,
+      // The menu (built by Rust) says File Explorer on Windows; the palette says the same.
+      label: id === 'reveal-in-finder' ? byOs(label, 'Show in File Explorer') : label,
       // The user's change (Preferences > Keyboard Shortcuts) shows at once, in every window.
       get shortcut() {
         return shortcutOf(shell, id, shortcut);

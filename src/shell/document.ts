@@ -1,4 +1,5 @@
 /** Pure helpers for documents: names, labels, sizes. Nothing here touches the DOM or the platform. */
+import { parentFolder } from '@/lib/paths';
 import type { Encoding, LineEnding } from '@/lib/platform';
 
 export const UNTITLED = 'Untitled';
@@ -12,9 +13,7 @@ export function fileName(path: string): string {
 
 /** The folder of a path, or null when it has none. */
 export function directoryOf(path: string): string | null {
-  const slash = path.lastIndexOf('/');
-  if (slash < 0) return null;
-  return slash === 0 ? '/' : path.slice(0, slash);
+  return parentFolder(path);
 }
 
 /**

@@ -14,7 +14,10 @@
    script is scripts/measure-sidebar-material.swift. With these values the minimum alphas that
    keep text at 4.5:1 (icons 3:1) are light 0.19 and dark 0.32. The alphas used are 0.4 (light)
    and 0.5 (dark), a margin for colorful desktop pictures that shift the material. The checks are
-   in tests/unit/vibrancy.test.ts. */
+   in tests/unit/vibrancy.test.ts.
+
+   On Windows the material is Mica (Windows 11 only; `applyVibrancy` keeps the sidebar opaque on
+   Windows 10). The same scrims and rules apply; nothing here is tied to one system. */
 
 :root {
   --wd-sidebar-scrim: rgba(242, 242, 247, 0.4);
@@ -44,7 +47,8 @@
   background-color: var(--wd-sidebar-scrim);
 }
 
-/* macOS Reduce Transparency: the opaque color the sidebar has without the setting. */
+/* macOS Reduce Transparency, or Transparency effects off on Windows: the opaque color the sidebar
+   has without the setting. */
 @media (prefers-reduced-transparency: reduce) {
   :root[data-vibrancy="on"] .wd-vibrant {
     background-color: color-mix(in srgb, var(--wd-surface-container-low) 70%, var(--wd-canvas));

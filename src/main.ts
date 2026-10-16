@@ -1,8 +1,12 @@
 import './styles/app.css';
 import '@/styles/fonts';
 import { mount } from 'svelte';
+import { markDocumentOs } from '@/lib/os';
 import { getPlatform } from '@/lib/platform';
 import App from '@/shell/App.svelte';
+
+// Before anything is drawn, so the style sheets can adapt to macOS or Windows at once.
+markDocumentOs();
 
 const target = document.getElementById('app');
 if (!target) {

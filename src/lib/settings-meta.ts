@@ -5,6 +5,8 @@
  * (checked by `tests/unit/settings-meta.test.ts`). US English, sentence case, no em-dashes.
  */
 
+import { byOs } from './os';
+
 export type SettingCategory = 'general' | 'editor' | 'preview' | 'accessibility' | 'saving';
 
 /** The categories of the Preferences sidebar, in order. `shortcuts` has no settings, only a list. */
@@ -87,7 +89,10 @@ export const SETTINGS_META: readonly SettingMeta[] = [
       { value: 'dark', label: 'Dark' },
     ],
     label: 'Appearance',
-    description: 'Use the light or dark look, or follow macOS.',
+    description: byOs(
+      'Use the light or dark look, or follow macOS.',
+      'Use the light or dark look, or follow Windows.',
+    ),
     category: 'general',
     keywords: ['theme', 'light', 'dark', 'mode', 'color'],
   },
@@ -125,8 +130,10 @@ export const SETTINGS_META: readonly SettingMeta[] = [
     kind: 'boolean',
     default: true,
     label: 'Translucent sidebar',
-    description:
+    description: byOs(
       'Show the macOS sidebar material behind the sidebar. Off, or with Reduce Transparency on, the sidebar is opaque.',
+      'Show the Windows Mica material behind the sidebar. Off, with Transparency effects off, or before Windows 11, the sidebar is opaque.',
+    ),
     category: 'general',
     keywords: ['translucent', 'vibrancy', 'sidebar', 'transparency', 'blur', 'material'],
   },
@@ -163,13 +170,22 @@ export const SETTINGS_META: readonly SettingMeta[] = [
     default: 'jetbrains-mono',
     choices: [
       { value: 'jetbrains-mono', label: 'JetBrains Mono' },
-      { value: 'sf-mono', label: 'SF Mono' },
-      { value: 'menlo', label: 'Menlo' },
+      { value: 'sf-mono', label: byOs('SF Mono', 'Cascadia Mono') },
+      { value: 'menlo', label: byOs('Menlo', 'Consolas') },
     ],
     label: 'Editor font',
     description: 'The monospace typeface of the editor.',
     category: 'editor',
-    keywords: ['font', 'typeface', 'monospace', 'jetbrains', 'menlo', 'sf mono'],
+    keywords: [
+      'font',
+      'typeface',
+      'monospace',
+      'jetbrains',
+      'menlo',
+      'sf mono',
+      'cascadia',
+      'consolas',
+    ],
   },
   {
     key: 'editor.fontSize',
@@ -250,7 +266,10 @@ export const SETTINGS_META: readonly SettingMeta[] = [
     kind: 'boolean',
     default: true,
     label: 'Check spelling',
-    description: 'Underline misspelled words with the macOS spell checker.',
+    description: byOs(
+      'Underline misspelled words with the macOS spell checker.',
+      'Underline misspelled words.',
+    ),
     category: 'editor',
     keywords: ['spelling', 'spell check', 'spellcheck', 'typos'],
   },
@@ -490,7 +509,7 @@ export const SETTINGS_META: readonly SettingMeta[] = [
     key: 'a11y.reduceMotion',
     kind: 'choice',
     default: 'system',
-    choices: TRI_STATE('Follow macOS'),
+    choices: TRI_STATE(byOs('Follow macOS', 'Follow Windows')),
     label: 'Reduce motion',
     description: 'Turn off animations and smooth scrolling.',
     category: 'accessibility',
@@ -500,7 +519,7 @@ export const SETTINGS_META: readonly SettingMeta[] = [
     key: 'a11y.highContrast',
     kind: 'choice',
     default: 'system',
-    choices: TRI_STATE('Follow macOS'),
+    choices: TRI_STATE(byOs('Follow macOS', 'Follow Windows')),
     label: 'High-contrast dividers',
     description: 'Draw borders and dividers with stronger contrast.',
     category: 'accessibility',

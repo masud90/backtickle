@@ -2,6 +2,7 @@
  * The state and the operations of the Files sidebar. One model per window (`getFilesModel`); it
  * outlives the panel, so the open folder and the expanded folders survive a switch of tab.
  */
+import { byOs } from '@/lib/os';
 import type { FileChange } from '@/lib/platform';
 import { errorMessage, fileName, isCancelled } from '../document';
 import type { Shell } from '../shell.svelte';
@@ -317,9 +318,12 @@ export class FilesModel {
     const name = fileName(path);
     try {
       const yes = await platform.ask({
-        title: `Move "${name}" to the Trash?`,
-        message: 'You can get it back from the Trash.',
-        ok: 'Move to Trash',
+        title: byOs(`Move "${name}" to the Trash?`, `Move "${name}" to the Recycle Bin?`),
+        message: byOs(
+          'You can get it back from the Trash.',
+          'You can get it back from the Recycle Bin.',
+        ),
+        ok: byOs('Move to Trash', 'Move to Recycle Bin'),
         cancel: 'Cancel',
       });
       if (!yes) return;

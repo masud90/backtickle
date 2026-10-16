@@ -3,6 +3,7 @@
  * Rust through the same resolution as the preview (`readImageBytes`), up to 10 MiB each, and
  * become `data:` URIs. A larger image keeps a `file:` URL; remote images are not touched.
  */
+import { fileUrl, isAbsolutePath, joinPath, parentFolder } from '@/lib/paths';
 import type { Platform, PlatformError } from '@/lib/platform';
 
 export const MAX_EMBEDDED_IMAGE_BYTES = 10 * 1024 * 1024;
@@ -58,13 +59,8 @@ export function fileUrlOf(docPath: string, source: string): string {
   } catch {
     // keep the text as written
   }
-  const parts = decoded.startsWith('/') ? [] : docPath.split('/').slice(0, -1);
-  for (const part of decoded.split('/')) {
-    if (part === '' || part === '.') continue;
-    if (part === '..') parts.pop();
-    else parts.push(part);
-  }
-  return `file://${encodeURI(parts.join('/').replace(/^\/?/, '/'))}`;
+  const resolved = joinPath(parentFolder(docPath) ?? '/', decoded);
+  return fileUrl(isAbsolutePath(resolved) ? resolved : `/${resolved}`);
 }
 
 /** A resolver for `EnhanceContext.resolveImage` that answers with `data:` URIs. */

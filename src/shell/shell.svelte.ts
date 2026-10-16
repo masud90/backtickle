@@ -13,6 +13,8 @@ import { tick, untrack } from 'svelte';
 import type { FormatCommand } from '@/editor/commands';
 import { detectFlavor, type FlavorId } from '@/flavors';
 import { guideFlavor, guideName, loadGuide } from '@/flavors/guides';
+import { byOs } from '@/lib/os';
+import { samePath } from '@/lib/paths';
 import type {
   CloseReason,
   DeepPartial,
@@ -542,7 +544,7 @@ export class Shell implements WorkspaceHost {
       readTab: (path, view) => this.readTab(path, view),
       nextId: () => this.nextId++,
       heldElsewhere: (path) => this.heldElsewhere(path),
-      tabForPath: (path) => this.tabs.find((tab) => tab.path === path),
+      tabForPath: (path) => this.tabs.find((tab) => tab.path !== null && samePath(tab.path, path)),
       removeTab: (id) => this.removeTab(id),
       addTab: (tab) => this.addTab(tab),
       activate: (id) => this.activate(id),
@@ -830,7 +832,7 @@ export class Shell implements WorkspaceHost {
   async openPaths(paths: readonly string[], view?: ViewMode): Promise<void> {
     let show: number | null = null;
     for (const path of paths) {
-      const open = this.tabs.find((tab) => tab.path === path);
+      const open = this.tabs.find((tab) => tab.path !== null && samePath(tab.path, path));
       if (open) {
         show = open.id;
         continue;
@@ -839,7 +841,9 @@ export class Shell implements WorkspaceHost {
       if (await this.heldElsewhere(path)) continue;
       try {
         const tab = await this.readTab(path, view);
-        const duplicate = this.tabs.find((candidate) => candidate.path === tab.path);
+        const duplicate = this.tabs.find(
+          (candidate) => candidate.path !== null && samePath(candidate.path, tab.path as string),
+        );
         if (duplicate) {
           show = duplicate.id;
         } else {
@@ -1353,10 +1357,16 @@ export class Shell implements WorkspaceHost {
     const activePath = entries[active]?.path;
     let show: number | null = null;
     for (const entry of entries) {
-      if (this.tabs.some((tab) => tab.path === entry.path)) continue;
+      if (this.tabs.some((tab) => tab.path !== null && samePath(tab.path, entry.path))) continue;
       try {
         const tab = await this.readTab(entry.path, entry.view);
-        if (this.tabs.some((candidate) => candidate.path === tab.path)) continue;
+        if (
+          this.tabs.some(
+            (candidate) => candidate.path !== null && samePath(candidate.path, tab.path as string),
+          )
+        ) {
+          continue;
+        }
         this.addTab(tab);
         if (entry.path === activePath || show === null) show = tab.id;
       } catch {
@@ -1600,9 +1610,9 @@ export class Shell implements WorkspaceHost {
           return;
         }
         const reveal = await this.platform.ask({
-          title: 'Show this file in Finder?',
+          title: byOs('Show this file in Finder?', 'Show this file in File Explorer?'),
           message: `${link.href} is not a Markdown file, so Writedown cannot open it.`,
-          ok: 'Show in Finder',
+          ok: byOs('Show in Finder', 'Show in File Explorer'),
           cancel: 'Cancel',
         });
         if (reveal) await this.platform.revealLinkedFile(tab.path, link.href);

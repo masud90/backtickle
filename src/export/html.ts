@@ -1,4 +1,5 @@
 /** File > Export > HTML: one self-contained page. */
+import { parentFolder, pathRoot } from '@/lib/paths';
 import type { Platform, Settings } from '@/lib/platform';
 import { previewExportStyle } from '@/preview/settings';
 import type { RenderResult } from '@/preview/types';
@@ -33,6 +34,7 @@ export function suggestedHtmlName(name: string): string {
 
 export function directoryOf(path: string | null): string | null {
   if (path === null) return null;
-  const at = path.lastIndexOf('/');
-  return at > 0 ? path.slice(0, at) : null;
+  const folder = parentFolder(path);
+  // A file right below the root suggests no folder, as before on macOS (`/a.md`).
+  return folder === null || folder === pathRoot(path) ? null : folder;
 }

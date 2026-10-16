@@ -1,4 +1,5 @@
 /** Appearance and zoom: the settings that become CSS on the document element. */
+import { byOs, isWindows, isWindows11 } from '@/lib/os';
 import type { Settings } from '@/lib/platform';
 
 export const MIN_ZOOM = 0.5;
@@ -12,8 +13,15 @@ export const EDITOR_FONTS: Record<
   { label: string; css: string | null }
 > = {
   'jetbrains-mono': { label: 'JetBrains Mono', css: null },
-  'sf-mono': { label: 'SF Mono', css: "ui-monospace, 'SF Mono', SFMono-Regular, monospace" },
-  menlo: { label: 'Menlo', css: "Menlo, 'SF Mono', monospace" },
+  // On Windows the two system choices are its own monospace fonts, under their own names.
+  'sf-mono': {
+    label: byOs('SF Mono', 'Cascadia Mono'),
+    css: "ui-monospace, 'SF Mono', SFMono-Regular, 'Cascadia Mono', Consolas, monospace",
+  },
+  menlo: {
+    label: byOs('Menlo', 'Consolas'),
+    css: "Menlo, 'SF Mono', Consolas, 'Cascadia Mono', monospace",
+  },
 };
 
 export function clampZoom(zoom: number): number {
@@ -190,6 +198,21 @@ export function applyDocumentAppearance(root: HTMLElement, settings: Settings): 
  */
 export function applyVibrancy(root: HTMLElement, settings: Settings): void {
   const native = root.ownerDocument.body?.dataset.platform === 'tauri';
-  if (native && settings.vibrancy) root.dataset.vibrancy = 'on';
-  else delete root.dataset.vibrancy;
+  const wanted = native && settings.vibrancy;
+  if (!isWindows()) {
+    if (wanted) root.dataset.vibrancy = 'on';
+    else delete root.dataset.vibrancy;
+    return;
+  }
+  // Windows: the material behind the window is Mica, which only Windows 11 has; on Windows 10
+  // the desktop would show through. The sidebar stays opaque until the version is known.
+  vibrancyWanted.set(root, wanted);
+  delete root.dataset.vibrancy;
+  if (!wanted) return;
+  void isWindows11().then((mica) => {
+    if (mica && vibrancyWanted.get(root) === true) root.dataset.vibrancy = 'on';
+  });
 }
+
+/** On Windows, the last answer of `applyVibrancy` for each root, read when the version is known. */
+const vibrancyWanted = new WeakMap<HTMLElement, boolean>();
