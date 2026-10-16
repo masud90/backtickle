@@ -441,7 +441,7 @@ mod tests {
         assert_eq!(other.bench_pdf, None);
         let exit = [
             kind,
-            ("WRITEDOWN_BENCH_PDF", "/a.pdf"),
+            ("WRITEDOWN_BENCH_PDF", absolute),
             ("WRITEDOWN_BENCH_EXIT", "1"),
         ];
         assert!(parse(&[], &exit).bench_exit);
