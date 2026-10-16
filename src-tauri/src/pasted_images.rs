@@ -14,6 +14,7 @@
 
 use crate::error::{ErrorCode, PlatformError, PlatformResult};
 use crate::file_types::{self, MAX_IMAGE_BYTES};
+use crate::fs_util;
 use std::collections::HashSet;
 use std::fs::{File, OpenOptions};
 use std::io::Write;
@@ -162,7 +163,7 @@ fn create_free(folder: &Path, stem: &str, extension: &str) -> PlatformResult<(Fi
 fn write_all(mut file: File, path: &Path, bytes: &[u8]) -> PlatformResult<()> {
     let result = file.write_all(bytes).and_then(|()| file.sync_all());
     if let Err(error) = result {
-        let _ = std::fs::remove_file(path);
+        fs_util::discard_temp(path);
         return Err(PlatformError::from_write(&error));
     }
     Ok(())
