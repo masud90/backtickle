@@ -1,6 +1,6 @@
 {
   "name": "writedown",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "A Markdown reader and writer for macOS",
   "license": "MIT",
