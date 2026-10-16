@@ -29,7 +29,7 @@ struct Temp(PathBuf);
 impl Temp {
     fn new() -> Self {
         static COUNTER: AtomicUsize = AtomicUsize::new(0);
-        let base = std::fs::canonicalize(std::env::temp_dir()).expect("temp dir");
+        let base = writedown_lib::fs_util::canonicalize(std::env::temp_dir()).expect("temp dir");
         let path = base.join(format!(
             "writedown-phase1-{}-{}",
             std::process::id(),
@@ -408,7 +408,8 @@ mod r04_grants_links_images {
     use writedown_lib::{assets, links};
 
     fn index() -> PathBuf {
-        std::fs::canonicalize(fixtures().join("links").join("index.md")).expect("fixture")
+        writedown_lib::fs_util::canonicalize(fixtures().join("links").join("index.md"))
+            .expect("fixture")
     }
 
     #[test]
@@ -418,7 +419,19 @@ mod r04_grants_links_images {
         assert!(links::resolve_document(&index, "second.md#details").is_ok());
         let parent = links::resolve_document(&index, "../flavors/plain.md").expect("parent");
         assert!(parent.ends_with("tests/fixtures/flavors/plain.md"));
-        let escape = format!("{}etc/hosts", "../".repeat(30));
+        // An existing file that is not a document, written from the root of its drive.
+        let manifest = writedown_lib::fs_util::canonicalize(
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"),
+        )
+        .expect("manifest");
+        let from_root: Vec<String> = manifest
+            .components()
+            .filter_map(|part| match part {
+                std::path::Component::Normal(name) => Some(name.to_string_lossy().into_owned()),
+                _ => None,
+            })
+            .collect();
+        let escape = format!("{}{}", "../".repeat(30), from_root.join("/"));
         assert_eq!(
             links::resolve_document(&index, &escape)
                 .expect_err("not a document")
@@ -462,7 +475,12 @@ mod r04_grants_links_images {
         let index = index();
 
         let image = assets::resolve_image(&index, "images/sample.png").expect("image");
-        assert!(assets::asset_url(&image).starts_with("asset://localhost/%2F"));
+        let prefix = if cfg!(windows) {
+            "http://asset.localhost/"
+        } else {
+            "asset://localhost/%2F"
+        };
+        assert!(assets::asset_url(&image).starts_with(prefix));
         assert_eq!(
             assets::resolve_image(&index, "second.md")
                 .expect_err("not an image")
@@ -623,8 +641,10 @@ mod r07_location_and_vault {
     #[test]
     fn vault_and_cloud_folders_are_detected() {
         let vault_note =
-            std::fs::canonicalize(fixtures().join("flavors/vault/notes/idea.md")).expect("fixture");
-        let plain = std::fs::canonicalize(fixtures().join("flavors/plain.md")).expect("fixture");
+            writedown_lib::fs_util::canonicalize(fixtures().join("flavors/vault/notes/idea.md"))
+                .expect("fixture");
+        let plain = writedown_lib::fs_util::canonicalize(fixtures().join("flavors/plain.md"))
+            .expect("fixture");
         assert!(in_obsidian_vault(&vault_note));
         assert!(!in_obsidian_vault(&plain));
 

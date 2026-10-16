@@ -21,6 +21,7 @@ import {
   WidgetType,
 } from '@codemirror/view';
 import type { SyntaxNodeRef } from '@lezer/common';
+import { isWindows } from '@/lib/os';
 
 type ImageResolver = (source: string) => Promise<string>;
 
@@ -134,7 +135,11 @@ class ImageWidget extends WidgetType {
     // and the preview's setting for remote images decides there.
     if (/^data:image\//i.test(source)) {
       image.src = source;
-    } else if (/^[a-z][a-z0-9+.-]*:/i.test(source)) {
+    } else if (
+      /^[a-z][a-z0-9+.-]*:/i.test(source) &&
+      // On Windows `C:/Pictures/a.png` is a path on a drive, not an address.
+      !(isWindows() && /^[A-Za-z]:[\\/]/.test(source))
+    ) {
       this.missing(wrap);
     } else {
       const known = resolved.get(source);

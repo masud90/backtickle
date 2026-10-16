@@ -36,7 +36,7 @@ fn temp() -> PathBuf {
     let dir = std::env::temp_dir().join(format!("wd-acc3b-{}-{n}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
-    dir.canonicalize().unwrap()
+    writedown_lib::fs_util::canonicalize(&dir).unwrap()
 }
 
 fn write(path: &Path, text: &str) -> PathBuf {

@@ -124,6 +124,7 @@ pub fn fsync_file(file: &File) -> io::Result<()> {
     }
 }
 
+#[cfg(unix)]
 fn is_flush_unsupported(error: &io::Error) -> bool {
     matches!(
         error.raw_os_error(),
@@ -133,6 +134,12 @@ fn is_flush_unsupported(error: &io::Error) -> bool {
                 || code == libc::EINVAL
                 || code == libc::ENOSYS
     )
+}
+
+/// ERROR_INVALID_FUNCTION, ERROR_NOT_SUPPORTED, ERROR_INVALID_PARAMETER.
+#[cfg(windows)]
+fn is_flush_unsupported(error: &io::Error) -> bool {
+    matches!(error.raw_os_error(), Some(1 | 50 | 87))
 }
 
 /// Flushes the folder entry after a rename. Best effort: the rename already happened.
@@ -312,7 +319,11 @@ mod tests {
     fn fsync_works_on_files_and_folders_here() {
         let dir = TempDir::new();
         let path = dir.write("a.md", b"x");
-        let file = File::open(&path).expect("open");
+        // Windows flushes only a handle opened for writing; every caller writes first.
+        let file = std::fs::OpenOptions::new()
+            .write(true)
+            .open(&path)
+            .expect("open");
 
         assert!(fsync_file(&file).is_ok());
         fsync_folder(dir.path());

@@ -6,7 +6,9 @@
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::Command;
-use writedown_lib::render::{script_text, shell_quote, write_command_file};
+use writedown_lib::render::write_command_file;
+#[cfg(unix)]
+use writedown_lib::render::{script_text, shell_quote};
 
 /// The shell the render script names on its first line: zsh on macOS, bash on Linux (where it
 /// also waits for Enter, so the tests give it no input).
@@ -17,7 +19,7 @@ const SCRIPT_SHELL: &str = if cfg!(target_os = "macos") {
 };
 
 fn temp(label: &str) -> PathBuf {
-    let dir = std::fs::canonicalize(std::env::temp_dir())
+    let dir = writedown_lib::fs_util::canonicalize(std::env::temp_dir())
         .unwrap()
         .join(format!(
             "writedown-render-test-{label}-{}",
@@ -28,6 +30,7 @@ fn temp(label: &str) -> PathBuf {
     dir
 }
 
+#[cfg(unix)]
 #[test]
 fn a_real_shell_reads_the_quoted_text_back_unchanged() {
     let dir = temp("quote");
@@ -101,8 +104,8 @@ fn the_script_runs_quarto_in_the_documents_folder_and_removes_itself() {
     let ran = std::fs::read_to_string(&log).unwrap();
     let mut lines = ran.lines();
     assert_eq!(
-        std::fs::canonicalize(lines.next().unwrap()).unwrap(),
-        std::fs::canonicalize(&docs).unwrap()
+        writedown_lib::fs_util::canonicalize(lines.next().unwrap()).unwrap(),
+        writedown_lib::fs_util::canonicalize(&docs).unwrap()
     );
     assert_eq!(lines.next().unwrap(), "render it's a.qmd");
     assert!(
@@ -142,5 +145,76 @@ fn without_quarto_or_rscript_the_script_says_so() {
     );
     assert!(!script.exists());
     assert!(script_text("/", "a.Rmd", true, "/s", "/d").contains("Rscript"));
+    let _ = std::fs::remove_dir_all(&base);
+}
+
+/// cmd.exe with only the folder of the fake tools and the system folder on its path.
+#[cfg(windows)]
+fn run_cmd(script: &std::path::Path, bin: &std::path::Path) -> std::process::Output {
+    let system = std::env::var("SystemRoot").unwrap_or_else(|_| "C:\\Windows".into());
+    Command::new("cmd.exe")
+        .arg("/d")
+        .arg("/c")
+        .arg(script)
+        .env("PATH", format!("{};{system}\\System32", bin.display()))
+        .stdin(std::process::Stdio::null())
+        .output()
+        .unwrap()
+}
+
+#[cfg(windows)]
+#[test]
+fn the_windows_script_runs_quarto_in_the_documents_folder_and_removes_itself() {
+    let base = temp("cmd");
+    // `&` and `%` mean something to cmd; inside the quotes they must not.
+    let docs = base.join("My Docs 'x' & 100%");
+    std::fs::create_dir_all(&docs).unwrap();
+    let bin = base.join("bin");
+    std::fs::create_dir(&bin).unwrap();
+    let log = base.join("ran.txt");
+    std::fs::write(
+        bin.join("quarto.cmd"),
+        format!(
+            "@echo off\r\ncd > \"{0}\"\r\n>>\"{0}\" echo %*\r\n",
+            log.display()
+        ),
+    )
+    .unwrap();
+
+    let script = write_command_file(&base, &docs.to_string_lossy(), "it's a.qmd", false).unwrap();
+    let folder = script.parent().unwrap().to_path_buf();
+    let out = run_cmd(&script, &bin);
+
+    let ran = std::fs::read_to_string(&log)
+        .unwrap_or_else(|_| panic!("quarto ran: {}", String::from_utf8_lossy(&out.stdout)));
+    let mut lines = ran.lines();
+    assert_eq!(
+        writedown_lib::fs_util::canonicalize(lines.next().unwrap().trim()).unwrap(),
+        writedown_lib::fs_util::canonicalize(&docs).unwrap()
+    );
+    assert_eq!(lines.next().unwrap().trim(), "render \"it's a.qmd\"");
+    assert!(
+        !script.exists() && !folder.exists(),
+        "the script removed itself and its folder"
+    );
+    let _ = std::fs::remove_dir_all(&base);
+}
+
+#[cfg(windows)]
+#[test]
+fn without_quarto_or_rscript_the_windows_script_says_so() {
+    let base = temp("cmd-none");
+    let bin = base.join("bin");
+    std::fs::create_dir(&bin).unwrap();
+    let script = write_command_file(&base, &base.to_string_lossy(), "a.Rmd", true).unwrap();
+
+    let out = run_cmd(&script, &bin);
+
+    let text = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        text.contains("neither quarto nor Rscript was found"),
+        "{text}"
+    );
+    assert!(!script.exists());
     let _ = std::fs::remove_dir_all(&base);
 }

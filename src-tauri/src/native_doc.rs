@@ -531,6 +531,8 @@ pub fn exec_starts(exec: &str, programs: &[PathBuf]) -> bool {
 mod tests {
     use super::*;
 
+    // Desktop entries name Unix paths.
+    #[cfg(unix)]
     #[test]
     fn the_exec_line_is_matched_by_path_or_by_bare_name() {
         let programs = [

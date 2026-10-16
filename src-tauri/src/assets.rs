@@ -105,6 +105,18 @@ mod tests {
     #[cfg(unix)]
     use std::os::unix::fs::symlink;
 
+    /// What `convertFileSrc` puts before the encoded path on this system.
+    #[cfg(windows)]
+    const ASSET_PREFIX: &str = "http://asset.localhost/";
+    #[cfg(not(windows))]
+    const ASSET_PREFIX: &str = "asset://localhost/";
+
+    /// A system file that exists, written relative to the root of the drive.
+    #[cfg(windows)]
+    const SYSTEM_FILE: &str = "Windows/System32/drivers/etc/hosts";
+    #[cfg(not(windows))]
+    const SYSTEM_FILE: &str = "etc/hosts";
+
     /// A folder with `doc.md` and an image next to it.
     fn workspace() -> (TempDir, PathBuf) {
         let dir = TempDir::new();
@@ -246,7 +258,7 @@ mod tests {
         let climb = "../".repeat(40);
 
         assert_eq!(
-            resolve_image(&doc, &format!("{climb}etc/hosts"))
+            resolve_image(&doc, &format!("{climb}{SYSTEM_FILE}"))
                 .expect_err("refused")
                 .code,
             ErrorCode::NotAllowed
@@ -312,7 +324,7 @@ mod tests {
     fn the_asset_url_encodes_the_whole_path_as_one_component() {
         assert_eq!(
             asset_url(Path::new("/Users/alex/My Notes/pic (1).png")),
-            "asset://localhost/%2FUsers%2Falex%2FMy%20Notes%2Fpic%20(1).png"
+            ASSET_PREFIX.to_owned() + "%2FUsers%2Falex%2FMy%20Notes%2Fpic%20(1).png"
         );
     }
 
@@ -320,11 +332,11 @@ mod tests {
     fn the_asset_url_encodes_non_ascii_and_reserved_characters_like_encode_uri_component() {
         assert_eq!(
             asset_url(Path::new("/a/é 快#?&=+%.png")),
-            "asset://localhost/%2Fa%2F%C3%A9%20%E5%BF%AB%23%3F%26%3D%2B%25.png"
+            ASSET_PREFIX.to_owned() + "%2Fa%2F%C3%A9%20%E5%BF%AB%23%3F%26%3D%2B%25.png"
         );
         assert_eq!(
             asset_url(Path::new("/a-b_c.d!e~f*g'h.png")),
-            "asset://localhost/%2Fa-b_c.d!e~f*g'h.png"
+            ASSET_PREFIX.to_owned() + "%2Fa-b_c.d!e~f*g'h.png"
         );
     }
 
@@ -333,7 +345,7 @@ mod tests {
         let path = Path::new("/Users/alex/Notes é/pic #1 (final).png");
         let url = asset_url(path);
 
-        let tail = url.strip_prefix("asset://localhost/").expect("prefix");
+        let tail = url.strip_prefix(ASSET_PREFIX).expect("prefix");
         let decoded = percent_encoding::percent_decode_str(tail)
             .decode_utf8()
             .expect("utf8");
