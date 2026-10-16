@@ -263,26 +263,10 @@
   }
 
   /* Lists */
-  & li > :is(ul, ol) {
-    margin-block: 4px 0;
-  }
-
-  & :is(ul, ol) {
-    padding-left: 24px;
-  }
-
   /* Tailwind's reset removes every list marker; the preview puts them back. A Pandoc fancy list
      keeps the numbering it was written with (its class; `type` matches without regard to case). */
   & ul {
     list-style: disc;
-  }
-
-  & ul ul {
-    list-style-type: circle;
-  }
-
-  & ul ul ul {
-    list-style-type: square;
   }
 
   & ol {
@@ -307,6 +291,14 @@
 
   & li::marker {
     color: var(--wd-on-surface-variant);
+  }
+
+  & li > :is(ul, ol) {
+    margin-block: 4px 0;
+  }
+
+  & :is(ul, ol) {
+    padding-left: 24px;
   }
 
   & li {
@@ -716,6 +708,15 @@
   top: 0;
   left: -9999px;
   opacity: 0;
+}
+
+/* Nested bullets change shape, as in browsers' own styles. */
+.wd-preview ul ul {
+  list-style-type: circle;
+}
+
+.wd-preview ul ul ul {
+  list-style-type: square;
 }
 
 /* ---- Task lists ------------------------------------------------------------------------------- */
