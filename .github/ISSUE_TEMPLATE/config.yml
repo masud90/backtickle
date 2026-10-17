@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/masud90/writedown/security/advisories/new
+    about: Please report security problems privately, not in a public issue.
+  - name: Roadmap
+    url: https://github.com/masud90/writedown/blob/main/ROADMAP.md
+    about: What's planned next, with an issue for each item.

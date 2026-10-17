@@ -170,7 +170,8 @@ sidebar is always opaque on Linux.
 ## Contributing
 
 Writedown is young, and there is room to shape it. You do not need to be a Rust or Svelte expert to help;
-some of the most useful contributions are not code at all.
+some of the most useful contributions are not code at all. The [roadmap](ROADMAP.md) shows what is planned next,
+with an issue for each item.
 
 - **Try it and tell us what breaks.** [Open an issue](https://github.com/masud90/writedown/issues/new) with the
   file that rendered wrong (or a small piece of it), your platform and the version. Rendering bugs with a sample
@@ -184,8 +185,9 @@ some of the most useful contributions are not code at all.
 - **Check accessibility.** Screen reader and keyboard-only reports on any platform are very valuable.
 - **Write code.** Look for issues labeled
   [good first issue](https://github.com/masud90/writedown/labels/good%20first%20issue) or
-  [help wanted](https://github.com/masud90/writedown/labels/help%20wanted), or open an issue to discuss an idea
-  before a large change.
+  [help wanted](https://github.com/masud90/writedown/labels/help%20wanted) (packaging tasks are labeled
+  [packaging](https://github.com/masud90/writedown/labels/packaging)), or open an issue to discuss an idea before
+  a large change.
 
 Four principles guide every change: nothing in a document is ever executed, the app makes no network requests
 of its own, memory use stays low, and dependencies use permissive licenses. [CONTRIBUTING.md](CONTRIBUTING.md)

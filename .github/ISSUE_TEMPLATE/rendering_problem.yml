@@ -1,0 +1,51 @@
+name: Rendering problem
+description: A Markdown document shows differently from how it should.
+labels: [bug, rendering]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Rendering bugs with a sample are the easiest to fix. Please cut the document down to the smallest piece that still shows the problem, and remove anything private.
+  - type: dropdown
+    id: flavor
+    attributes:
+      label: Flavor
+      description: Shown in the flavor pill in the title bar.
+      options:
+        - CommonMark
+        - GitHub Flavored Markdown
+        - Obsidian
+        - Pandoc / MultiMarkdown
+        - Quarto / R Markdown
+        - MDX
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Markdown
+      description: The smallest piece of Markdown that shows the problem. You can also attach the file.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should it look like?
+      description: For example how GitHub, Obsidian, Pandoc or Quarto renders it. A screenshot helps.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What does Writedown show?
+      description: A screenshot of the preview, and whether it's Split, Preview or Live Preview in Editor.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Writedown version and platform
+      placeholder: "0.1.2 on macOS 15.4"
+    validations:
+      required: true
