@@ -127,6 +127,10 @@ publish by hand. To have the app signed and notarized, add these repository secr
 `APPLE_ID`, `APPLE_PASSWORD` (an app-specific password) and `APPLE_TEAM_ID`. Without them the app is built
 unsigned, as before.
 
+One release holds every platform of a version. To add the Windows installers to a release that already has
+its DMG, run the Release workflow by hand with the tag, `platforms: windows` and, if the tag predates the
+Windows build, `source: main` (the version there must match the tag).
+
 ## Tests
 
 ```sh
