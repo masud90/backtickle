@@ -14,6 +14,7 @@ CLAUDE.local.md
 # Node and frontend build
 node_modules/
 dist/
+_site/
 
 # Rust / Tauri build
 src-tauri/target/
