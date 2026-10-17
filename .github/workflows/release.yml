@@ -11,6 +11,10 @@ name: Release
 #   APPLE_ID                    Apple ID email used for notarization
 #   APPLE_PASSWORD              app-specific password of that Apple ID
 #   APPLE_TEAM_ID               team ID
+#
+# Run by hand, it can also add only the Windows installers to an existing release, built from
+# another ref (a release made before the Windows port: `platforms: windows`, `source: main`). The
+# version in that ref must match the tag, so one release holds every platform of one version.
 
 on:
   push:
@@ -20,12 +24,21 @@ on:
       tag:
         description: Tag to build (it must already exist, e.g. v0.2.0)
         required: true
+      platforms:
+        description: What to build
+        type: choice
+        options: [all, windows]
+        default: all
+      source:
+        description: Ref to build the Windows installers from (empty for the tag)
+        required: false
 
 permissions:
   contents: write
 
 jobs:
   release:
+    if: github.event.inputs.platforms != 'windows'
     runs-on: macos-latest
     env:
       TAG: ${{ github.event.inputs.tag || github.ref_name }}
@@ -88,8 +101,9 @@ jobs:
           gh release upload "$TAG" outputs/Writedown-*.dmg outputs/Writedown-*.dmg.sha256 --clobber
 
   windows:
-    # After the macOS job, which creates the draft release.
+    # After the macOS job, which creates the draft release, unless only Windows is built.
     needs: release
+    if: ${{ !cancelled() && (needs.release.result == 'success' || github.event.inputs.platforms == 'windows') }}
     runs-on: windows-latest
     defaults:
       run:
@@ -100,12 +114,19 @@ jobs:
       - run: git config --global core.autocrlf false
       - uses: actions/checkout@v5
         with:
-          ref: ${{ env.TAG }}
+          ref: ${{ github.event.inputs.source || env.TAG }}
       - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
       - uses: dtolnay/rust-toolchain@stable
+      - name: Check the tag matches the app version
+        run: |
+          version="$(node -p "require('./src-tauri/tauri.conf.json').version")"
+          if [[ "$TAG" != "v$version" ]]; then
+            echo "::error::Tag $TAG does not match version $version in src-tauri/tauri.conf.json"
+            exit 1
+          fi
       - run: npm ci
       - name: Build the installers
         run: npm run build:app:windows
@@ -117,4 +138,7 @@ jobs:
           cp src-tauri/target/release/bundle/nsis/*.exe src-tauri/target/release/bundle/msi/*.msi outputs/
           cd outputs
           for file in *.exe *.msi; do sha256sum "$file" > "$file.sha256"; done
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --draft --title "Writedown ${TAG#v}" --notes "See CHANGELOG.md."
+          fi
           gh release upload "$TAG" *.exe *.msi *.sha256 --clobber
