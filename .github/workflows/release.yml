@@ -13,9 +13,10 @@ name: Release
 #   APPLE_PASSWORD              app-specific password of that Apple ID
 #   APPLE_TEAM_ID               team ID
 #
-# Run by hand, it can also add only the Windows installers to an existing release, built from
-# another ref (a release made before the Windows port: `platforms: windows`, `source: main`). The
-# version in that ref must match the tag, so one release holds every platform of one version.
+# Run by hand, it can also add only the Windows installers or only the Linux packages to an
+# existing release, built from another ref (a release made before that port: `platforms: windows`
+# or `platforms: linux`, `source: main`). The version in that ref must match the tag, so one
+# release holds every platform of one version.
 
 on:
   push:
@@ -28,10 +29,10 @@ on:
       platforms:
         description: What to build
         type: choice
-        options: [all, windows]
+        options: [all, windows, linux]
         default: all
       source:
-        description: Ref to build the Windows installers from (empty for the tag)
+        description: Ref to build the Windows or Linux packages from (empty for the tag)
         required: false
 
 permissions:
@@ -39,7 +40,7 @@ permissions:
 
 jobs:
   release:
-    if: github.event.inputs.platforms != 'windows'
+    if: github.event.inputs.platforms != 'windows' && github.event.inputs.platforms != 'linux'
     runs-on: macos-latest
     env:
       TAG: ${{ github.event.inputs.tag || github.ref_name }}
@@ -104,7 +105,7 @@ jobs:
   windows:
     # After the macOS job, which creates the draft release, unless only Windows is built.
     needs: release
-    if: ${{ !cancelled() && (needs.release.result == 'success' || github.event.inputs.platforms == 'windows') }}
+    if: ${{ !cancelled() && (needs.release.result == 'success' || github.event.inputs.platforms == 'windows') && github.event.inputs.platforms != 'linux' }}
     runs-on: windows-latest
     defaults:
       run:
@@ -145,8 +146,9 @@ jobs:
           gh release upload "$TAG" *.exe *.msi *.sha256 --clobber
 
   linux:
-    # After the macOS job, which creates the draft release.
+    # After the macOS job, which creates the draft release, unless only Linux is built.
     needs: release
+    if: ${{ !cancelled() && (needs.release.result == 'success' || github.event.inputs.platforms == 'linux') && github.event.inputs.platforms != 'windows' }}
     # The oldest supported runner, so the AppImage runs on systems with an older C library too.
     runs-on: ubuntu-22.04
     env:
@@ -158,12 +160,19 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev libayatana-appindicator3-dev patchelf
       - uses: actions/checkout@v5
         with:
-          ref: ${{ env.TAG }}
+          ref: ${{ github.event.inputs.source || env.TAG }}
       - uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
       - uses: dtolnay/rust-toolchain@stable
+      - name: Check the tag matches the app version
+        run: |
+          version="$(node -p "require('./src-tauri/tauri.conf.json').version")"
+          if [[ "$TAG" != "v$version" ]]; then
+            echo "::error::Tag $TAG does not match version $version in src-tauri/tauri.conf.json"
+            exit 1
+          fi
       - run: npm ci
       - name: Build the packages
         run: npm run build:app:linux
@@ -175,4 +184,7 @@ jobs:
           cp src-tauri/target/release/bundle/deb/*.deb src-tauri/target/release/bundle/appimage/*.AppImage outputs/
           cd outputs
           for file in *.deb *.AppImage; do sha256sum "$file" > "$file.sha256"; done
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --draft --title "Writedown ${TAG#v}" --notes "See CHANGELOG.md."
+          fi
           gh release upload "$TAG" *.deb *.AppImage *.sha256 --clobber
