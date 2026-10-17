@@ -21,9 +21,36 @@ const outDir = resolve(repoRoot, outArg > -1 ? process.argv[outArg + 1] : '_site
 const repoUrl = 'https://github.com/masud90/writedown';
 const siteUrl = 'https://masud90.github.io/writedown/';
 const releasesUrl = `${repoUrl}/releases/latest`;
+const { version } = JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8'));
+// The title and description are what search results show, so they carry the words people search
+// for ("Markdown editor", "viewer", the platforms) as well as the tagline.
+const title = 'Writedown: free, open-source Markdown editor and reader for Mac, Windows and Linux';
 const description =
-  'The open-source Markdown reader and writer for macOS, Windows and Linux. ' +
-  'Write on the left, read on the right. Free, private, and nothing in a document ever runs.';
+  'Free, open-source Markdown editor and viewer for macOS, Windows and Linux. GitHub, Obsidian, ' +
+  'Pandoc and Quarto Markdown, math, Mermaid, PDF and Word export.';
+const posterUrl = `${siteUrl}docs/media/writedown-poster.png`;
+const posterAlt = 'Writedown: Markdown source on the left, the formatted document on the right';
+
+// Search engines read this to show Writedown as an app (price, platforms) in results.
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Writedown',
+  description,
+  url: siteUrl,
+  applicationCategory: 'ProductivityApplication',
+  applicationSubCategory: 'Markdown editor',
+  operatingSystem: 'macOS 14 or later, Windows 10 or 11, Linux',
+  softwareVersion: version,
+  downloadUrl: releasesUrl,
+  license: 'https://opensource.org/licenses/MIT',
+  isAccessibleForFree: true,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  image: posterUrl,
+  screenshot: `${siteUrl}docs/images/split-light.png`,
+  author: { '@type': 'Person', name: 'Masud Rahman', url: 'https://github.com/masud90' },
+  sameAs: [repoUrl],
+};
 
 // Paths published with the site; relative links into them stay relative.
 const publishedDirs = ['docs/media', 'docs/images'];
@@ -49,6 +76,37 @@ function slugger() {
     seen.set(base, count + 1);
     return count === 0 ? base : `${base}-${count}`;
   };
+}
+
+// Width and height from a PNG's header, so the browser can reserve the space before it loads.
+function pngSize(path) {
+  try {
+    const header = readFileSync(path).subarray(0, 24);
+    if (header.toString('latin1', 1, 4) !== 'PNG') return null;
+    return { width: header.readUInt32BE(16), height: header.readUInt32BE(20) };
+  } catch {
+    return null;
+  }
+}
+
+// The README's own images (the screenshots) load lazily and with their size known, so the page
+// does not jump as they arrive. The hero icon and the badges above the fold load at once.
+function sizeImages(html) {
+  let first = true;
+  return html.replace(/<img\b[^>]*>/g, (tag) => {
+    const src = tag.match(/\bsrc="([^"]*)"/)?.[1] ?? '';
+    if (!isPublished(src)) return tag;
+    let out = tag;
+    if (!/\bwidth=/.test(out) && src.endsWith('.png')) {
+      const size = pngSize(join(repoRoot, src));
+      if (size) out = out.replace('<img', `<img width="${size.width}" height="${size.height}"`);
+    }
+    if (!first && !/\bloading=/.test(out)) {
+      out = out.replace('<img', '<img loading="lazy" decoding="async"');
+    }
+    first = false;
+    return out;
+  });
 }
 
 function escapeAttr(value) {
@@ -102,7 +160,7 @@ function renderReadme(markdown) {
       `<video class="intro" src="docs/media/writedown-intro.mp4" poster="docs/media/writedown-poster.png" ` +
       `autoplay muted loop playsinline aria-label="${alt}"></video>`,
   );
-  return html;
+  return sizeImages(html);
 }
 
 function page(body) {
@@ -111,17 +169,28 @@ function page(body) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Writedown: the open-source Markdown reader and writer</title>
+<title>${escapeAttr(title)}</title>
 <meta name="description" content="${escapeAttr(description)}">
 <meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0058bc">
 <link rel="canonical" href="${siteUrl}">
 <link rel="icon" type="image/png" href="docs/media/icon.png">
+<link rel="apple-touch-icon" href="docs/media/icon.png">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Writedown">
+<meta property="og:site_name" content="Writedown">
+<meta property="og:title" content="Writedown: the open-source Markdown editor and reader">
 <meta property="og:description" content="${escapeAttr(description)}">
 <meta property="og:url" content="${siteUrl}">
-<meta property="og:image" content="${siteUrl}docs/media/writedown-poster.png">
+<meta property="og:image" content="${posterUrl}">
+<meta property="og:image:width" content="1920">
+<meta property="og:image:height" content="1080">
+<meta property="og:image:alt" content="${escapeAttr(posterAlt)}">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Writedown: the open-source Markdown editor and reader">
+<meta name="twitter:description" content="${escapeAttr(description)}">
+<meta name="twitter:image" content="${posterUrl}">
+<meta name="twitter:image:alt" content="${escapeAttr(posterAlt)}">
+<script type="application/ld+json">${JSON.stringify(structuredData).replace(/</g, '\\u003c')}</script>
 <link rel="stylesheet" href="site.css">
 </head>
 <body>
@@ -296,6 +365,16 @@ const readme = readFileSync(join(repoRoot, 'README.md'), 'utf8');
 writeFileSync(join(outDir, 'index.html'), page(renderReadme(readme)));
 writeFileSync(join(outDir, 'site.css'), css);
 writeFileSync(join(outDir, '.nojekyll'), '');
+// A project site cannot serve the domain's robots.txt, so the sitemap is submitted to search
+// engines directly (Google Search Console, Bing Webmaster Tools) at this address.
+writeFileSync(
+  join(outDir, 'sitemap.xml'),
+  `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>${siteUrl}</loc><lastmod>${new Date().toISOString().slice(0, 10)}</lastmod></url>
+</urlset>
+`,
+);
 for (const dir of publishedDirs.filter((d) => existsSync(join(repoRoot, d)))) {
   cpSync(join(repoRoot, dir), join(outDir, dir), { recursive: true });
 }

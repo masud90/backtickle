@@ -2,7 +2,7 @@
   "name": "writedown",
   "version": "0.1.2",
   "private": true,
-  "description": "A Markdown reader and writer for macOS and Windows",
+  "description": "A free, open-source Markdown editor and reader for macOS, Windows and Linux",
   "license": "MIT",
   "author": "Masud Rahman",
   "repository": "github:masud90/writedown",
