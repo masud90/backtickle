@@ -182,9 +182,10 @@ jobs:
         run: |
           mkdir -p outputs
           cp src-tauri/target/release/bundle/deb/*.deb src-tauri/target/release/bundle/appimage/*.AppImage outputs/
+          for file in outputs/*.AppImage; do bash scripts/appimage-sources.sh "$file"; done
           cd outputs
           for file in *.deb *.AppImage; do sha256sum "$file" > "$file.sha256"; done
           if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create "$TAG" --draft --title "Writedown ${TAG#v}" --notes "See CHANGELOG.md."
           fi
-          gh release upload "$TAG" *.deb *.AppImage *.sha256 --clobber
+          gh release upload "$TAG" *.deb *.AppImage *.sha256 *.sources.txt --clobber

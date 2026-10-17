@@ -68,6 +68,11 @@
     "active": true,
     "targets": ["app"],
     "copyright": "Copyright © 2026 Masud Rahman",
+    "resources": {
+      "../LICENSE": "LICENSE.txt",
+      "../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md",
+      "../THIRD_PARTY_LICENSES.txt": "THIRD_PARTY_LICENSES.txt"
+    },
     "shortDescription": "A Markdown reader and writer for macOS",
     "longDescription": "Writedown reads and writes Markdown in six flavors, with a live preview, on macOS.",
     "homepage": "https://github.com/masud90/writedown",
