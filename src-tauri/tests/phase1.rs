@@ -2,7 +2,11 @@
 //! backend, with the fixtures of `tests/fixtures`. Each module is one test id; run one with, for
 //! example, `cargo test --test phase1 r03`. Every test writes only inside a temporary folder.
 
+// Some tests here need symbolic links or Unix permissions and run on macOS only.
+#![cfg_attr(windows, allow(unused))]
+
 use serde_json::{Value, json};
+#[cfg(unix)]
 use std::os::unix::fs::{PermissionsExt, symlink};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -25,7 +29,7 @@ struct Temp(PathBuf);
 impl Temp {
     fn new() -> Self {
         static COUNTER: AtomicUsize = AtomicUsize::new(0);
-        let base = std::fs::canonicalize(std::env::temp_dir()).expect("temp dir");
+        let base = writedown_lib::fs_util::canonicalize(std::env::temp_dir()).expect("temp dir");
         let path = base.join(format!(
             "writedown-phase1-{}-{}",
             std::process::id(),
@@ -238,6 +242,7 @@ mod r01_encodings_and_line_endings {
 mod r02_safe_save_guarantees {
     use super::*;
 
+    #[cfg(unix)]
     #[test]
     fn permissions_tags_other_attributes_and_the_link_survive_and_nothing_is_left_behind() {
         let temp = Temp::new();
@@ -301,6 +306,7 @@ mod r03_refusals {
         }
     }
 
+    #[cfg(unix)]
     #[test]
     fn modified_externally_lossy_and_read_only_are_returned() {
         let temp = Temp::new();
@@ -400,7 +406,8 @@ mod r04_grants_links_images {
     use writedown_lib::{assets, links};
 
     fn index() -> PathBuf {
-        std::fs::canonicalize(fixtures().join("links").join("index.md")).expect("fixture")
+        writedown_lib::fs_util::canonicalize(fixtures().join("links").join("index.md"))
+            .expect("fixture")
     }
 
     #[test]
@@ -410,7 +417,19 @@ mod r04_grants_links_images {
         assert!(links::resolve_document(&index, "second.md#details").is_ok());
         let parent = links::resolve_document(&index, "../flavors/plain.md").expect("parent");
         assert!(parent.ends_with("tests/fixtures/flavors/plain.md"));
-        let escape = format!("{}etc/hosts", "../".repeat(30));
+        // An existing file that is not a document, written from the root of its drive.
+        let manifest = writedown_lib::fs_util::canonicalize(
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"),
+        )
+        .expect("manifest");
+        let from_root: Vec<String> = manifest
+            .components()
+            .filter_map(|part| match part {
+                std::path::Component::Normal(name) => Some(name.to_string_lossy().into_owned()),
+                _ => None,
+            })
+            .collect();
+        let escape = format!("{}{}", "../".repeat(30), from_root.join("/"));
         assert_eq!(
             links::resolve_document(&index, &escape)
                 .expect_err("not a document")
@@ -429,6 +448,7 @@ mod r04_grants_links_images {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn executables_and_bundles_are_never_opened() {
         let temp = Temp::new();
@@ -453,7 +473,12 @@ mod r04_grants_links_images {
         let index = index();
 
         let image = assets::resolve_image(&index, "images/sample.png").expect("image");
-        assert!(assets::asset_url(&image).starts_with("asset://localhost/%2F"));
+        let prefix = if cfg!(windows) {
+            "http://asset.localhost/"
+        } else {
+            "asset://localhost/%2F"
+        };
+        assert!(assets::asset_url(&image).starts_with(prefix));
         assert_eq!(
             assets::resolve_image(&index, "second.md")
                 .expect_err("not an image")
@@ -614,8 +639,10 @@ mod r07_location_and_vault {
     #[test]
     fn vault_and_cloud_folders_are_detected() {
         let vault_note =
-            std::fs::canonicalize(fixtures().join("flavors/vault/notes/idea.md")).expect("fixture");
-        let plain = std::fs::canonicalize(fixtures().join("flavors/plain.md")).expect("fixture");
+            writedown_lib::fs_util::canonicalize(fixtures().join("flavors/vault/notes/idea.md"))
+                .expect("fixture");
+        let plain = writedown_lib::fs_util::canonicalize(fixtures().join("flavors/plain.md"))
+            .expect("fixture");
         assert!(in_obsidian_vault(&vault_note));
         assert!(!in_obsidian_vault(&plain));
 
@@ -667,7 +694,7 @@ mod r08_open_events {
             ],
         );
 
-        assert_eq!(accepted, [md.to_string_lossy()]);
+        assert_eq!(accepted, [writedown_lib::fs_util::path_text(&md)]);
         assert!(grants.is_granted(&md));
         assert!(!grants.is_granted(&png));
         let url = url::Url::from_file_path(&md).expect("url");

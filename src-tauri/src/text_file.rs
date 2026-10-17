@@ -47,7 +47,14 @@ fn too_large_message(limit: u64) -> String {
 
 /// Reads `path` as text. Refuses anything that is not a regular file and files above `limit`.
 pub fn read_text_file_with_limit(path: &Path, limit: u64) -> Result<TextFile, String> {
-    let file = File::open(path).map_err(|e| describe_io_error(&e))?;
+    let file = File::open(path).map_err(|e| {
+        // Windows refuses to open a folder as a file ("access denied").
+        if path.is_dir() {
+            "The chosen item is not a file.".to_string()
+        } else {
+            describe_io_error(&e)
+        }
+    })?;
     let metadata = file.metadata().map_err(|e| describe_io_error(&e))?;
     if !metadata.is_file() {
         return Err("The chosen item is not a file.".to_string());
@@ -75,7 +82,7 @@ pub fn read_text_file_with_limit(path: &Path, limit: u64) -> Result<TextFile, St
     };
 
     Ok(TextFile {
-        path: path.to_string_lossy().into_owned(),
+        path: crate::fs_util::path_text(path),
         text,
         bytes: size,
     })
@@ -100,7 +107,7 @@ mod tests {
 
         assert_eq!(file.text, "# Titel\n\nhéllo €\n");
         assert_eq!(file.bytes, "# Titel\n\nhéllo €\n".len() as u64);
-        assert_eq!(file.path, path.to_string_lossy());
+        assert_eq!(file.path, crate::fs_util::path_text(&path));
     }
 
     #[test]

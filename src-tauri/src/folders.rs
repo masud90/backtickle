@@ -70,7 +70,7 @@ pub fn is_listed_file(name: &str) -> bool {
 
 /// A link below a granted folder: its canonical target if that is a file inside `root`.
 pub(crate) fn inside_file_target(link: &Path, root: &Path) -> Option<(PathBuf, Metadata)> {
-    let target = std::fs::canonicalize(link).ok()?;
+    let target = crate::fs_util::canonicalize(link).ok()?;
     if !target.starts_with(root) {
         return None;
     }
@@ -131,7 +131,7 @@ pub fn list_folder(
         };
         entries.push(FolderEntry {
             name,
-            path: path.to_string_lossy().into_owned(),
+            path: crate::fs_util::path_text(&path),
             kind: entry_kind,
             bytes: (entry_kind == EntryKind::File).then_some(metadata.len()),
             modified_ms: Some(fs_util::modified_ms(&metadata)),
@@ -142,7 +142,7 @@ pub fn list_folder(
     let truncated = entries.len() > MAX_LEVEL_ENTRIES;
     entries.truncate(MAX_LEVEL_ENTRIES);
     Ok(FolderListing {
-        path: folder.to_string_lossy().into_owned(),
+        path: crate::fs_util::path_text(&folder),
         entries,
         truncated,
     })
@@ -196,7 +196,7 @@ pub fn file_index(
             truncated = true;
             break;
         }
-        paths.push(entry.path().to_string_lossy().into_owned());
+        paths.push(crate::fs_util::path_text(entry.path()));
     }
     Ok(FileIndex { paths, truncated })
 }
@@ -251,7 +251,7 @@ mod tests {
 
         let listing = list_folder(&grants, &root, &no_ignore()).expect("lists");
 
-        assert_eq!(listing.path, root.to_string_lossy());
+        assert_eq!(listing.path, crate::fs_util::path_text(&root));
         assert!(!listing.truncated);
         assert_eq!(
             names(&listing),
@@ -285,7 +285,7 @@ mod tests {
             .expect("a");
         assert_eq!(file.bytes, Some(5));
         assert!(file.modified_ms.is_some_and(|ms| ms > 0));
-        assert_eq!(file.path, root.join("a.md").to_string_lossy());
+        assert_eq!(file.path, crate::fs_util::path_text(&root.join("a.md")));
         let folder = listing
             .entries
             .iter()
@@ -328,6 +328,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_link_to_a_file_inside_is_listed_and_links_outside_or_to_folders_are_not() {
         let dir = TempDir::new();
@@ -336,7 +337,7 @@ mod tests {
         touch(dir.path(), "sub/inner.md");
         touch(outside.path(), "secret.md");
         touch(outside.path(), "folder/x.md");
-        let base = std::fs::canonicalize(dir.path()).expect("canonical");
+        let base = crate::fs_util::canonicalize(dir.path()).expect("canonical");
         std::os::unix::fs::symlink(base.join("real.md"), base.join("alias.md")).expect("link");
         std::os::unix::fs::symlink(outside.path().join("secret.md"), base.join("leak.md"))
             .expect("link");
@@ -426,13 +427,14 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_folder_below_the_root_may_be_listed_and_a_folder_link_is_refused() {
         let dir = TempDir::new();
         let outside = TempDir::new();
         touch(dir.path(), "sub/a.md");
         touch(outside.path(), "x.md");
-        let base = std::fs::canonicalize(dir.path()).expect("canonical");
+        let base = crate::fs_util::canonicalize(dir.path()).expect("canonical");
         std::os::unix::fs::symlink(outside.path(), base.join("door")).expect("link");
         let (grants, root) = granted(&dir);
 
@@ -484,6 +486,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn the_index_skips_links_out_of_the_folder_and_folder_links() {
         let dir = TempDir::new();
@@ -491,7 +494,7 @@ mod tests {
         touch(dir.path(), "real.md");
         touch(outside.path(), "secret.md");
         touch(outside.path(), "dir/x.md");
-        let base = std::fs::canonicalize(dir.path()).expect("canonical");
+        let base = crate::fs_util::canonicalize(dir.path()).expect("canonical");
         std::os::unix::fs::symlink(outside.path().join("secret.md"), base.join("leak.md"))
             .expect("link");
         std::os::unix::fs::symlink(outside.path().join("dir"), base.join("leakdir")).expect("link");

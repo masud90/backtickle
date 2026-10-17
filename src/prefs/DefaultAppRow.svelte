@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { byOs } from '@/lib/os';
   import type { Platform } from '@/lib/platform';
 
   interface Props {
@@ -26,6 +27,14 @@
   });
 
   const canMake = $derived(current !== null && !current.isWritedown && !busy);
+
+  // On Windows an app cannot make itself the default: the button opens the system's
+  // "Open with" chooser for .md files, where the user picks Writedown.
+  const description = byOs(
+    'Opens .md, .markdown and related files in Writedown. .qmd, .Rmd and .mdx stay under Open With.',
+    'Opens .md files in Writedown. The button shows the Windows "Open with" chooser: pick Writedown and choose Always.',
+  );
+  const buttonLabel = byOs('Make Writedown the default', 'Choose the default app…');
 
   async function read() {
     try {
@@ -64,7 +73,7 @@
   <div class="text">
     <div class="label" id="lbl-default-markdown-app">Default app for Markdown files</div>
     <div class="desc" id="desc-default-markdown-app">
-      Opens .md, .markdown and related files in Writedown. .qmd, .Rmd and .mdx stay under Open With.
+      {description}
     </div>
   </div>
   <div class="control">
@@ -77,7 +86,7 @@
         aria-describedby="desc-default-markdown-app"
         onclick={make}
       >
-        Make Writedown the default
+        {buttonLabel}
       </button>
       {#if message}
         <p class="message" role="alert" data-testid="default-app-message">{message}</p>

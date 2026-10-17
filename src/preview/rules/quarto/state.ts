@@ -3,6 +3,7 @@
  * included file is being rendered and which files are being rendered (to find a cycle).
  */
 import type { Env } from 'markdown-it';
+import { isAbsolutePath } from '@/lib/paths';
 
 export interface QuartoState {
   /** 0 for the document, 1 for a file it includes, and so on. */
@@ -27,7 +28,7 @@ function dirOf(key: string): string {
  * folder). `parent` is the key of the file that contains the shortcode, '' for the document.
  */
 export function resolveIncludeKey(parent: string, href: string): string {
-  if (href.startsWith('/')) return href;
+  if (isAbsolutePath(href)) return href;
   const dir = dirOf(parent);
   const parts: string[] = [];
   for (const part of (dir === '' ? href : `${dir}/${href}`).split('/')) {

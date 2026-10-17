@@ -2,6 +2,9 @@
 //! the library only. Expected values are written from the specification. Every
 //! test works inside its own temporary folder. The watcher tests use the real FSEvents backend.
 
+// Some tests here need symbolic links or Unix permissions and run on macOS only.
+#![cfg_attr(windows, allow(unused))]
+
 use serde_json::json;
 use std::collections::HashSet;
 use std::fs;
@@ -33,7 +36,7 @@ fn temp() -> PathBuf {
     let dir = std::env::temp_dir().join(format!("wd-acc3b-{}-{n}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
-    dir.canonicalize().unwrap()
+    writedown_lib::fs_util::canonicalize(&dir).unwrap()
 }
 
 fn write(path: &Path, text: &str) -> PathBuf {
@@ -663,6 +666,7 @@ fn c35_the_menu_state_fields_default_to_false_when_the_page_omits_them() {
 
 // ---- C32 (Rust part): the fixed argument list ---------------------------------------------------
 
+#[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use std::time::Duration as StdDuration;
 use writedown_lib::pandoc::{self, DocxRequest};
@@ -723,6 +727,7 @@ fn c32_the_argument_list_is_exactly_the_one_of_the_spec() {
     );
 }
 
+#[cfg(unix)]
 #[test]
 fn c32_a_document_cannot_add_arguments_and_the_input_goes_to_stdin_only() {
     let dir = temp();
@@ -768,6 +773,7 @@ fn c32_a_document_cannot_add_arguments_and_the_input_goes_to_stdin_only() {
     let _ = fs::remove_dir_all(&dir);
 }
 
+#[cfg(unix)]
 #[test]
 fn c32_unknown_routes_and_non_docx_outputs_are_refused_before_anything_starts() {
     let dir = temp();

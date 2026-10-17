@@ -23,6 +23,8 @@ pub const OPEN_FILES_EVENT: &str = "open-files";
 pub fn urls_to_paths(urls: &[Url]) -> Vec<PathBuf> {
     urls.iter()
         .filter(|url| url.scheme() == "file")
+        // On Windows `to_file_path` turns a host into a network share; that is another machine.
+        .filter(|url| matches!(url.host_str(), None | Some("") | Some("localhost")))
         .filter_map(|url| url.to_file_path().ok())
         .collect()
 }
@@ -38,7 +40,7 @@ pub fn accept_paths(grants: &PathGrants, paths: &[PathBuf]) -> Vec<String> {
         if !file_types::is_document_path(path) {
             continue;
         }
-        let Ok(canonical) = std::fs::canonicalize(path) else {
+        let Ok(canonical) = crate::fs_util::canonicalize(path) else {
             continue; // missing
         };
         // A folder, or a link named like a document that points to something else, is not
@@ -47,7 +49,7 @@ pub fn accept_paths(grants: &PathGrants, paths: &[PathBuf]) -> Vec<String> {
             continue;
         }
         grants.grant_resolved(&canonical);
-        let text = canonical.to_string_lossy().into_owned();
+        let text = crate::fs_util::path_text(&canonical);
         if !accepted.contains(&text) {
             accepted.push(text);
         }
@@ -170,13 +172,11 @@ fn send_to(app: &AppHandle<Wry>, label: &str, batch: Vec<String>) {
 mod tests {
     use super::*;
     use crate::test_support::TempDir;
+    #[cfg(unix)]
     use std::os::unix::fs::symlink;
 
     fn canonical(path: &PathBuf) -> String {
-        std::fs::canonicalize(path)
-            .expect("canonical")
-            .to_string_lossy()
-            .into_owned()
+        crate::fs_util::path_text(&crate::fs_util::canonicalize(path).expect("canonical"))
     }
 
     #[test]
@@ -227,7 +227,7 @@ mod tests {
 
         assert!(accept_paths(&grants, &ignored).is_empty());
         for path in &ignored {
-            assert!(!grants.is_granted(&std::fs::canonicalize(path).expect("canonical")));
+            assert!(!grants.is_granted(&crate::fs_util::canonicalize(path).expect("canonical")));
         }
     }
 
@@ -261,6 +261,7 @@ mod tests {
         assert_eq!(accepted, [canonical(&b), canonical(&a)]);
     }
 
+    #[cfg(unix)]
     #[test]
     fn r08_two_spellings_of_one_file_are_one_file() {
         let dir = TempDir::new();
@@ -274,6 +275,7 @@ mod tests {
         assert_eq!(accepted, [canonical(&a)]);
     }
 
+    #[cfg(unix)]
     #[test]
     fn r08_a_link_named_like_a_document_that_points_elsewhere_is_ignored() {
         let dir = TempDir::new();
@@ -306,12 +308,15 @@ mod tests {
 
     #[test]
     fn r08_file_urls_become_paths_and_other_urls_are_ignored() {
+        // A drive on Windows, so the paths are absolute there too.
+        let drive = if cfg!(windows) { "C:/" } else { "" };
+        let root = if cfg!(windows) { "C:/" } else { "/" };
         let urls: Vec<Url> = [
-            "file:///Users/me/a%20b.md",
-            "https://example.org/a.md",
-            "file://localhost/Users/me/c.md",
-            "writedown://open?file=/etc/hosts",
-            "file://example.org/share/d.md",
+            format!("file:///{drive}Users/me/a%20b.md"),
+            "https://example.org/a.md".to_owned(),
+            format!("file://localhost/{drive}Users/me/c.md"),
+            "writedown://open?file=/etc/hosts".to_owned(),
+            "file://example.org/share/d.md".to_owned(),
         ]
         .iter()
         .map(|text| Url::parse(text).expect("url"))
@@ -322,8 +327,8 @@ mod tests {
         assert_eq!(
             paths,
             [
-                PathBuf::from("/Users/me/a b.md"),
-                PathBuf::from("/Users/me/c.md")
+                PathBuf::from(format!("{root}Users/me/a b.md")),
+                PathBuf::from(format!("{root}Users/me/c.md"))
             ]
         );
     }

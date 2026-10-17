@@ -79,7 +79,7 @@ impl Stores {
         app.state::<Trace>().event(
             "stores",
             json!({
-                "folder": config.to_string_lossy(),
+                "folder": fs_util::path_text(&config),
                 "overridden": chosen.is_some(),
             }),
         );
@@ -87,7 +87,7 @@ impl Stores {
             .path()
             .home_dir()
             .ok()
-            .map(|home| std::fs::canonicalize(&home).unwrap_or(home));
+            .map(|home| crate::fs_util::canonicalize(&home).unwrap_or(home));
         Stores::in_folders(&data, &config, home)
     }
 
@@ -208,7 +208,7 @@ pub fn record_open(app: &AppHandle<Wry>, path: &Path) {
     let limit = stores.settings().recent_limit as usize;
     let changed = {
         let mut recents = stores.recents();
-        let changed = recents.touch(&path.to_string_lossy(), fs_util::now_ms(), limit);
+        let changed = recents.touch(&fs_util::path_text(path), fs_util::now_ms(), limit);
         if let Err(error) = recents.save() {
             eprintln!(
                 "writedown: the recents could not be saved ({:?}).",
@@ -226,7 +226,7 @@ pub fn record_open(app: &AppHandle<Wry>, path: &Path) {
 pub fn path_moved(app: &AppHandle<Wry>, from: &Path, to: &Path) {
     let changed = app
         .state::<Stores>()
-        .path_moved(&from.to_string_lossy(), &to.to_string_lossy());
+        .path_moved(&fs_util::path_text(from), &fs_util::path_text(to));
     if changed {
         recents_changed(app);
     }

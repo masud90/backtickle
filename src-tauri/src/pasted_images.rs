@@ -43,7 +43,7 @@ impl DroppedImages {
         let mut accepted = Vec::new();
         let mut set = self.paths.lock().unwrap_or_else(PoisonError::into_inner);
         for path in paths {
-            let Ok(canonical) = std::fs::canonicalize(path) else {
+            let Ok(canonical) = crate::fs_util::canonicalize(path) else {
                 continue;
             };
             if !canonical.is_file() || !file_types::is_image_path(&canonical) {
@@ -64,7 +64,7 @@ impl DroppedImages {
             return Err(PlatformError::not_allowed());
         }
         drop(set);
-        match std::fs::canonicalize(path) {
+        match crate::fs_util::canonicalize(path) {
             Ok(canonical) if canonical == path => Ok(canonical),
             Ok(_) => Err(PlatformError::not_allowed()),
             Err(error) => Err(PlatformError::from_read(&error)),

@@ -23,6 +23,7 @@ pub mod menu;
 pub mod menu_spec;
 pub mod native_doc;
 pub mod open_files;
+pub mod os_text;
 pub mod pandoc;
 pub mod pasted_images;
 pub mod pdf;
@@ -73,7 +74,7 @@ fn allow_open_argument(grants: &PathGrants, config: &LaunchConfig) -> Option<Str
     }
     let requested = config.open.as_deref()?;
     match grants.grant(Path::new(requested)) {
-        Ok(path) => Some(path.to_string_lossy().into_owned()),
+        Ok(path) => Some(fs_util::path_text(&path)),
         Err(message) => {
             eprintln!("--open {requested}: {message}");
             None
@@ -94,7 +95,7 @@ fn allow_folder_argument(
     let requested = config.folder.as_deref()?;
     match grants.grant_folder(Path::new(requested)) {
         Ok(path) => {
-            let path = path.to_string_lossy().into_owned();
+            let path = fs_util::path_text(&path);
             trace.event(
                 "folder-opened",
                 serde_json::json!({ "path": path, "source": "launch" }),
@@ -105,6 +106,18 @@ fn allow_folder_argument(
             eprintln!("--folder {requested}: {}", error.message);
             None
         }
+    }
+}
+
+/// Windows: the documents File Explorer passed as plain arguments (relative ones are taken from
+/// `cwd`), opened like files from Finder. Used for this launch and for the arguments a second
+/// launch hands over.
+#[cfg(windows)]
+fn open_argument_files(app: &tauri::AppHandle, files: &[String], cwd: &Path) {
+    let paths: Vec<std::path::PathBuf> = files.iter().map(|file| cwd.join(file)).collect();
+    let accepted = open_files::accept_paths(&app.state::<PathGrants>(), &paths);
+    if !accepted.is_empty() {
+        open_files::deliver(app, accepted);
     }
 }
 
@@ -119,7 +132,21 @@ pub fn run() {
     let folder_path = allow_folder_argument(&grants, &config, &trace);
     let state = LaunchState::new(&config, open_path).with_folder(folder_path);
 
-    let app = tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    // Windows starts a new process for every document opened from File Explorer; the plugin hands
+    // its arguments to the running app and the new process ends. macOS sends `Opened` instead.
+    #[cfg(windows)]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
+        let config = LaunchConfig::parse(args.into_iter().skip(1), |_| None);
+        if config.files.is_empty() {
+            lifecycle::reopen(app);
+        } else {
+            open_argument_files(app, &config.files, Path::new(&cwd));
+        }
+    }));
+    #[cfg(windows)]
+    let files = config.files.clone();
+    let app = builder
         .plugin(tauri_plugin_dialog::init())
         .manage(grants)
         .manage(state)
@@ -136,7 +163,7 @@ pub fn run() {
         .on_menu_event(menu::handle_event)
         .on_window_event(lifecycle::on_window_event)
         .on_page_load(lifecycle::on_page_load)
-        .setup(|app| {
+        .setup(move |app| {
             let handle = app.handle();
             // Everything that needs the app's folders or its windows is created here.
             let stores = Stores::open(handle);
@@ -153,7 +180,7 @@ pub fn run() {
             // document can be saved (a cheap folder check when there is nothing to recover).
             for path in stores.recovery().paths() {
                 let path = std::path::Path::new(&path);
-                if let Ok(canonical) = std::fs::canonicalize(path)
+                if let Ok(canonical) = crate::fs_util::canonicalize(path)
                     && canonical == path
                     && canonical.is_file()
                 {
@@ -194,6 +221,10 @@ pub fn run() {
                 windows::open_preferences(handle)?;
             }
             handle.state::<Lifecycle>().mark_setup_done();
+            #[cfg(windows)]
+            if let Ok(cwd) = std::env::current_dir() {
+                open_argument_files(handle, &files, &cwd);
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

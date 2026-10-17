@@ -167,6 +167,8 @@ impl MenuHandles {
             .into_iter()
             .filter(|(id, _)| before.get(*id) != overrides.get(*id))
             .filter_map(|(id, accelerator)| {
+                let accelerator =
+                    accelerator.and_then(|text| menu_spec::platform_accelerator(&text));
                 self.items
                     .get(id)
                     .map(|handle| (handle.clone(), accelerator))
@@ -247,6 +249,36 @@ fn predefined(app: &AppHandle<Wry>, kind: Predefined) -> tauri::Result<Predefine
     }
 }
 
+/// The id of View > Full Screen on Windows, where the system has no full screen item of its own.
+pub const FULLSCREEN_ID: &str = "fullscreen";
+
+/// Whether the system item exists on this system: Windows has no Services, no Hide Others or
+/// Show All, no Bring All to Front, and Full Screen is an item of the app there.
+fn predefined_exists(kind: Predefined) -> bool {
+    !cfg!(windows)
+        || !matches!(
+            kind,
+            Predefined::Services
+                | Predefined::Hide
+                | Predefined::HideOthers
+                | Predefined::ShowAll
+                | Predefined::BringAllToFront
+                | Predefined::Fullscreen
+        )
+}
+
+/// The label an item has on this system (Windows names Finder File Explorer).
+pub fn platform_label(id: &str, label: &'static str) -> &'static str {
+    if !cfg!(windows) {
+        return label;
+    }
+    match id {
+        "reveal-in-finder" => "Show in File Explorer",
+        menu_spec::QUIT_ID => "Exit",
+        _ => label,
+    }
+}
+
 fn append_entries(
     app: &AppHandle<Wry>,
     parent: &Submenu<Wry>,
@@ -260,20 +292,34 @@ fn append_entries(
                 let created = CheckMenuItem::with_id(
                     app,
                     item.id,
-                    item.label,
+                    platform_label(item.id, item.label),
                     true,
                     false,
-                    item.accelerator,
+                    item.accelerator.and_then(menu_spec::platform_accelerator),
                 )?;
                 parent.append(&created)?;
                 items.insert(item.id, ItemHandle::Check(created));
             }
             Entry::Item(item) => {
-                let created = MenuItem::with_id(app, item.id, item.label, true, item.accelerator)?;
+                let created = MenuItem::with_id(
+                    app,
+                    item.id,
+                    platform_label(item.id, item.label),
+                    true,
+                    item.accelerator.and_then(menu_spec::platform_accelerator),
+                )?;
                 parent.append(&created)?;
                 items.insert(item.id, ItemHandle::Plain(created));
             }
             Entry::Separator => parent.append(&PredefinedMenuItem::separator(app)?)?,
+            Entry::Predefined(Predefined::Fullscreen) if cfg!(windows) => {
+                let item = MenuItem::with_id(app, FULLSCREEN_ID, "Full Screen", true, Some("F11"))?;
+                parent.append(&item)?;
+            }
+            Entry::Predefined(Predefined::Zoom) if cfg!(windows) => {
+                parent.append(&PredefinedMenuItem::maximize(app, None)?)?;
+            }
+            Entry::Predefined(kind) if !predefined_exists(*kind) => {}
             Entry::Predefined(kind) => parent.append(&predefined(app, *kind)?)?,
             Entry::Submenu { label, entries } => {
                 let submenu = Submenu::new(app, *label, true)?;
@@ -299,6 +345,11 @@ pub fn build(
     let mut recent = None;
     let mut menus: Vec<Submenu<Wry>> = Vec::new();
     for spec in MENUS {
+        // Windows has no app menu: its items move to File (Settings, Exit) and Help (About), as
+        // Windows apps have them (`windows_extras`).
+        if cfg!(windows) && spec.label == menu_spec::APP_MENU_LABEL {
+            continue;
+        }
         // macOS treats the Window and Help menus specially (window list, search field); Tauri
         // recognizes them by these ids.
         let submenu = match spec.special {
@@ -307,6 +358,15 @@ pub fn build(
             None => Submenu::new(app, spec.label, true)?,
         };
         append_entries(app, &submenu, spec.entries, &mut items, &mut recent)?;
+        if cfg!(windows) {
+            append_entries(
+                app,
+                &submenu,
+                menu_spec::windows_extras(spec.label),
+                &mut items,
+                &mut recent,
+            )?;
+        }
         menus.push(submenu);
     }
     let references: Vec<&dyn IsMenuItem<Wry>> = menus
@@ -494,10 +554,10 @@ fn open_recent(app: &AppHandle<Wry>, path: &str) {
     if !app.state::<Stores>().recents().contains(path) {
         return;
     }
-    match std::fs::canonicalize(path) {
+    match crate::fs_util::canonicalize(path) {
         Ok(canonical) if canonical.is_file() => {
             app.state::<PathGrants>().grant_resolved(&canonical);
-            open_files::deliver(app, vec![canonical.to_string_lossy().into_owned()]);
+            open_files::deliver(app, vec![crate::fs_util::path_text(&canonical)]);
         }
         // The file is gone: refresh the menu so the stale entry disappears.
         _ => stores::recents_changed(app),
@@ -515,6 +575,12 @@ pub fn handle_event(app: &AppHandle<Wry>, event: MenuEvent) {
         match app.try_state::<AppCloseProtocol>() {
             Some(protocol) => protocol.request(MAIN_LABEL, CloseReason::Quit),
             None => app.exit(0),
+        }
+    } else if id == FULLSCREEN_ID {
+        if let Some(label) = windows::target_label(app)
+            && let Some(window) = app.get_webview_window(&label)
+        {
+            let _ = window.set_fullscreen(!window.is_fullscreen().unwrap_or(false));
         }
     } else if id == menu_spec::CLEAR_RECENTS_ID {
         stores::clear_recents(app);

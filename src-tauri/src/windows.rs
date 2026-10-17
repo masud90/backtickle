@@ -14,10 +14,9 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::{Mutex, MutexGuard, PoisonError};
 use tauri::window::Color;
-use tauri::{
-    AppHandle, LogicalPosition, Manager, Runtime, Theme, TitleBarStyle, WebviewUrl,
-    WebviewWindowBuilder, Wry,
-};
+use tauri::{AppHandle, Manager, Runtime, Theme, WebviewUrl, WebviewWindowBuilder, Wry};
+#[cfg(target_os = "macos")]
+use tauri::{LogicalPosition, TitleBarStyle};
 
 pub const MAIN_LABEL: &str = "main";
 /// The label of every document window after `main` is `doc-` and a number.
@@ -71,7 +70,7 @@ pub fn open_preferences<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         return Ok(());
     }
 
-    WebviewWindowBuilder::new(
+    let builder = WebviewWindowBuilder::new(
         app,
         PREFERENCES_LABEL,
         WebviewUrl::App(PREFERENCES_PAGE.into()),
@@ -79,14 +78,23 @@ pub fn open_preferences<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     .title("Preferences")
     .inner_size(PREFERENCES_SIZE.0, PREFERENCES_SIZE.1)
     .min_inner_size(PREFERENCES_MIN_SIZE.0, PREFERENCES_MIN_SIZE.1)
-    .center()
-    .title_bar_style(TitleBarStyle::Overlay)
-    .hidden_title(true)
-    .traffic_light_position(LogicalPosition::new(TRAFFIC_LIGHT_X, TRAFFIC_LIGHT_Y))
-    .background_color(canvas_for(system_theme(app)))
-    .transparent(true)
-    .build()
-    .map(|window| crate::vibrancy::apply(app, &window))?;
+    .center();
+    // macOS: the page draws the title bar under the traffic lights. Windows keeps its own title
+    // bar.
+    #[cfg(target_os = "macos")]
+    let builder = builder
+        .title_bar_style(TitleBarStyle::Overlay)
+        .hidden_title(true)
+        .traffic_light_position(LogicalPosition::new(TRAFFIC_LIGHT_X, TRAFFIC_LIGHT_Y));
+    let window = builder
+        .background_color(canvas_for(system_theme(app)))
+        .transparent(true)
+        .build()?;
+    // Windows puts the app menu bar on every window; Preferences has none, as on macOS where the
+    // menu bar is not part of a window.
+    #[cfg(windows)]
+    let _ = window.remove_menu();
+    crate::vibrancy::apply(app, &window);
     Ok(())
 }
 

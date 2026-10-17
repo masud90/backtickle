@@ -102,7 +102,7 @@ pub fn read_document_with_limit(path: &Path, limit: u64) -> PlatformResult<ReadR
 
     Ok(ReadResult {
         document: DocumentFile {
-            path: path.to_string_lossy().into_owned(),
+            path: crate::fs_util::path_text(path),
             text: normalized.text,
             encoding: decoded.encoding,
             legacy_encoding: decoded.legacy_encoding,
@@ -122,6 +122,7 @@ mod tests {
     use super::*;
     use crate::test_support::TempDir;
     use std::collections::BTreeSet;
+    #[cfg(unix)]
     use std::os::unix::fs::PermissionsExt;
 
     fn read(dir: &TempDir, bytes: &[u8]) -> DocumentFile {
@@ -139,7 +140,7 @@ mod tests {
         let document = result.document;
         assert_eq!(document.text, "# Titel\n\nhéllo €\n");
         assert_eq!(document.bytes, "# Titel\n\nhéllo €\n".len() as u64);
-        assert_eq!(document.path, path.to_string_lossy());
+        assert_eq!(document.path, crate::fs_util::path_text(&path));
         assert_eq!(document.encoding, Encoding::Utf8);
         assert_eq!(document.legacy_encoding, None);
         assert!(!document.lossy && !document.read_only && !document.mixed_line_endings);
@@ -216,6 +217,7 @@ mod tests {
         assert!(document.text.contains('\u{fffd}'));
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_file_without_write_permission_is_read_only() {
         let dir = TempDir::new();
@@ -277,6 +279,7 @@ mod tests {
         assert_eq!(error.message, "This is not a file.");
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_named_pipe_is_refused_without_opening_it() {
         let dir = TempDir::new();

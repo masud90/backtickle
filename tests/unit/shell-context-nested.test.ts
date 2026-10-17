@@ -13,15 +13,18 @@ import { ContextFetcher } from '@/shell/context';
 const FIXTURES = resolve(__dirname, '../fixtures/flavors');
 const DIR = resolve(FIXTURES, 'quarto');
 
+/** Paths as the backend sends them to the page: `/` separated on Windows too. */
+const pagePath = (path: string) => path.replace(/\\/g, '/');
+
 function reader() {
   return {
     readLinkedText: vi.fn(async (from: string, href: string): Promise<LinkedText> => {
-      const path = resolve(dirname(from), href);
+      const path = pagePath(resolve(dirname(from), href));
       return { path, text: readFileSync(path, 'utf8') };
     }),
     vaultIndex: vi.fn(async () => null),
     quartoProject: vi.fn(async (from: string): Promise<LinkedText | null> => {
-      const path = resolve(dirname(from), '_quarto.yml');
+      const path = pagePath(resolve(dirname(from), '_quarto.yml'));
       try {
         return { path, text: readFileSync(path, 'utf8') };
       } catch {
@@ -33,7 +36,7 @@ function reader() {
 
 /** Plays the shell: render, and render again each time something arrives. */
 async function settle(pipeline: Pipeline, file: string) {
-  const path = resolve(DIR, file);
+  const path = pagePath(resolve(DIR, file));
   const source = readFileSync(path, 'utf8');
   const files = reader();
   let renders = 0;

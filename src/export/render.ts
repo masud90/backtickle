@@ -4,11 +4,15 @@
  * Terminal. Writedown never runs the document's code itself.
  */
 
+import { byOs } from '@/lib/os';
 import type { Shell } from '@/shell/shell.svelte';
 import { tabIsDirty } from '@/shell/tab';
 
-export const RSTUDIO_NOTICE = 'Opened in RStudio. Press Render (⇧⌘K) there.';
-export const TERMINAL_NOTICE = 'Rendering in Terminal.';
+export const RSTUDIO_NOTICE = byOs(
+  'Opened in RStudio. Press Render (⇧⌘K) there.',
+  'Opened in RStudio. Press Render (Ctrl+Shift+K) there.',
+);
+export const TERMINAL_NOTICE = byOs('Rendering in Terminal.', 'Rendering in a terminal window.');
 
 function messageOf(error: unknown): string {
   return error instanceof Error

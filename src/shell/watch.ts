@@ -9,6 +9,7 @@
  * document with unsaved changes gets the "changed by another app" banner; a removed one is
  * marked missing. Linked scope: the preview fetches what it needs again and renders.
  */
+import { samePath } from '@/lib/paths';
 import type { FileChange } from '@/lib/platform';
 import type { Shell } from './shell.svelte';
 
@@ -31,7 +32,9 @@ export function handleChanges(shell: Shell, changes: FileChange[]): void {
 }
 
 async function documentChanged(shell: Shell, change: FileChange): Promise<void> {
-  const tab = shell.tabs.find((candidate) => candidate.path === change.path);
+  const tab = shell.tabs.find(
+    (candidate) => candidate.path !== null && samePath(candidate.path, change.path),
+  );
   if (!tab) return;
   if (change.kind === 'removed') {
     if (!tab.missing) shell.patchTab(tab.id, { missing: true });

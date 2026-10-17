@@ -1,5 +1,6 @@
 <script lang="ts">
   import { tick, untrack } from 'svelte';
+  import { byOs, isWindows } from '@/lib/os';
   import Icon from '@/shell/icons/Icon.svelte';
   import Menu from '../Menu.svelte';
   import type { MenuItem } from '../menu';
@@ -131,7 +132,15 @@
       model.startRename(row.path);
       return;
     }
-    if (event.key === 'Backspace' && event.metaKey && row) {
+    // Move to Trash: ⌘⌫ as in Finder; on Windows the Delete key alone, as in File Explorer.
+    const trashKey = isWindows()
+      ? event.key === 'Delete' &&
+        !event.ctrlKey &&
+        !event.altKey &&
+        !event.shiftKey &&
+        !event.metaKey
+      : event.key === 'Backspace' && event.metaKey;
+    if (trashKey && row) {
       event.preventDefault();
       void model.trash(row.path);
       return;
@@ -224,14 +233,14 @@
       },
       {
         id: 'trash',
-        label: 'Move to Trash',
-        shortcut: '⌘⌫',
+        label: byOs('Move to Trash', 'Move to Recycle Bin'),
+        shortcut: byOs('⌘⌫', 'Delete'),
         disabled: !forRow,
         onSelect: () => void model.trash(target),
       },
       {
         id: 'reveal',
-        label: 'Reveal in Finder',
+        label: byOs('Reveal in Finder', 'Show in File Explorer'),
         onSelect: () => void model.revealInFinder(target),
       },
       { id: 'copy-path', label: 'Copy Path', onSelect: () => void model.copyPath(target) },

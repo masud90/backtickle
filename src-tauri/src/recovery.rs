@@ -18,6 +18,7 @@ use serde::Serialize;
 use serde_json::{Value, json};
 use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
+#[cfg(unix)]
 use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt};
 use std::path::{Path, PathBuf};
 
@@ -145,10 +146,12 @@ impl RecoveryStore {
         if self.dir.is_dir() {
             return Ok(());
         }
-        fs::DirBuilder::new()
-            .recursive(true)
-            .mode(0o700)
-            .create(&self.dir)
+        let mut builder = fs::DirBuilder::new();
+        builder.recursive(true);
+        // On Windows the app's data folder is already private to the user.
+        #[cfg(unix)]
+        builder.mode(0o700);
+        builder.create(&self.dir)
     }
 
     /// Writes (or replaces) an entry: temporary file with mode 0600, flushed, renamed.
@@ -165,11 +168,11 @@ impl RecoveryStore {
         bytes.push(b'\n');
         let temp = fs_util::temp_sibling(&target);
         let result = (|| {
-            let mut file = OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .mode(0o600)
-                .open(&temp)?;
+            let mut options = OpenOptions::new();
+            options.write(true).create_new(true);
+            #[cfg(unix)]
+            options.mode(0o600);
+            let mut file = options.open(&temp)?;
             file.write_all(&bytes)?;
             fs_util::fsync_file(&file)?;
             drop(file);
@@ -236,6 +239,7 @@ impl RecoveryStore {
 mod tests {
     use super::*;
     use crate::test_support::TempDir;
+    #[cfg(unix)]
     use std::os::unix::fs::PermissionsExt;
 
     fn entry(id: &str, text: &str, path: Option<&str>) -> Entry {
@@ -268,6 +272,7 @@ mod tests {
         assert_eq!(list[0].modified_ms, Some(7));
     }
 
+    #[cfg(unix)]
     #[test]
     fn the_folder_is_private_and_the_files_are_0600() {
         let (_dir, store) = store();

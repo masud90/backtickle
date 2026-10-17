@@ -20,10 +20,14 @@ use crate::error::{ErrorCode, PlatformError, PlatformResult};
 use crate::fs_util::{self, FileStamp};
 use crate::line_endings::{self, LineEnding};
 use serde::{Deserialize, Deserializer, Serialize};
-use std::fs::{File, Metadata, OpenOptions, Permissions};
+#[cfg(unix)]
+use std::fs::Permissions;
+use std::fs::{File, Metadata, OpenOptions};
 use std::io::{self, Write};
+#[cfg(unix)]
 use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
+#[cfg(unix)]
 use xattr::FileExt as _;
 
 /// `SaveFormat` in `src/lib/platform.ts`.
@@ -136,7 +140,7 @@ pub fn save(
     crate::watcher::OwnWrites::global().wrote(&target);
     Ok(Saved {
         result: SaveResult {
-            path: target.to_string_lossy().into_owned(),
+            path: fs_util::path_text(&target),
             bytes: metadata.len(),
             modified_ms: stamp.modified_ms,
         },
@@ -154,7 +158,7 @@ fn read_only_error() -> PlatformError {
 /// The file to write: for an existing path the canonical path (a symlink is followed), for a new
 /// file the canonical folder plus the file name.
 fn resolve_target(path: &Path) -> PlatformResult<PathBuf> {
-    match std::fs::canonicalize(path) {
+    match crate::fs_util::canonicalize(path) {
         Ok(real) => return Ok(real),
         Err(error) if error.kind() == io::ErrorKind::NotFound => {}
         Err(error) => return Err(PlatformError::from_write(&error)),
@@ -169,7 +173,7 @@ fn resolve_target(path: &Path) -> PlatformResult<PathBuf> {
     let (Some(folder), Some(name)) = (path.parent(), path.file_name()) else {
         return Err(PlatformError::io("This is not a file name."));
     };
-    let folder = std::fs::canonicalize(folder).map_err(|e| PlatformError::from_write(&e))?;
+    let folder = crate::fs_util::canonicalize(folder).map_err(|e| PlatformError::from_write(&e))?;
     Ok(folder.join(name))
 }
 
@@ -263,17 +267,23 @@ fn write_replacing(target: &Path, bytes: &[u8], original: Option<&Metadata>) -> 
     let outcome = (|| -> io::Result<()> {
         checkpoint(Step::AfterCreate)?;
         // Keep the content private until the final permissions are set.
+        #[cfg(unix)]
         let default_mode = file.metadata()?.permissions().mode() & 0o7777;
+        #[cfg(unix)]
         file.set_permissions(Permissions::from_mode(0o600))?;
         file.write_all(bytes)?;
         checkpoint(Step::AfterWrite)?;
-        let mode = match original {
-            Some(metadata) => metadata.permissions().mode() & 0o7777,
-            None => default_mode,
-        };
         // Best effort: a volume that cannot take a mode, an attribute or a date must not make
-        // the save impossible. On the volumes a Mac normally uses all of these succeed.
-        let _ = file.set_permissions(Permissions::from_mode(mode));
+        // the save impossible. On the volumes a Mac normally uses all of these succeed. (Windows
+        // has no mode; a new file gets the folder's permissions, as File Explorer's copies do.)
+        #[cfg(unix)]
+        {
+            let mode = match original {
+                Some(metadata) => metadata.permissions().mode() & 0o7777,
+                None => default_mode,
+            };
+            let _ = file.set_permissions(Permissions::from_mode(mode));
+        }
         if let Some(metadata) = original {
             copy_metadata(&file, target, metadata);
         }
@@ -296,12 +306,11 @@ fn create_temp(target: &Path) -> PlatformResult<(File, TempFile)> {
     let mut last_error = None;
     for _ in 0..16 {
         let path = fs_util::temp_sibling(target);
-        match OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .mode(0o666) // the umask makes it 0644 as usual; it is made private right away
-            .open(&path)
-        {
+        let mut options = OpenOptions::new();
+        options.write(true).create_new(true);
+        #[cfg(unix)]
+        options.mode(0o666); // the umask makes it 0644 as usual; it is made private right away
+        match options.open(&path) {
             Ok(file) => return Ok((file, TempFile { path, armed: true })),
             Err(error) if error.kind() == io::ErrorKind::AlreadyExists => last_error = Some(error),
             Err(error) => return Err(PlatformError::from_write(&error)),
@@ -314,11 +323,14 @@ fn create_temp(target: &Path) -> PlatformResult<(File, TempFile)> {
 
 /// Attributes that describe how the system stores a file, not what the user attached to it.
 /// Copying them to a file with different contents would corrupt it.
+#[cfg(unix)]
 const SKIPPED_ATTRIBUTES: [&str; 1] = ["com.apple.decmpfs"];
 
 /// Copies extended attributes (Finder tags, colors, comments), the creation date and the hidden
-/// flag from the original to the temporary file. Failures are ignored.
+/// flag from the original to the temporary file. Failures are ignored. On Windows: the creation
+/// date and the hidden attribute.
 fn copy_metadata(temp: &File, original_path: &Path, original: &Metadata) {
+    #[cfg(unix)]
     if let Ok(names) = xattr::list(original_path) {
         for name in names {
             if SKIPPED_ATTRIBUTES.iter().any(|skipped| name == *skipped) {
@@ -336,8 +348,43 @@ fn copy_metadata(temp: &File, original_path: &Path, original: &Metadata) {
         }
         macos::copy_hidden_flag(temp, original);
     }
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::{FileTimesExt, MetadataExt};
+        if let Ok(created) = original.created() {
+            let _ = temp.set_times(std::fs::FileTimes::new().set_created(created));
+        }
+        // FILE_ATTRIBUTE_HIDDEN
+        if original.file_attributes() & 0x2 != 0 {
+            windows_hide(temp);
+        }
+        let _ = original_path;
+    }
+    #[cfg(not(any(target_os = "macos", windows)))]
     let _ = original;
+}
+
+/// Sets the hidden attribute of an open file (best effort).
+#[cfg(windows)]
+fn windows_hide(file: &File) {
+    use ::windows::Win32::Foundation::HANDLE;
+    use ::windows::Win32::Storage::FileSystem::{
+        FILE_ATTRIBUTE_HIDDEN, FILE_BASIC_INFO, FileBasicInfo, GetFileInformationByHandleEx,
+        SetFileInformationByHandle,
+    };
+    use std::os::windows::io::AsRawHandle;
+    let handle = HANDLE(file.as_raw_handle());
+    let mut info = FILE_BASIC_INFO::default();
+    let size = std::mem::size_of::<FILE_BASIC_INFO>() as u32;
+    // SAFETY: the handle is the open file's; `info` is a FILE_BASIC_INFO of the size passed.
+    unsafe {
+        if GetFileInformationByHandleEx(handle, FileBasicInfo, (&raw mut info).cast(), size).is_ok()
+        {
+            info.FileAttributes |= FILE_ATTRIBUTE_HIDDEN.0;
+            let _ =
+                SetFileInformationByHandle(handle, FileBasicInfo, (&raw const info).cast(), size);
+        }
+    }
 }
 
 #[cfg(target_os = "macos")]
@@ -396,7 +443,9 @@ mod tests {
     use super::*;
     use crate::documents;
     use crate::test_support::TempDir;
+    #[cfg(unix)]
     use std::os::unix::fs::symlink;
+    #[cfg(unix)]
     use std::time::UNIX_EPOCH;
 
     const LF_UTF8: SaveFormat = SaveFormat {
@@ -430,6 +479,7 @@ mod tests {
         names
     }
 
+    #[cfg(unix)]
     fn mode_of(path: &Path) -> u32 {
         std::fs::metadata(path)
             .expect("metadata")
@@ -511,12 +561,13 @@ mod tests {
         let saved = save_plain(&path, "hello\n").expect("saves");
 
         let metadata = std::fs::metadata(&path).expect("metadata");
-        assert_eq!(saved.result.path, path.to_string_lossy());
+        assert_eq!(saved.result.path, crate::fs_util::path_text(&path));
         assert_eq!(saved.result.bytes, 6);
         assert_eq!(saved.result.modified_ms, fs_util::modified_ms(&metadata));
         assert_eq!(saved.stamp, FileStamp::of(&metadata));
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_new_file_is_created_with_the_usual_permissions_and_no_temporary_file_remains() {
         let dir = TempDir::new();
@@ -534,6 +585,7 @@ mod tests {
         assert_eq!(mode_of(&path) & 0o002, 0, "not writable by everyone");
     }
 
+    #[cfg(unix)]
     #[test]
     fn an_existing_file_is_replaced_and_keeps_its_permissions() {
         let dir = TempDir::new();
@@ -548,6 +600,7 @@ mod tests {
         }
     }
 
+    #[cfg(unix)]
     #[test]
     fn extended_attributes_including_finder_tags_are_kept() {
         let dir = TempDir::new();
@@ -629,6 +682,7 @@ mod tests {
         assert_eq!(flags & 0x20, 0, "UF_COMPRESSED is never copied");
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_symlink_is_written_through_and_stays_a_symlink() {
         let dir = TempDir::new();
@@ -655,6 +709,7 @@ mod tests {
         assert_eq!(files_in(&dir), ["link.md", "real.md"]);
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_symlink_to_a_file_in_another_folder_gets_its_temporary_file_there() {
         let dir = TempDir::new();
@@ -676,6 +731,7 @@ mod tests {
         assert_eq!(inner.len(), 1, "{inner:?}");
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_dangling_symlink_is_refused() {
         let dir = TempDir::new();
@@ -902,6 +958,7 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_read_only_file_is_refused_and_left_alone() {
         let dir = TempDir::new();
@@ -916,6 +973,7 @@ mod tests {
         assert_eq!(files_in(&dir), ["a.md"]);
     }
 
+    #[cfg(unix)]
     #[test]
     fn a_file_in_a_read_only_folder_is_refused() {
         let dir = TempDir::new();
@@ -934,6 +992,7 @@ mod tests {
         assert_eq!(std::fs::read(&path).expect("read"), b"x");
     }
 
+    #[cfg(unix)]
     #[test]
     fn read_only_wins_over_the_other_refusals() {
         let dir = TempDir::new();

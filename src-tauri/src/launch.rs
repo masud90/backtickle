@@ -9,6 +9,8 @@
 //!   all mean "start with exactly this": the last session is not restored;
 //! - `--prefs`: open the Preferences window at startup;
 //! - `--welcome`: start with no document ("No document open" placeholder instead of the panes).
+//! - any other argument that does not start with `-`: a file to open, as File Explorer passes a
+//!   double-clicked document on Windows (macOS hands those over as an event instead).
 //!
 //! Environment variables (see `perf.rs` and `trace.rs`):
 //! - `WRITEDOWN_PERF=1`: the frontend reports timing marks, printed to stdout;
@@ -58,6 +60,8 @@ pub struct LaunchConfig {
     pub trace: bool,
     /// `WRITEDOWN_CONFIG_DIR`: the folder for all stores, if one was asked for.
     pub config_dir: Option<PathBuf>,
+    /// Plain arguments, in order: files to open (see the module comment).
+    pub files: Vec<String>,
 }
 
 impl LaunchConfig {
@@ -98,6 +102,8 @@ impl LaunchConfig {
                         config.folder = Some(path.to_string());
                     } else if let Some(value) = other.strip_prefix("--view=") {
                         config.view = parse_view(value);
+                    } else if !other.starts_with('-') && !other.is_empty() {
+                        config.files.push(other.to_string());
                     }
                 }
             }
@@ -115,8 +121,9 @@ impl LaunchConfig {
             );
         }
         if bench_kind.as_deref() == Some("pdf") {
-            config.bench_pdf = env("WRITEDOWN_BENCH_PDF")
-                .filter(|value| value.starts_with('/') && value.to_lowercase().ends_with(".pdf"));
+            config.bench_pdf = env("WRITEDOWN_BENCH_PDF").filter(|value| {
+                std::path::Path::new(value).is_absolute() && value.to_lowercase().ends_with(".pdf")
+            });
         }
         config.bench_recovery = bench_kind.as_deref() == Some("recovery-edit");
         config.bench_exit =
@@ -416,7 +423,12 @@ mod tests {
         let kind = ("WRITEDOWN_BENCH", "pdf");
         assert_eq!(parse(&[], &[kind]).bench_pdf, None);
         let path = |value| parse(&[], &[kind, ("WRITEDOWN_BENCH_PDF", value)]).bench_pdf;
-        assert_eq!(path("/tmp/a.pdf").as_deref(), Some("/tmp/a.pdf"));
+        let absolute = if cfg!(windows) {
+            "C:/tmp/a.pdf"
+        } else {
+            "/tmp/a.pdf"
+        };
+        assert_eq!(path(absolute).as_deref(), Some(absolute));
         assert_eq!(path("a.pdf"), None);
         assert_eq!(path("/tmp/a.txt"), None);
         let other = parse(
@@ -429,7 +441,7 @@ mod tests {
         assert_eq!(other.bench_pdf, None);
         let exit = [
             kind,
-            ("WRITEDOWN_BENCH_PDF", "/a.pdf"),
+            ("WRITEDOWN_BENCH_PDF", absolute),
             ("WRITEDOWN_BENCH_EXIT", "1"),
         ];
         assert!(parse(&[], &exit).bench_exit);

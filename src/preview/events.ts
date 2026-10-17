@@ -4,6 +4,8 @@
  * here navigates the window.
  */
 
+import { isWindows } from '@/lib/os';
+
 export type LinkKind = 'external' | 'anchor' | 'document' | 'file';
 
 export interface PreviewLink {
@@ -50,7 +52,9 @@ const SCHEME = /^([a-z][a-z0-9+.-]*):/i;
 /** What kind of target an `href` has. */
 export function classifyHref(href: string): LinkKind {
   if (href.startsWith('#')) return 'anchor';
-  const scheme = SCHEME.exec(href)?.[1]?.toLowerCase();
+  // On Windows `C:/Notes/a.md` is a path on a drive, not an address with the scheme `c:`.
+  const drivePath = isWindows() && /^[A-Za-z]:[\\/]/.test(href);
+  const scheme = drivePath ? undefined : SCHEME.exec(href)?.[1]?.toLowerCase();
   if (scheme !== undefined && scheme !== 'file') return 'external';
   // A relative path, or a file: address: look at the extension of the path.
   const path = href.replace(/^file:\/\//i, '').split(/[?#]/)[0] ?? '';

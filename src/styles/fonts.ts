@@ -20,12 +20,13 @@ export const READING_FONTS: ReadingFont[] = [
   {
     id: 'inter',
     displayName: 'Inter',
-    fontFamily: '"Inter Variable", "Inter", -apple-system, system-ui, sans-serif',
+    fontFamily:
+      '"Inter Variable", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif',
   },
   {
     id: 'system',
     displayName: 'System',
-    fontFamily: '-apple-system, system-ui',
+    fontFamily: '-apple-system, "Segoe UI Variable", "Segoe UI", system-ui',
   },
   {
     id: 'literata',
