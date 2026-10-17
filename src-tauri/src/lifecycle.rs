@@ -774,7 +774,7 @@ pub fn reopen(app: &AppHandle<Wry>) {
         if let Err(error) = create_main_window(app) {
             eprintln!("writedown: the main window could not be created: {error}");
         }
-    } else if cfg!(windows) && app.state::<Lifecycle>().is_setup_done() {
+    } else if cfg!(not(target_os = "macos")) && app.state::<Lifecycle>().is_setup_done() {
         focus_target_window(app);
     }
 }

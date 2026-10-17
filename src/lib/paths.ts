@@ -2,6 +2,7 @@
  * Path helpers that know the roots of both systems. Paths always use `/`: on Windows the Rust
  * side sends `C:/Users/a/Notes/a.md`, and a network share as `//server/share/a.md`. On macOS the
  * only root is `/`, so these helpers behave there exactly as the plain string code they replace.
+ * Linux paths are POSIX paths like those of macOS: one root, `/`, and names that keep their case.
  */
 import { isWindows } from './os';
 
@@ -70,7 +71,7 @@ export function fileUrl(path: string): string {
 
 /**
  * True when two paths name the same file. Windows ignores case in file names, so there the paths
- * are compared without it; macOS compares them as they are, as before.
+ * are compared without it; macOS and Linux compare them as they are.
  */
 export function samePath(a: string, b: string): boolean {
   if (a === b) return true;

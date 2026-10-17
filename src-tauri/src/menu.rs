@@ -249,13 +249,33 @@ fn predefined(app: &AppHandle<Wry>, kind: Predefined) -> tauri::Result<Predefine
     }
 }
 
-/// The id of View > Full Screen on Windows, where the system has no full screen item of its own.
-pub const FULLSCREEN_ID: &str = "fullscreen";
+/// Whether the menu bar is the macOS one: an app menu, and system items for Services, Hide, Full
+/// Screen and the window commands. Windows and Linux have no app menu and fewer system items.
+const MAC_MENU_BAR: bool = cfg!(target_os = "macos");
 
-/// Whether the system item exists on this system: Windows has no Services, no Hide Others or
-/// Show All, no Bring All to Front, and Full Screen is an item of the app there.
+/// The id of View > Full Screen on Windows and Linux, where the system has no full screen item of
+/// its own.
+pub const FULLSCREEN_ID: &str = "fullscreen";
+/// The ids of Window > Minimize and Maximize on Linux, where the menu library has no working items
+/// for them (it shows them disabled).
+pub const MINIMIZE_ID: &str = "minimize";
+pub const MAXIMIZE_ID: &str = "maximize";
+
+/// The Edit items that the menu library on Linux can only carry out by faking a key press (X11
+/// only). Writedown has its own items there that run the web view's editing command; their keys
+/// are not registered, so the web view still gets them directly as it does on every system.
+#[cfg(not(any(target_os = "macos", windows)))]
+const EDIT_COMMANDS: &[(Predefined, &str, &str)] = &[
+    (Predefined::Cut, "edit-cut", "Cut"),
+    (Predefined::Copy, "edit-copy", "Copy"),
+    (Predefined::Paste, "edit-paste", "Paste"),
+    (Predefined::SelectAll, "edit-select-all", "Select All"),
+];
+
+/// Whether the system item exists on this system: Windows and Linux have no Services, no Hide
+/// Others or Show All, no Bring All to Front, and Full Screen is an item of the app there.
 fn predefined_exists(kind: Predefined) -> bool {
-    !cfg!(windows)
+    MAC_MENU_BAR
         || !matches!(
             kind,
             Predefined::Services
@@ -267,16 +287,43 @@ fn predefined_exists(kind: Predefined) -> bool {
         )
 }
 
-/// The label an item has on this system (Windows names Finder File Explorer).
+/// The label an item has on this system (Windows names Finder File Explorer, Linux has a file
+/// manager).
 pub fn platform_label(id: &str, label: &'static str) -> &'static str {
-    if !cfg!(windows) {
-        return label;
+    if cfg!(windows) {
+        match id {
+            "reveal-in-finder" => "Show in File Explorer",
+            menu_spec::QUIT_ID => "Exit",
+            _ => label,
+        }
+    } else if !MAC_MENU_BAR {
+        match id {
+            "reveal-in-finder" => "Show in File Manager",
+            _ => label,
+        }
+    } else {
+        label
     }
-    match id {
-        "reveal-in-finder" => "Show in File Explorer",
-        menu_spec::QUIT_ID => "Exit",
-        _ => label,
-    }
+}
+
+/// Linux: the item Writedown has in place of a system item the menu library cannot carry out
+/// (Minimize, Maximize, and the Edit items), or `None` for the system's own item.
+#[cfg(not(any(target_os = "macos", windows)))]
+fn linux_item(app: &AppHandle<Wry>, kind: Predefined) -> tauri::Result<Option<MenuItem<Wry>>> {
+    let (id, label) = match kind {
+        Predefined::Minimize => (MINIMIZE_ID, "Minimize"),
+        Predefined::Zoom => (MAXIMIZE_ID, "Maximize"),
+        _ => match EDIT_COMMANDS.iter().find(|(item, _, _)| *item == kind) {
+            Some((_, id, label)) => (*id, *label),
+            None => return Ok(None),
+        },
+    };
+    MenuItem::with_id(app, id, label, true, None::<&str>).map(Some)
+}
+
+#[cfg(any(target_os = "macos", windows))]
+fn linux_item(_app: &AppHandle<Wry>, _kind: Predefined) -> tauri::Result<Option<MenuItem<Wry>>> {
+    Ok(None)
 }
 
 fn append_entries(
@@ -312,7 +359,7 @@ fn append_entries(
                 items.insert(item.id, ItemHandle::Plain(created));
             }
             Entry::Separator => parent.append(&PredefinedMenuItem::separator(app)?)?,
-            Entry::Predefined(Predefined::Fullscreen) if cfg!(windows) => {
+            Entry::Predefined(Predefined::Fullscreen) if !MAC_MENU_BAR => {
                 let item = MenuItem::with_id(app, FULLSCREEN_ID, "Full Screen", true, Some("F11"))?;
                 parent.append(&item)?;
             }
@@ -320,7 +367,10 @@ fn append_entries(
                 parent.append(&PredefinedMenuItem::maximize(app, None)?)?;
             }
             Entry::Predefined(kind) if !predefined_exists(*kind) => {}
-            Entry::Predefined(kind) => parent.append(&predefined(app, *kind)?)?,
+            Entry::Predefined(kind) => match linux_item(app, *kind)? {
+                Some(item) => parent.append(&item)?,
+                None => parent.append(&predefined(app, *kind)?)?,
+            },
             Entry::Submenu { label, entries } => {
                 let submenu = Submenu::new(app, *label, true)?;
                 append_entries(app, &submenu, entries, items, recent)?;
@@ -345,9 +395,9 @@ pub fn build(
     let mut recent = None;
     let mut menus: Vec<Submenu<Wry>> = Vec::new();
     for spec in MENUS {
-        // Windows has no app menu: its items move to File (Settings, Exit) and Help (About), as
-        // Windows apps have them (`windows_extras`).
-        if cfg!(windows) && spec.label == menu_spec::APP_MENU_LABEL {
+        // Windows and Linux have no app menu: its items move to File (Settings, Exit or Quit) and
+        // Help (About), as apps there have them (`windows_extras`).
+        if !MAC_MENU_BAR && spec.label == menu_spec::APP_MENU_LABEL {
             continue;
         }
         // macOS treats the Window and Help menus specially (window list, search field); Tauri
@@ -358,7 +408,7 @@ pub fn build(
             None => Submenu::new(app, spec.label, true)?,
         };
         append_entries(app, &submenu, spec.entries, &mut items, &mut recent)?;
-        if cfg!(windows) {
+        if !MAC_MENU_BAR {
             append_entries(
                 app,
                 &submenu,
@@ -582,6 +632,18 @@ pub fn handle_event(app: &AppHandle<Wry>, event: MenuEvent) {
         {
             let _ = window.set_fullscreen(!window.is_fullscreen().unwrap_or(false));
         }
+    } else if id == MINIMIZE_ID || id == MAXIMIZE_ID {
+        if let Some(window) = focused_window(app) {
+            if id == MINIMIZE_ID {
+                let _ = window.minimize();
+            } else if window.is_maximized().unwrap_or(false) {
+                let _ = window.unmaximize();
+            } else {
+                let _ = window.maximize();
+            }
+        }
+    } else if let Some(command) = edit_command(id) {
+        run_edit_command(app, command);
     } else if id == menu_spec::CLEAR_RECENTS_ID {
         stores::clear_recents(app);
     } else if let Some(path) = menu_spec::recent_path(id) {
@@ -592,6 +654,47 @@ pub fn handle_event(app: &AppHandle<Wry>, event: MenuEvent) {
     // The other items (Hide, Services, Minimize, Zoom, Full Screen, Cut, Copy, Paste, ...) are
     // the system's and do their own work.
 }
+
+/// The window in front (the menu bar of Windows and Linux belongs to it), or the window actions
+/// go to.
+fn focused_window(app: &AppHandle<Wry>) -> Option<tauri::WebviewWindow<Wry>> {
+    app.webview_windows()
+        .into_values()
+        .find(|window| window.is_focused().unwrap_or(false))
+        .or_else(|| windows::target_label(app).and_then(|label| app.get_webview_window(&label)))
+}
+
+/// The web view editing command of a Linux Edit item (`EDIT_COMMANDS`), if `id` is one.
+#[cfg(not(any(target_os = "macos", windows)))]
+fn edit_command(id: &str) -> Option<&'static str> {
+    EDIT_COMMANDS
+        .iter()
+        .find(|(_, item, _)| *item == id)
+        .map(|(_, _, label)| match *label {
+            "Select All" => "SelectAll",
+            other => other,
+        })
+}
+
+#[cfg(any(target_os = "macos", windows))]
+fn edit_command(_id: &str) -> Option<&'static str> {
+    None
+}
+
+/// Runs a WebKitGTK editing command (Cut, Copy, Paste, SelectAll) in the window in front, as the
+/// system items do on macOS. The page sees the same events as for the keys.
+#[cfg(not(any(target_os = "macos", windows)))]
+fn run_edit_command(app: &AppHandle<Wry>, command: &'static str) {
+    use webkit2gtk::WebViewExt;
+    if let Some(window) = focused_window(app) {
+        let _ = window.with_webview(move |webview| {
+            webview.inner().execute_editing_command(command);
+        });
+    }
+}
+
+#[cfg(any(target_os = "macos", windows))]
+fn run_edit_command(_app: &AppHandle<Wry>, _command: &'static str) {}
 
 #[cfg(test)]
 mod tests {

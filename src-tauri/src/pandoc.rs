@@ -37,10 +37,19 @@ pub const PANDOC_FILE: &str = "pandoc";
 #[cfg(windows)]
 pub const PANDOC_FILE: &str = "pandoc.exe";
 
-#[cfg(not(windows))]
+#[cfg(target_os = "macos")]
 const RSTUDIO_PANDOC: [&str; 2] = [
     "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/aarch64/pandoc",
     "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/tools/x86_64/pandoc",
+];
+/// Linux: the copy inside RStudio (its .deb and .rpm install to /usr/lib/rstudio) and inside
+/// Quarto (its .deb installs to /opt/quarto).
+#[cfg(not(any(target_os = "macos", windows)))]
+const RSTUDIO_PANDOC: [&str; 4] = [
+    "/usr/lib/rstudio/resources/app/quarto/bin/tools/x86_64/pandoc",
+    "/usr/lib/rstudio/resources/app/bin/quarto/bin/tools/x86_64/pandoc",
+    "/opt/quarto/bin/tools/x86_64/pandoc",
+    "/opt/quarto/bin/tools/aarch64/pandoc",
 ];
 #[cfg(not(windows))]
 const PANDOC_FOLDERS: [&str; 3] = ["/opt/homebrew/bin", "/usr/local/bin", "/usr/bin"];

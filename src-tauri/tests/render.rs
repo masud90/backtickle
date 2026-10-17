@@ -10,6 +10,14 @@ use writedown_lib::render::write_command_file;
 #[cfg(unix)]
 use writedown_lib::render::{script_text, shell_quote};
 
+/// The shell the render script names on its first line: zsh on macOS, bash on Linux (where it
+/// also waits for Enter, so the tests give it no input).
+const SCRIPT_SHELL: &str = if cfg!(target_os = "macos") {
+    "/bin/zsh"
+} else {
+    "/bin/bash"
+};
+
 fn temp(label: &str) -> PathBuf {
     let dir = writedown_lib::fs_util::canonicalize(std::env::temp_dir())
         .unwrap()
@@ -86,8 +94,9 @@ fn the_script_runs_quarto_in_the_documents_folder_and_removes_itself() {
         std::fs::metadata(&script).unwrap().permissions().mode() & 0o777,
         0o700
     );
-    let status = Command::new("/bin/zsh")
+    let status = Command::new(SCRIPT_SHELL)
         .arg(&script)
+        .stdin(std::process::Stdio::null())
         .env("PATH", format!("{}:/usr/bin:/bin", bin.display()))
         .status()
         .unwrap();
@@ -111,9 +120,22 @@ fn the_script_runs_quarto_in_the_documents_folder_and_removes_itself() {
 fn without_quarto_or_rscript_the_script_says_so() {
     let base = temp("none");
     let script = write_command_file(&base, "/", "a.Rmd", true).unwrap();
-    let out = Command::new("/bin/zsh")
+    // A PATH with only what the script's clean-up needs: R may be installed on the machine (it
+    // is on GitHub's Ubuntu runners).
+    let bin = base.join("bin");
+    std::fs::create_dir(&bin).unwrap();
+    for tool in ["rm", "rmdir"] {
+        let real = ["/bin", "/usr/bin"]
+            .iter()
+            .map(|dir| std::path::Path::new(dir).join(tool))
+            .find(|path| path.exists())
+            .unwrap();
+        std::os::unix::fs::symlink(real, bin.join(tool)).unwrap();
+    }
+    let out = Command::new(SCRIPT_SHELL)
         .arg(&script)
-        .env("PATH", "/usr/bin:/bin")
+        .stdin(std::process::Stdio::null())
+        .env("PATH", &bin)
         .output()
         .unwrap();
     let text = String::from_utf8_lossy(&out.stdout);

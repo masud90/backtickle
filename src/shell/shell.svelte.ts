@@ -1619,9 +1619,13 @@ export class Shell implements WorkspaceHost {
           return;
         }
         const reveal = await this.platform.ask({
-          title: byOs('Show this file in Finder?', 'Show this file in File Explorer?'),
+          title: byOs(
+            'Show this file in Finder?',
+            'Show this file in File Explorer?',
+            'Show this file in the file manager?',
+          ),
           message: `${link.href} is not a Markdown file, so Writedown cannot open it.`,
-          ok: byOs('Show in Finder', 'Show in File Explorer'),
+          ok: byOs('Show in Finder', 'Show in File Explorer', 'Show in File Manager'),
           cancel: 'Cancel',
         });
         if (reveal) await this.platform.revealLinkedFile(tab.path, link.href);

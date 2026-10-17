@@ -109,10 +109,10 @@ fn allow_folder_argument(
     }
 }
 
-/// Windows: the documents File Explorer passed as plain arguments (relative ones are taken from
-/// `cwd`), opened like files from Finder. Used for this launch and for the arguments a second
-/// launch hands over.
-#[cfg(windows)]
+/// Windows and Linux: the documents the file manager passed as plain arguments (relative ones are
+/// taken from `cwd`), opened like files from Finder. Used for this launch and for the arguments a
+/// second launch hands over.
+#[cfg(not(target_os = "macos"))]
 fn open_argument_files(app: &tauri::AppHandle, files: &[String], cwd: &Path) {
     let paths: Vec<std::path::PathBuf> = files.iter().map(|file| cwd.join(file)).collect();
     let accepted = open_files::accept_paths(&app.state::<PathGrants>(), &paths);
@@ -133,9 +133,10 @@ pub fn run() {
     let state = LaunchState::new(&config, open_path).with_folder(folder_path);
 
     let builder = tauri::Builder::default();
-    // Windows starts a new process for every document opened from File Explorer; the plugin hands
-    // its arguments to the running app and the new process ends. macOS sends `Opened` instead.
-    #[cfg(windows)]
+    // Windows and Linux start a new process for every document opened from the file manager; the
+    // plugin hands its arguments to the running app and the new process ends. macOS sends `Opened`
+    // instead.
+    #[cfg(not(target_os = "macos"))]
     let builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
         let config = LaunchConfig::parse(args.into_iter().skip(1), |_| None);
         if config.files.is_empty() {
@@ -144,7 +145,7 @@ pub fn run() {
             open_argument_files(app, &config.files, Path::new(&cwd));
         }
     }));
-    #[cfg(windows)]
+    #[cfg(not(target_os = "macos"))]
     let files = config.files.clone();
     let app = builder
         .plugin(tauri_plugin_dialog::init())
@@ -221,7 +222,7 @@ pub fn run() {
                 windows::open_preferences(handle)?;
             }
             handle.state::<Lifecycle>().mark_setup_done();
-            #[cfg(windows)]
+            #[cfg(not(target_os = "macos"))]
             if let Ok(cwd) = std::env::current_dir() {
                 open_argument_files(handle, &files, &cwd);
             }

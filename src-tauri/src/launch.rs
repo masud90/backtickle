@@ -9,8 +9,8 @@
 //!   all mean "start with exactly this": the last session is not restored;
 //! - `--prefs`: open the Preferences window at startup;
 //! - `--welcome`: start with no document ("No document open" placeholder instead of the panes).
-//! - any other argument that does not start with `-`: a file to open, as File Explorer passes a
-//!   double-clicked document on Windows (macOS hands those over as an event instead).
+//! - any other argument that does not start with `-`: a file to open, as File Explorer and Linux
+//!   file managers pass a double-clicked document (macOS hands those over as an event instead).
 //!
 //! Environment variables (see `perf.rs` and `trace.rs`):
 //! - `WRITEDOWN_PERF=1`: the frontend reports timing marks, printed to stdout;

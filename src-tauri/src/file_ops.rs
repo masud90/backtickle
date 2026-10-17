@@ -521,11 +521,14 @@ mod tests {
             code(create_folder(&s.grants, &s.root, "Chapters")),
             ErrorCode::Exists
         );
-        assert_eq!(
-            // The file system ignores case, so this name exists too.
-            code(create_folder(&s.grants, &s.root, "chapters")),
-            ErrorCode::Exists
-        );
+        // The file systems of macOS and Windows ignore case, so this name exists too there. Linux
+        // file systems tell the two names apart.
+        if cfg!(any(target_os = "macos", windows)) {
+            assert_eq!(
+                code(create_folder(&s.grants, &s.root, "chapters")),
+                ErrorCode::Exists
+            );
+        }
     }
 
     #[test]

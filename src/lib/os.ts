@@ -1,33 +1,57 @@
 /**
- * Which operating system the page runs on: macOS or Windows. The answer comes from the user agent
- * string, which WebView2 on Windows fills with `Windows`. Tests set it with `setOsForTesting`.
+ * Which operating system the page runs on: macOS, Windows or Linux. The answer comes from the
+ * user agent string, which WebView2 on Windows fills with `Windows` and WebKitGTK on Linux with
+ * `X11; Linux` (or `Linux` alone under Wayland). Tests set it with `setOsForTesting`.
  *
- * Code that behaves differently on Windows asks `isWindows()`; a label with a macOS and a Windows
- * wording goes through `byOs`. CSS reads `data-os` on the root element (`markDocumentOs`).
+ * Code that behaves differently on Windows asks `isWindows()`, on Linux `isLinux()`, and on macOS
+ * `isMac()`. Linux shares the window chrome and the shortcut keys of Windows (a native title bar
+ * and menu bar, Ctrl in place of ⌘), so code about those asks `!isMac()`; it shares the paths and
+ * the file names of macOS (one root, case-sensitive names), so code about those asks
+ * `isWindows()`. A label with a macOS, a Windows and a Linux wording goes through `byOs`. CSS
+ * reads `data-os` on the root element (`markDocumentOs`).
  */
 
-export type OsName = 'mac' | 'windows';
+export type OsName = 'mac' | 'windows' | 'linux';
 
 let forced: OsName | null = null;
 /** The answer of `isWindows11`, asked once. */
 let windows11: Promise<boolean> | null = null;
 
+export function osName(): OsName {
+  if (forced !== null) return forced;
+  if (typeof navigator === 'undefined') return 'mac';
+  if (/Windows/.test(navigator.userAgent)) return 'windows';
+  if (/Linux/.test(navigator.userAgent)) return 'linux';
+  return 'mac';
+}
+
 /** True when the page runs on Windows. */
 export function isWindows(): boolean {
-  if (forced !== null) return forced === 'windows';
-  return typeof navigator !== 'undefined' && /Windows/.test(navigator.userAgent);
+  return osName() === 'windows';
 }
 
-export function osName(): OsName {
-  return isWindows() ? 'windows' : 'mac';
+/** True when the page runs on Linux. */
+export function isLinux(): boolean {
+  return osName() === 'linux';
 }
 
-/** The macOS or the Windows form of a label (or of any value). */
-export function byOs<T>(mac: T, windows: T): T {
-  return isWindows() ? windows : mac;
+/** True when the page runs on macOS. */
+export function isMac(): boolean {
+  return osName() === 'mac';
 }
 
-/** Sets `data-os` on the root element so the style sheets can tell the two systems apart. */
+/**
+ * The macOS, the Windows or the Linux form of a label (or of any value). Without a Linux form,
+ * Linux takes the Windows one.
+ */
+export function byOs<T>(mac: T, windows: T, linux: T = windows): T {
+  const os = osName();
+  if (os === 'windows') return windows;
+  if (os === 'linux') return linux;
+  return mac;
+}
+
+/** Sets `data-os` on the root element so the style sheets can tell the systems apart. */
 export function markDocumentOs(): void {
   document.documentElement.dataset.os = osName();
 }

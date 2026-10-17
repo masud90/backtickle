@@ -4,7 +4,7 @@
  * editor. Read-only. No imports from CodeMirror or the shell, so the window stays small.
  */
 import { EDITOR_KEY_TABLE } from '@/editor/keymap-table';
-import { isWindows } from '@/lib/os';
+import { isMac } from '@/lib/os';
 import type { MenuAction } from '@/lib/platform';
 import {
   type Combo,
@@ -23,7 +23,7 @@ export interface ShortcutRow {
   name: string;
   /**
    * Symbols as macOS shows them, for example `⇧⌘O`; empty when the shortcut was removed. Windows
-   * shows the same keys in Windows form (`displayShortcut`).
+   * and Linux show the same keys in Windows form (`displayShortcut`).
    */
   keys: string;
   /** The default keys, empty for none. */
@@ -231,7 +231,7 @@ export function checkChange(groups: readonly ShortcutGroup[], id: string, combo:
 
 /**
  * The overrides after `id` takes `shortcut` (null: none); a value equal to the default is no
- * override. On Windows "equal" means the same Windows keys (`⌥⌘S` recorded there is `^⌘S`).
+ * override. On Windows and Linux "equal" means the same Windows keys (`⌥⌘S` recorded there is `^⌘S`).
  */
 export function withShortcut(
   overrides: Overrides,
@@ -260,10 +260,10 @@ const WORD_SYMBOLS: Array<[RegExp, string]> = [
 
 /**
  * Lowercase, words for modifiers become symbols, spaces and plus signs go: `cmd k` is `⌘k`. On
- * Windows the words stay words, as the list shows them: `ctrl + s` is `ctrls`.
+ * Windows and Linux the words stay words, as the list shows them: `ctrl + s` is `ctrls`.
  */
 export function normalizeKeys(text: string): string {
-  if (isWindows()) return text.toLowerCase().replace(/[\s+]/g, '');
+  if (!isMac()) return text.toLowerCase().replace(/[\s+]/g, '');
   let out = text.toLowerCase().replaceAll('^', '⌃');
   for (const [pattern, symbol] of WORD_SYMBOLS) out = out.replace(pattern, symbol);
   return out.replace(/[\s+]/g, '');

@@ -2,10 +2,10 @@
 
 [![Latest release](https://img.shields.io/github/v/release/masud90/writedown?label=release)](https://github.com/masud90/writedown/releases/latest)
 
-Writedown is a Markdown reader and writer for macOS and Windows. It shows your document as you write it, in one
+Writedown is a Markdown reader and writer for macOS, Windows and Linux. It shows your document as you write it, in one
 window with tabs, and handles six Markdown flavors: CommonMark, GitHub Flavored Markdown, Obsidian,
 Pandoc / MultiMarkdown, Quarto / R Markdown and MDX. It is built with Tauri 2, Svelte 5 and CodeMirror 6,
-uses the system web view (WebKit on macOS, WebView2 on Windows) and aims to keep memory use low. Nothing in a document is ever executed.
+uses the system web view (WebKit on macOS, WebView2 on Windows, WebKitGTK on Linux) and aims to keep memory use low. Nothing in a document is ever executed.
 
 ![The welcome screen](docs/images/welcome.png)
 
@@ -72,6 +72,11 @@ On Windows, download `Writedown_<version>_x64-setup.exe` (installs for your user
 same page and run it. The installers are not code-signed yet, so Windows SmartScreen shows "Windows protected
 your PC" the first time: choose "More info", then "Run anyway".
 
+On Linux, download `Writedown_<version>_amd64.deb` (Debian, Ubuntu, Mint and others) and install it with
+`sudo apt install ./Writedown_<version>_amd64.deb`, or download `Writedown_<version>_amd64.AppImage`, make it
+executable (`chmod +x`) and run it. The .deb adds Writedown to the app menu and to "Open With" for Markdown
+files; Preferences can then make it the default Markdown app.
+
 ## Requirements
 
 macOS 14 Sonoma or later, with Safari 26 installed (Software Update offers it on Sonoma and Sequoia;
@@ -81,10 +86,13 @@ Writedown draws its window with the system WebKit that Safari brings). The relea
 Windows 10 or 11 (64-bit) with the Microsoft Edge WebView2 Runtime, which Windows 11 has built in (the
 installer adds it on Windows 10 if it is missing). The translucent sidebar needs Windows 11.
 
+Linux on x86-64 with WebKitGTK 4.1 (Ubuntu 22.04, Debian 12, Fedora 39 or later; the .deb installs it). The
+sidebar is always opaque on Linux.
+
 ## Optional tools
 
-- **Pandoc** enables Word export and Exact Preview. Writedown finds the Pandoc inside RStudio (on Windows also a Pandoc or Quarto install, or one on PATH), or you can choose one in Preferences.
-- **RStudio and Quarto**: Render with Quarto hands the document to RStudio, where you press Render. Without RStudio, Terminal (a Command Prompt window on Windows) runs the render command.
+- **Pandoc** enables Word export and Exact Preview. Writedown finds the Pandoc inside RStudio (on Windows and Linux also a Pandoc or Quarto install, or one on PATH), or you can choose one in Preferences.
+- **RStudio and Quarto**: Render with Quarto hands the document to RStudio, where you press Render. Without RStudio, Terminal (a Command Prompt window on Windows, the system's terminal app on Linux) runs the render command.
 
 ## Build from source
 
@@ -103,20 +111,25 @@ npm run dev                   # the frontend alone in a browser, on a mock platf
 On Windows you need Node 24, Rust stable (MSVC) and the Visual Studio C++ Build Tools; then `npm ci` and
 `npm run build:app:windows` build the installers into `src-tauri/target/release/bundle/` (`nsis/` and `msi/`).
 
+On Linux you need Node 24, Rust stable and the WebKitGTK development packages (on Debian and Ubuntu:
+`sudo apt install libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev libayatana-appindicator3-dev patchelf`); then
+`npm ci` and `npm run build:app:linux` build the .deb and the AppImage into `src-tauri/target/release/bundle/`
+(`deb/` and `appimage/`).
+
 ## Releasing
 
 Set the new version in `package.json`, `src-tauri/Cargo.toml` and `src-tauri/tauri.conf.json` (the tests check
 that they agree; run `npm install` and `cargo check` so the lockfiles follow), then push a matching tag (for
 example `v0.2.0`). The Release
-workflow builds the universal app and DMG, and the Windows installers, and attaches them, with their SHA-256, to a draft release that you
+workflow builds the universal app and DMG, the Windows installers and the Linux packages, and attaches them, with their SHA-256, to a draft release that you
 publish by hand. To have the app signed and notarized, add these repository secrets: `APPLE_CERTIFICATE`
 (base64 of the Developer ID Application .p12), `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY`,
 `APPLE_ID`, `APPLE_PASSWORD` (an app-specific password) and `APPLE_TEAM_ID`. Without them the app is built
 unsigned, as before.
 
-One release holds every platform of a version. To add the Windows installers to a release that already has
-its DMG, run the Release workflow by hand with the tag, `platforms: windows` and, if the tag predates the
-Windows build, `source: main` (the version there must match the tag).
+One release holds every platform of a version. To add the Windows installers or the Linux packages to a
+release that already has its DMG, run the Release workflow by hand with the tag, `platforms: windows` or
+`platforms: linux` and, if the tag predates that build, `source: main` (the version there must match the tag).
 
 ## Tests
 

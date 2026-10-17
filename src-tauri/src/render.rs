@@ -10,6 +10,11 @@
 //! On Windows the same choice is made: RStudio when it is installed, otherwise a `.cmd` file in a
 //! private temporary folder, opened by the shell (so it runs in a Command Prompt window); it runs
 //! `quarto render` (or `Rscript` for `.Rmd`), waits for a key and removes itself.
+//!
+//! On Linux the choice is the same again: RStudio when its desktop entry is installed, otherwise
+//! the script (the macOS one, run by bash, waiting for Enter at the end) in a private temporary
+//! folder, handed to GIO as a program that needs a terminal: GIO starts the system's terminal app
+//! with it, as Terminal is opened through `NSWorkspace` on macOS.
 
 use std::path::{Path, PathBuf};
 
@@ -108,6 +113,28 @@ pub fn script_text(folder: &str, name: &str, rmd: bool, script: &str, script_dir
     )
 }
 
+/// The Linux script: the macOS one run by a bash login shell (zsh is often not installed), waiting
+/// for Enter at the end, because the terminal window closes when the script ends.
+pub fn linux_script_text(
+    folder: &str,
+    name: &str,
+    rmd: bool,
+    script: &str,
+    script_dir: &str,
+) -> String {
+    let text = script_text(folder, name, rmd, script, script_dir);
+    let body = text.split_once('\n').map_or("", |(_, body)| body);
+    format!(
+        "#!/bin/bash -l\n{body}printf '\\nPress Enter to close this window.'\nread -r _ || true\n"
+    )
+}
+
+/// The command line GIO runs in a terminal for the Linux script: the path quoted for the shell,
+/// with `%` doubled (GIO reads `%f`, `%u` and the like as field codes).
+pub fn terminal_commandline(script: &str) -> String {
+    shell_quote(script).replace('%', "%%")
+}
+
 /// Quotes text for a Windows batch file: in double quotes (a Windows name cannot contain one), with
 /// every `%` doubled so it is not read as a variable. Inside the quotes `&`, `|`, `<`, `>` and `^`
 /// are literal.
@@ -181,10 +208,22 @@ pub fn write_command_file(
     #[cfg(unix)]
     builder.mode(0o700);
     builder.create(&dir).map_err(|_| failed())?;
-    #[cfg(not(windows))]
+    #[cfg(target_os = "macos")]
     let (script, text) = {
         let script = dir.join("render.command");
         let text = script_text(
+            folder,
+            name,
+            rmd,
+            &script.to_string_lossy(),
+            &dir.to_string_lossy(),
+        );
+        (script, text)
+    };
+    #[cfg(not(any(target_os = "macos", windows)))]
+    let (script, text) = {
+        let script = dir.join("render.sh");
+        let text = linux_script_text(
             folder,
             name,
             rmd,
@@ -224,10 +263,8 @@ pub fn start(doc: &Path) -> Result<Target, RenderError> {
 }
 
 #[cfg(not(any(target_os = "macos", windows)))]
-pub fn start(_doc: &Path) -> Result<Target, RenderError> {
-    Err(RenderError(
-        "Render with Quarto is not available on this system.".to_owned(),
-    ))
+pub fn start(doc: &Path) -> Result<Target, RenderError> {
+    linux::start(doc)
 }
 
 /// Where RStudio is installed on Windows (for all users, or for this user only), if it is.
@@ -282,6 +319,57 @@ mod win {
             crate::fs_util::discard_temp_dir(dir);
         }
         opened.map(|()| Target::Terminal)
+    }
+}
+
+#[cfg(not(any(target_os = "macos", windows)))]
+mod linux {
+    use super::{
+        RenderError, Target, choose_target, is_rmd, terminal_commandline, write_command_file,
+    };
+    use gtk::gio;
+    use gtk::gio::prelude::AppInfoExt;
+    use std::path::Path;
+
+    /// RStudio's desktop entry, installed by its .deb and .rpm packages.
+    const RSTUDIO_DESKTOP_ID: &str = "rstudio.desktop";
+
+    pub fn start(doc: &Path) -> Result<Target, RenderError> {
+        let rstudio = gio::DesktopAppInfo::new(RSTUDIO_DESKTOP_ID);
+        let rstudio_path = rstudio.as_ref().and_then(|info| info.filename());
+        if choose_target(rstudio_path.as_deref()) == Target::Rstudio
+            && let Some(rstudio) = rstudio
+        {
+            rstudio
+                .launch(&[gio::File::for_path(doc)], None::<&gio::AppLaunchContext>)
+                .map_err(|_| RenderError("RStudio could not open the document.".to_owned()))?;
+            return Ok(Target::Rstudio);
+        }
+        let folder = doc
+            .parent()
+            .map(|p| p.to_string_lossy().into_owned())
+            .ok_or_else(|| RenderError("The document has no folder.".to_owned()))?;
+        let name = doc
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .ok_or_else(|| RenderError("The document has no name.".to_owned()))?;
+        let base = crate::fs_util::canonicalize(std::env::temp_dir())
+            .map_err(|_| RenderError("The render script could not be written.".to_owned()))?;
+        let script = write_command_file(&base, &folder, &name, is_rmd(doc))?;
+        let started = gio::AppInfo::create_from_commandline(
+            terminal_commandline(&script.to_string_lossy()),
+            Some("Render with Quarto"),
+            gio::AppInfoCreateFlags::NEEDS_TERMINAL,
+        )
+        .and_then(|info| info.launch(&[], None::<&gio::AppLaunchContext>))
+        .map_err(|_| RenderError("No terminal app could be started to render in.".to_owned()));
+        if started.is_err()
+            && let Some(dir) = script.parent()
+        {
+            crate::fs_util::discard_temp(&script);
+            crate::fs_util::discard_temp_dir(dir);
+        }
+        started.map(|()| Target::Terminal)
     }
 }
 
@@ -391,6 +479,45 @@ mod imp {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_linux_script_runs_in_bash_and_waits_before_the_window_closes() {
+        let text = linux_script_text(
+            "/home/me/My Notes",
+            "report.qmd",
+            false,
+            "/tmp/w/render.sh",
+            "/tmp/w",
+        );
+        assert!(text.starts_with("#!/bin/bash -l\n"));
+        assert!(!text.contains("zsh"));
+        assert!(text.contains("cd -- '/home/me/My Notes' || exit 1\n"));
+        assert!(text.contains("quarto render 'report.qmd'\n"));
+        assert!(text.contains("trap cleanup EXIT\n"));
+        assert!(text.ends_with("read -r _ || true\n"));
+        // Everything after the first line is the macOS script.
+        let mac = script_text(
+            "/home/me/My Notes",
+            "report.qmd",
+            false,
+            "/tmp/w/render.sh",
+            "/tmp/w",
+        );
+        let mac_body = mac.split_once('\n').expect("lines").1;
+        assert!(text.contains(mac_body));
+    }
+
+    #[test]
+    fn the_terminal_command_line_quotes_the_script_and_escapes_field_codes() {
+        assert_eq!(
+            terminal_commandline("/tmp/w/render.sh"),
+            "'/tmp/w/render.sh'"
+        );
+        assert_eq!(
+            terminal_commandline("/tmp/a b/100%f.sh"),
+            "'/tmp/a b/100%%f.sh'"
+        );
+    }
 
     #[test]
     fn quoting_keeps_every_special_character_literal() {

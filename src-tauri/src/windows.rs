@@ -88,11 +88,13 @@ pub fn open_preferences<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         .traffic_light_position(LogicalPosition::new(TRAFFIC_LIGHT_X, TRAFFIC_LIGHT_Y));
     let window = builder
         .background_color(canvas_for(system_theme(app)))
-        .transparent(true)
+        // Linux has no sidebar material to show through (src/vibrancy.rs): its windows stay opaque,
+        // as the main window is in tauri.linux.conf.json.
+        .transparent(cfg!(any(target_os = "macos", windows)))
         .build()?;
-    // Windows puts the app menu bar on every window; Preferences has none, as on macOS where the
-    // menu bar is not part of a window.
-    #[cfg(windows)]
+    // Windows and Linux put the app menu bar on every window; Preferences has none, as on macOS
+    // where the menu bar is not part of a window.
+    #[cfg(not(target_os = "macos"))]
     let _ = window.remove_menu();
     crate::vibrancy::apply(app, &window);
     Ok(())

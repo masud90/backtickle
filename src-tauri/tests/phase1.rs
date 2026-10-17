@@ -248,15 +248,19 @@ mod r02_safe_save_guarantees {
         let temp = Temp::new();
         let real = temp.copy_of(&fixtures().join("encoding").join("utf8-lf.md"), "real.md");
         std::fs::set_permissions(&real, std::fs::Permissions::from_mode(0o640)).expect("chmod");
+        // Finder tags on macOS; Linux allows only the `user.` namespace, where its file managers
+        // keep tags.
+        let tag_name = if cfg!(target_os = "macos") {
+            "com.apple.metadata:_kMDItemUserTags"
+        } else {
+            "user.xdg.tags"
+        };
         let tags = b"bplist00 finder tags".to_vec();
-        xattr::set(&real, "com.apple.metadata:_kMDItemUserTags", &tags).expect("tags");
+        xattr::set(&real, tag_name, &tags).expect("tags");
         xattr::set(&real, "user.other", b"kept").expect("xattr");
         let link = temp.path().join("link.md");
         symlink(&real, &link).expect("symlink");
-        let created = std::fs::metadata(&real)
-            .expect("meta")
-            .created()
-            .expect("created");
+        let created = std::fs::metadata(&real).expect("meta").created().ok();
 
         save(
             &link,
@@ -279,19 +283,16 @@ mod r02_safe_save_guarantees {
         assert_eq!(std::fs::read(&real).expect("read"), b"new text\n");
         let meta = std::fs::metadata(&real).expect("meta");
         assert_eq!(meta.permissions().mode() & 0o7777, 0o640);
-        assert_eq!(
-            xattr::get(&real, "com.apple.metadata:_kMDItemUserTags").expect("get"),
-            Some(tags)
-        );
+        assert_eq!(xattr::get(&real, tag_name).expect("get"), Some(tags));
         assert_eq!(
             xattr::get(&real, "user.other").expect("get"),
             Some(b"kept".to_vec())
         );
-        assert_eq!(
-            meta.created().expect("created"),
-            created,
-            "creation date kept"
-        );
+        // Linux file systems have no call that sets a creation date, so a replaced file has a new
+        // one there.
+        if cfg!(target_os = "macos") {
+            assert_eq!(meta.created().ok(), created, "creation date kept");
+        }
         assert_eq!(temp.names(), ["link.md", "real.md"], "no temporary file");
     }
 }
@@ -333,11 +334,12 @@ mod r03_refusals {
         };
         assert!(save(&path, "x", fmt(), &overwrite, Some(tracked)).is_ok());
 
+        let fresh = temp.copy_of(&fixtures().join("encoding").join("utf8-lf.md"), "b.md");
+        // The stamp of this file (a copy keeps the modification date on macOS but not on Linux).
         let lossy_tracked = Tracked {
-            stamp: read.stamp,
+            stamp: read_document(&fresh).expect("reads").stamp,
             lossy: true,
         };
-        let fresh = temp.copy_of(&fixtures().join("encoding").join("utf8-lf.md"), "b.md");
         assert_eq!(
             save(&fresh, "x", fmt(), &no_check(), Some(lossy_tracked))
                 .expect_err("lossy")

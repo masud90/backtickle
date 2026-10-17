@@ -7,6 +7,11 @@
 //! documents go to the system's recent items and the app's jump list (`SHAddToRecentDocs`), and
 //! the default app is read from the file associations and changed through the system's "Open
 //! with" chooser (Windows lets only the user change it).
+//!
+//! On Linux: the same `*` before the title (as GNOME's text editor does), recent documents go to
+//! GTK's recent files (`recently-used.xbel`, which file managers and the file chooser list), and
+//! the default app for Markdown is read and set through GIO (the user's `mimeapps.list`), with
+//! Writedown's desktop entry (installed by the .deb package).
 
 use serde::Serialize;
 use std::path::{Path, PathBuf};
@@ -32,8 +37,8 @@ pub fn set_edited(window: &tauri::WebviewWindow, edited: bool) {
     });
 }
 
-/// The window title with the unsaved marker of Windows.
-#[cfg_attr(not(windows), allow(dead_code))]
+/// The window title with the unsaved marker of Windows and Linux.
+#[cfg_attr(target_os = "macos", allow(dead_code))]
 pub fn marked_title(title: &str, edited: bool) -> String {
     if edited {
         format!("*{title}")
@@ -42,8 +47,8 @@ pub fn marked_title(title: &str, edited: bool) -> String {
     }
 }
 
-/// Windows: the title each window was given and whether its document is edited.
-#[cfg(windows)]
+/// Windows and Linux: the title each window was given and whether its document is edited.
+#[cfg(not(target_os = "macos"))]
 fn titles() -> std::sync::MutexGuard<'static, std::collections::HashMap<String, (String, bool)>> {
     static TITLES: std::sync::OnceLock<
         std::sync::Mutex<std::collections::HashMap<String, (String, bool)>>,
@@ -54,7 +59,7 @@ fn titles() -> std::sync::MutexGuard<'static, std::collections::HashMap<String, 
         .unwrap_or_else(std::sync::PoisonError::into_inner)
 }
 
-#[cfg(windows)]
+#[cfg(not(target_os = "macos"))]
 pub fn set_edited(window: &tauri::WebviewWindow, edited: bool) {
     let title = {
         let mut titles = titles();
@@ -67,9 +72,9 @@ pub fn set_edited(window: &tauri::WebviewWindow, edited: bool) {
     let _ = window.set_title(&title);
 }
 
-/// Sets the window title (with the unsaved marker on Windows).
+/// Sets the window title (with the unsaved marker on Windows and Linux).
 pub fn set_title(window: &tauri::WebviewWindow, title: &str) -> tauri::Result<()> {
-    #[cfg(windows)]
+    #[cfg(not(target_os = "macos"))]
     let title = {
         let mut titles = titles();
         let entry = titles
@@ -80,9 +85,6 @@ pub fn set_title(window: &tauri::WebviewWindow, title: &str) -> tauri::Result<()
     };
     window.set_title(title.as_ref())
 }
-
-#[cfg(not(any(target_os = "macos", windows)))]
-pub fn set_edited(_window: &tauri::WebviewWindow, _edited: bool) {}
 
 /// Whether the calls to the system recents list are made. They are skipped when the stores are
 /// in a folder chosen with `WRITEDOWN_CONFIG_DIR` (tests, benchmarks and real-app checks), so
@@ -141,8 +143,30 @@ pub fn note_recent(app: &tauri::AppHandle<tauri::Wry>, path: &Path) {
     });
 }
 
+/// Notes a document in GTK's recent files.
 #[cfg(not(any(target_os = "macos", windows)))]
-pub fn note_recent(_app: &tauri::AppHandle<tauri::Wry>, _path: &Path) {}
+pub fn note_recent(app: &tauri::AppHandle<tauri::Wry>, path: &Path) {
+    use tauri::Manager;
+    if !system_recents_enabled(
+        app.state::<crate::launch::LaunchState>()
+            .config_dir
+            .is_some(),
+    ) {
+        return;
+    }
+    let Some(uri) = recent_target(path)
+        .and_then(|target| url::Url::from_file_path(target).ok())
+        .map(String::from)
+    else {
+        return;
+    };
+    let _ = app.run_on_main_thread(move || {
+        use gtk::prelude::RecentManagerExt;
+        if let Some(manager) = gtk::RecentManager::default() {
+            manager.add_item(&uri);
+        }
+    });
+}
 
 /// Empties the system recents list.
 #[cfg(target_os = "macos")]
@@ -194,8 +218,38 @@ pub fn clear_recent(app: &tauri::AppHandle<tauri::Wry>) {
     });
 }
 
+/// Removes the recent files only Writedown has used from GTK's list (a file another app opened
+/// too stays: it is that app's as well).
 #[cfg(not(any(target_os = "macos", windows)))]
-pub fn clear_recent(_app: &tauri::AppHandle<tauri::Wry>) {}
+pub fn clear_recent(app: &tauri::AppHandle<tauri::Wry>) {
+    use tauri::Manager;
+    if !system_recents_enabled(
+        app.state::<crate::launch::LaunchState>()
+            .config_dir
+            .is_some(),
+    ) {
+        return;
+    }
+    let _ = app.run_on_main_thread(|| {
+        use gtk::prelude::RecentManagerExt;
+        let Some(manager) = gtk::RecentManager::default() else {
+            return;
+        };
+        // GTK records an item under the program name it runs as.
+        let Some(own) = gtk::glib::prgname() else {
+            return;
+        };
+        for info in manager.items() {
+            let applications = info.applications();
+            if applications.len() == 1
+                && applications[0] == own
+                && let Some(uri) = info.uri()
+            {
+                let _ = manager.remove_item(&uri);
+            }
+        }
+    });
+}
 
 /// The uniform type identifier of Markdown documents (the Info.plist type in `tauri.conf.json`).
 pub const MARKDOWN_UTI: &str = "net.daringfireball.markdown";
@@ -318,11 +372,21 @@ pub fn read_default_markdown_app() -> DefaultMarkdownApp {
     }
 }
 
+/// Reads the app GIO opens Markdown with (the freedesktop.org `mimeapps.list` rules, as file
+/// managers apply them).
 #[cfg(not(any(target_os = "macos", windows)))]
 pub fn read_default_markdown_app() -> DefaultMarkdownApp {
+    use gtk::gio::prelude::AppInfoExt;
+    let Some(default) = gtk::gio::AppInfo::default_for_type(MARKDOWN_TYPES[0], false) else {
+        return DefaultMarkdownApp {
+            is_writedown: false,
+            app_name: None,
+        };
+    };
+    let own = own_app_info().and_then(|own| own.id());
     DefaultMarkdownApp {
-        is_writedown: false,
-        app_name: None,
+        is_writedown: own.is_some() && default.id() == own,
+        app_name: Some(default.display_name().to_string()),
     }
 }
 
@@ -399,14 +463,93 @@ pub fn set_default_markdown_app(done: std::sync::mpsc::Sender<Result<(), &'stati
     let _ = done.send(result.map_err(|_| "Windows did not change the default app."));
 }
 
+/// Makes Writedown's desktop entry the default for the Markdown types (Linux asks for no
+/// confirmation). GIO writes the choice to the user's `mimeapps.list`.
 #[cfg(not(any(target_os = "macos", windows)))]
 pub fn set_default_markdown_app(done: std::sync::mpsc::Sender<Result<(), &'static str>>) {
-    let _ = done.send(Err("The default app cannot be set on this system."));
+    use gtk::gio::prelude::AppInfoExt;
+    let Some(own) = own_app_info() else {
+        let _ = done.send(Err(
+            "Writedown has no desktop entry on this system. Install the .deb package to make it the default app.",
+        ));
+        return;
+    };
+    let set = MARKDOWN_TYPES
+        .iter()
+        .all(|kind| own.set_as_default_for_type(kind).is_ok());
+    let _ = done.send(if set {
+        Ok(())
+    } else {
+        Err("The default app could not be changed.")
+    });
+}
+
+/// The MIME types of Markdown documents (the second is the older name some systems still use).
+#[cfg(not(any(target_os = "macos", windows)))]
+const MARKDOWN_TYPES: [&str; 2] = ["text/markdown", "text/x-markdown"];
+
+/// Writedown's own desktop entry, if one is installed: the one whose `Exec` starts this executable
+/// (the .deb package), or the AppImage it runs from (an AppImage added to the app menu by an
+/// integration tool).
+#[cfg(not(any(target_os = "macos", windows)))]
+fn own_app_info() -> Option<gtk::gio::AppInfo> {
+    use gtk::gio::prelude::AppInfoExt;
+    let mut programs: Vec<PathBuf> = std::env::current_exe().ok().into_iter().collect();
+    if let Some(image) = std::env::var_os("APPIMAGE") {
+        programs.push(PathBuf::from(image));
+    }
+    gtk::gio::AppInfo::all().into_iter().find(|info| {
+        info.commandline()
+            .is_some_and(|line| exec_starts(&line.to_string_lossy(), &programs))
+    })
+}
+
+/// Whether the `Exec` line of a desktop entry starts one of `programs`: its first word (quotes
+/// removed) is one of their paths, or, when it is a bare name, one of their file names.
+#[cfg_attr(any(target_os = "macos", windows), allow(dead_code))]
+pub fn exec_starts(exec: &str, programs: &[PathBuf]) -> bool {
+    let exec = exec.trim_start();
+    let first = match exec.strip_prefix('"') {
+        Some(rest) => rest.split('"').next().unwrap_or_default(),
+        None => exec.split_whitespace().next().unwrap_or_default(),
+    };
+    if first.is_empty() {
+        return false;
+    }
+    let first = Path::new(first);
+    if first.is_absolute() {
+        programs.iter().any(|program| program == first)
+    } else {
+        first.components().count() == 1
+            && programs
+                .iter()
+                .any(|program| program.file_name() == Some(first.as_os_str()))
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // Desktop entries name Unix paths.
+    #[cfg(unix)]
+    #[test]
+    fn the_exec_line_is_matched_by_path_or_by_bare_name() {
+        let programs = [
+            PathBuf::from("/usr/bin/writedown"),
+            PathBuf::from("/home/me/Apps/Writedown.AppImage"),
+        ];
+        assert!(exec_starts("writedown %F", &programs));
+        assert!(exec_starts("/usr/bin/writedown %F", &programs));
+        assert!(exec_starts(
+            "\"/home/me/Apps/Writedown.AppImage\" %U",
+            &programs
+        ));
+        assert!(!exec_starts("/opt/writedown %F", &programs));
+        assert!(!exec_starts("bin/writedown", &programs));
+        assert!(!exec_starts("gedit %U", &programs));
+        assert!(!exec_starts("", &programs));
+    }
 
     #[test]
     fn the_windows_title_marks_an_unsaved_document_with_a_star() {

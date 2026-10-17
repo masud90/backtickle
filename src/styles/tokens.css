@@ -71,10 +71,11 @@
 
   /* Typography tokens (light) */
   --wd-font-sans:
-    "Inter Variable", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+    "Inter Variable", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, Cantarell,
+    Ubuntu, "Noto Sans", sans-serif;
   --wd-font-mono:
     "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, "Cascadia Mono",
-    Consolas, monospace;
+    Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace;
 
   --wd-text-headline-xl-size: 32px;
   --wd-text-headline-xl-line-height: 40px;
