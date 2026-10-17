@@ -72,10 +72,13 @@ jobs:
       - run: npm run test:rust
       # The packages, so a change that breaks bundling shows here and a build can be tried.
       - run: npm run build:app:linux
+      - name: List the sources of the libraries in the AppImage
+        run: for file in src-tauri/target/release/bundle/appimage/*.AppImage; do bash scripts/appimage-sources.sh "$file"; done
       - uses: actions/upload-artifact@v4
         with:
           name: writedown-linux
           path: |
             src-tauri/target/release/bundle/deb/*.deb
             src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/appimage/*.sources.txt
           retention-days: 14

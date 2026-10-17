@@ -34,6 +34,13 @@ https://github.com/kieler/elkjs) and the Mozilla Public License (for example css
 https://github.com/servo/rust-cssparser and https://github.com/servo/stylo). If you cannot get a source
 from there, open an issue at https://github.com/masud90/writedown/issues and it will be provided.
 
+## Linux AppImage
+
+The AppImage also bundles system libraries from Ubuntu, some under the GNU LGPL or GPL. The file
+`<AppImage name>.sources.txt`, published next to each AppImage on the release page, lists their Ubuntu
+source packages and versions and carries the written offer to provide their source code for at least three
+years. Their copyright notices are in usr/share/doc inside the AppImage.
+
 ## npm packages (production), 339
 
 - MIT: 280
