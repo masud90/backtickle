@@ -24,18 +24,21 @@ const releasesUrl = `${repoUrl}/releases/latest`;
 const { version } = JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8'));
 // The title and description are what search results show, so they carry the words people search
 // for ("Markdown editor", "viewer", the platforms) as well as the tagline.
-const title = 'Writedown: free, open-source Markdown editor and reader for Mac, Windows and Linux';
+// The app's name in one place, so a rename only touches this line (and the README).
+const appName = 'Writedown';
+const shareTitle = `${appName}: the open-source Markdown editor and reader`;
+const title = `${appName}: free, open-source Markdown editor and reader for Mac, Windows and Linux`;
 const description =
   'Free, open-source Markdown editor and viewer for macOS, Windows and Linux. GitHub, Obsidian, ' +
   'Pandoc and Quarto Markdown, math, Mermaid, PDF and Word export.';
 const posterUrl = `${siteUrl}docs/media/writedown-poster.png`;
-const posterAlt = 'Writedown: Markdown source on the left, the formatted document on the right';
+const posterAlt = `${appName}: Markdown source on the left, the formatted document on the right`;
 
 // Search engines read this to show Writedown as an app (price, platforms) in results.
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'Writedown',
+  name: appName,
   description,
   url: siteUrl,
   applicationCategory: 'ProductivityApplication',
@@ -177,8 +180,8 @@ function page(body) {
 <link rel="icon" type="image/png" href="docs/media/icon.png">
 <link rel="apple-touch-icon" href="docs/media/icon.png">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Writedown">
-<meta property="og:title" content="Writedown: the open-source Markdown editor and reader">
+<meta property="og:site_name" content="${appName}">
+<meta property="og:title" content="${escapeAttr(shareTitle)}">
 <meta property="og:description" content="${escapeAttr(description)}">
 <meta property="og:url" content="${siteUrl}">
 <meta property="og:image" content="${posterUrl}">
@@ -186,7 +189,7 @@ function page(body) {
 <meta property="og:image:height" content="1080">
 <meta property="og:image:alt" content="${escapeAttr(posterAlt)}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Writedown: the open-source Markdown editor and reader">
+<meta name="twitter:title" content="${escapeAttr(shareTitle)}">
 <meta name="twitter:description" content="${escapeAttr(description)}">
 <meta name="twitter:image" content="${posterUrl}">
 <meta name="twitter:image:alt" content="${escapeAttr(posterAlt)}">
@@ -195,7 +198,7 @@ function page(body) {
 </head>
 <body>
 <header class="bar">
-  <a class="brand" href="./"><img src="docs/media/icon.png" width="28" height="28" alt="">Writedown</a>
+  <a class="brand" href="./"><img src="docs/media/icon.png" width="28" height="28" alt="">${appName}</a>
   <nav>
     <a href="#features">Features</a>
     <a href="#contributing">Contribute</a>
@@ -207,7 +210,7 @@ function page(body) {
 ${body}
 </main>
 <footer>
-  <p>Writedown is free and open source under the <a href="${repoUrl}/blob/main/LICENSE">MIT License</a>.
+  <p>${appName} is free and open source under the <a href="${repoUrl}/blob/main/LICENSE">MIT License</a>.
   This page is built from the <a href="${repoUrl}#readme">README</a>.</p>
 </footer>
 </body>
