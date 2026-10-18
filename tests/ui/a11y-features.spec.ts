@@ -41,7 +41,7 @@ async function start(
 
 /** Changes settings the way the Preferences window does. */
 const change = (page: Page, a11y: A11yPatch) =>
-  page.evaluate((patch) => window.__WRITEDOWN_MOCK__?.settingsChanged({ a11y: patch }), a11y);
+  page.evaluate((patch) => window.__BACKTICKLE_MOCK__?.settingsChanged({ a11y: patch }), a11y);
 
 const rootAttr = (page: Page, name: string) =>
   page.evaluate((n) => document.documentElement.getAttribute(n), name);

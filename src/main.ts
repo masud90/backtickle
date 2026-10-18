@@ -25,5 +25,5 @@ try {
   mount(App, { target, props: { platform, launch } });
 } catch (error) {
   console.error(error);
-  target.textContent = 'Writedown could not start. See the console for details.';
+  target.textContent = 'Backtickle could not start. See the console for details.';
 }

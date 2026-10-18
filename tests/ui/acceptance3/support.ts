@@ -53,9 +53,9 @@ export function folderSeed(): Record<string, string> {
 /** Reads a property of the mock control object inside the page. */
 export function mock<T>(
   page: Page,
-  read: (control: NonNullable<Window['__WRITEDOWN_MOCK__']>) => T,
+  read: (control: NonNullable<Window['__BACKTICKLE_MOCK__']>) => T,
 ): Promise<T> {
-  return page.evaluate(`(${read.toString()})(window.__WRITEDOWN_MOCK__)`) as Promise<T>;
+  return page.evaluate(`(${read.toString()})(window.__BACKTICKLE_MOCK__)`) as Promise<T>;
 }
 
 /** Waits for the first rendered block of the preview. */

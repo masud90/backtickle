@@ -345,7 +345,7 @@ mod gtk_board {
                         selection.set_text(&text);
                     }
                 });
-            // A clipboard manager may keep the text once Writedown has quit.
+            // A clipboard manager may keep the text once Backtickle has quit.
             if set {
                 use glib::translate::ToGlibPtr;
                 // SAFETY: the clipboard is alive; no target list means all targets may be stored.

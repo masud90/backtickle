@@ -90,7 +90,7 @@ test('A15 The GFM guide renders every element with the contract classes', async 
   await expect(front).toHaveCount(1);
   for (const tag of ['markdown', 'gfm', 'reference']) await expect(front).toContainText(tag);
   await expect(front).toContainText('Version 1.0.0');
-  await expect(front).toContainText('Writedown');
+  await expect(front).toContainText('Backtickle');
   await expect(root.locator('h1')).toHaveCount(1);
   await expect(root.locator('h1')).toHaveText('Markdown Guide');
 
@@ -833,8 +833,8 @@ test('A22 Reading time rounds up at 238 words per minute and follows the setting
   await tabNamed(page, 'w500.md').click();
   await page.evaluate(() =>
     (
-      window as unknown as { __WRITEDOWN_MOCK__: { settingsChanged(p: unknown): void } }
-    ).__WRITEDOWN_MOCK__.settingsChanged({ readingWpm: 100 }),
+      window as unknown as { __BACKTICKLE_MOCK__: { settingsChanged(p: unknown): void } }
+    ).__BACKTICKLE_MOCK__.settingsChanged({ readingWpm: 100 }),
   );
   await expect(page.getByTestId('status-reading')).toContainText('Reading Time: 5 min');
 });

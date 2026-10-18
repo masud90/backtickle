@@ -150,12 +150,12 @@ test.describe('D31 axe with a banner showing', () => {
     await page.keyboard.press('ControlOrMeta+End');
     await page.keyboard.type('x');
     await page.evaluate(
-      (p) => window.__WRITEDOWN_MOCK__?.externallyModify(p, '# Changed on disk\n'),
+      (p) => window.__BACKTICKLE_MOCK__?.externallyModify(p, '# Changed on disk\n'),
       `${HOME}/guide.md`,
     );
     await page.evaluate(
       (p) =>
-        window.__WRITEDOWN_MOCK__?.fileChanged([
+        window.__BACKTICKLE_MOCK__?.fileChanged([
           { path: p, kind: 'modified', scope: 'document' } as never,
         ]),
       `${HOME}/guide.md`,
@@ -390,7 +390,7 @@ test.describe('D33 names and states', () => {
     });
     await page.setViewportSize({ width: 1280, height: 820 });
     await page.goto('/');
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.openFiles(['/Users/mock/b.md']));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.openFiles(['/Users/mock/b.md']));
     await expect(page.getByTestId('tab')).toHaveCount(2);
     expect(await page.evaluate(NAME_CHECK)).toEqual([]);
     await page.getByTestId('sidebar-tab-files').click();

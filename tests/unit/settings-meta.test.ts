@@ -234,8 +234,8 @@ describe('the platform dialogs for Preferences (mock)', () => {
     const { createMockPlatform } = await import('@/lib/platform-mock');
     const platform = createMockPlatform();
     expect(await platform.choosePandoc()).toBeNull();
-    window.__WRITEDOWN_MOCK__?.setPandocAnswers('/usr/local/bin/pandoc');
-    window.__WRITEDOWN_MOCK__?.setDefaultFolderAnswers('/tmp/docs');
+    window.__BACKTICKLE_MOCK__?.setPandocAnswers('/usr/local/bin/pandoc');
+    window.__BACKTICKLE_MOCK__?.setDefaultFolderAnswers('/tmp/docs');
     expect(await platform.choosePandoc()).toBe('/usr/local/bin/pandoc');
     expect(await platform.chooseDefaultFolder()).toBe('/tmp/docs');
   });

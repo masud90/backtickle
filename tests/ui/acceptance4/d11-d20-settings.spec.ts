@@ -209,7 +209,7 @@ test.describe('D14 auto-save and an outside change', () => {
     await openNote(page, '# Mine\n', { saving: { autoSave: true } }, { ask: false });
     await typeAtEnd(page, 'edit');
     await page.evaluate(
-      ([p, t]) => window.__WRITEDOWN_MOCK__?.externallyModify(p as string, t as string),
+      ([p, t]) => window.__BACKTICKLE_MOCK__?.externallyModify(p as string, t as string),
       [NOTE, '# Theirs\n'],
     );
     const banner = page.getByTestId('banner-external');
@@ -355,14 +355,14 @@ test.describe('D18 reading font, size and width', () => {
     await menu(page, 'export-html');
     await expect
       .poll(
-        () => page.evaluate(() => window.__WRITEDOWN_MOCK__?.exports.at(-1)?.contents ?? null),
+        () => page.evaluate(() => window.__BACKTICKLE_MOCK__?.exports.at(-1)?.contents ?? null),
         {
           timeout: 30_000,
         },
       )
       .not.toBeNull();
     const html = (await page.evaluate(
-      () => window.__WRITEDOWN_MOCK__?.exports.at(-1)?.contents,
+      () => window.__BACKTICKLE_MOCK__?.exports.at(-1)?.contents,
     )) as string;
     expect(html).toContain('22px');
     expect(html).toContain('960px');
@@ -474,14 +474,14 @@ test.describe('D20 remote images', () => {
     await menu(page, 'export-html');
     await expect
       .poll(
-        () => page.evaluate(() => window.__WRITEDOWN_MOCK__?.exports.at(-1)?.contents ?? null),
+        () => page.evaluate(() => window.__BACKTICKLE_MOCK__?.exports.at(-1)?.contents ?? null),
         {
           timeout: 30_000,
         },
       )
       .not.toBeNull();
     const html = (await page.evaluate(
-      () => window.__WRITEDOWN_MOCK__?.exports.at(-1)?.contents,
+      () => window.__BACKTICKLE_MOCK__?.exports.at(-1)?.contents,
     )) as string;
     expect(html).toContain('https://img.example.test/1.png');
   });

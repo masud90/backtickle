@@ -26,7 +26,8 @@ async function open(
   await expect(page.getByTestId('preview').locator('h1').first()).toBeVisible();
 }
 
-const requests = (page: Page) => page.evaluate(() => window.__WRITEDOWN_MOCK__?.docxRequests ?? []);
+const requests = (page: Page) =>
+  page.evaluate(() => window.__BACKTICKLE_MOCK__?.docxRequests ?? []);
 
 test.describe('Word export', () => {
   test('C31: the menu item is disabled without Pandoc and the action says why', async ({
@@ -34,7 +35,7 @@ test.describe('Word export', () => {
   }) => {
     await open(page, 'a.md', BODY, { pandoc: null });
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.menuStates.at(-1)?.canExportDocx))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.menuStates.at(-1)?.canExportDocx))
       .toBe(false);
     await menu(page, 'export-docx');
     await expect(page.getByRole('alert')).toContainText('Pandoc was not found');
@@ -87,7 +88,7 @@ test.describe('Word export', () => {
     await open(page, 'a.md', BODY, { exportDocx: { hold: true } });
     await menu(page, 'export-docx');
     await expect(page.getByTestId('save-status')).toHaveText('Exporting…');
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.finishDocx());
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.finishDocx());
     await expect(page.getByTestId('save-status')).not.toHaveText('Exporting…');
   });
 });

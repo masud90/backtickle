@@ -35,13 +35,13 @@ SOURCE CODE OFFER FOR THE LIBRARIES BUNDLED IN $(basename "$appimage")
 
 This AppImage includes system libraries from ${PRETTY_NAME}, unmodified, so that it runs without them
 being installed. Some are under the GNU Lesser General Public License or the GNU General Public License.
-Writedown itself is under the MIT License and links to them dynamically.
+Backtickle itself is under the MIT License and links to them dynamically.
 
 For at least three years from the date this AppImage was published, and for as long as it is offered
 for download, Masud Rahman will give anyone who asks a complete machine-readable copy of the
 corresponding source code of these libraries, on a medium customarily used for software interchange,
 for no more than the cost of providing it. Ask by opening an issue at
-https://github.com/masud90/writedown/issues. The same sources are also published by Ubuntu: run
+https://github.com/masud90/backtickle/issues. The same sources are also published by Ubuntu: run
 \`apt-get source <package>=<version>\` on ${PRETTY_NAME}, or download them from
 https://launchpad.net/ubuntu/+source/<package>/<version>.
 

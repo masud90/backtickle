@@ -189,7 +189,7 @@ test.describe('C12 opening files', () => {
     await start(page);
     await openFromWelcome(page);
     await page.evaluate(
-      (path) => window.__WRITEDOWN_MOCK__?.openFiles([path]),
+      (path) => window.__BACKTICKLE_MOCK__?.openFiles([path]),
       inFolder('sub/deep/note.markdown'),
     );
     await expect(row(page, 'sub/deep/note.markdown')).toHaveAttribute('aria-current', 'true');
@@ -295,7 +295,7 @@ test.describe('C13 operations', () => {
     await expect(row(page, 'now.qmd')).toHaveAttribute('aria-current', 'true');
 
     // A move: the tab keeps the document and the title follows the new path.
-    await page.evaluate((to) => window.__WRITEDOWN_MOCK__?.setFolderAnswers(to), inFolder('sub'));
+    await page.evaluate((to) => window.__BACKTICKLE_MOCK__?.setFolderAnswers(to), inFolder('sub'));
     await menu(page, 'move-to');
     await expect(row(page, 'now.qmd')).toHaveCount(0);
     await expect(docName(page)).toHaveText('now.qmd');
@@ -422,7 +422,7 @@ test.describe('C15 folder changes', () => {
   const change = (page: Page, kind: 'created' | 'removed', relative: string) =>
     page.evaluate(
       ([k, path]) => {
-        const control = window.__WRITEDOWN_MOCK__;
+        const control = window.__BACKTICKLE_MOCK__;
         if (k === 'created') control?.externallyCreate(path as string, '# new\n');
         else control?.externallyRemove(path as string);
         control?.fileChanged([
@@ -495,7 +495,10 @@ test.describe('C16 title menu and File menu', () => {
 
   test('C16 Move To… asks for a folder and moves the file', async ({ page }) => {
     await openA(page);
-    await page.evaluate((to) => window.__WRITEDOWN_MOCK__?.setFolderAnswers(to), inFolder('other'));
+    await page.evaluate(
+      (to) => window.__BACKTICKLE_MOCK__?.setFolderAnswers(to),
+      inFolder('other'),
+    );
     await page.getByTestId('document-menu-button').click();
     await page.getByRole('menuitem', { name: 'Move To…' }).click();
     expect(await mock(page, (m) => m.folderDialogs)).toEqual(['open', 'move']);

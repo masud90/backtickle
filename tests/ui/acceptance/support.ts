@@ -55,7 +55,7 @@ export async function launch(page: Page, options: LaunchOptions = {}): Promise<v
   }
   if (options.viewport) await page.setViewportSize(options.viewport);
   await page.addInitScript((s) => {
-    (window as unknown as { __WRITEDOWN_MOCK_SEED__: unknown }).__WRITEDOWN_MOCK_SEED__ = s;
+    (window as unknown as { __BACKTICKLE_MOCK_SEED__: unknown }).__BACKTICKLE_MOCK_SEED__ = s;
   }, seed);
   await page.goto('/');
   const waitFor = options.waitFor ?? (options.open ? 'document' : 'welcome');
@@ -67,8 +67,8 @@ export async function launch(page: Page, options: LaunchOptions = {}): Promise<v
 export async function mockCall(page: Page, name: string, ...args: unknown[]): Promise<void> {
   await page.evaluate(
     ([method, rest]) => {
-      const control = (window as unknown as { __WRITEDOWN_MOCK__: Record<string, unknown> })
-        .__WRITEDOWN_MOCK__;
+      const control = (window as unknown as { __BACKTICKLE_MOCK__: Record<string, unknown> })
+        .__BACKTICKLE_MOCK__;
       (control[method as string] as (...a: unknown[]) => void)(...(rest as unknown[]));
     },
     [name, args] as const,
@@ -82,8 +82,8 @@ export const setAnswers = (page: Page, answers: Seed) => mockCall(page, 'setAnsw
 /** A JSON-safe read of a property of the mock control object (arrays are copied). */
 export async function mockRead<T>(page: Page, property: string): Promise<T> {
   return page.evaluate((key) => {
-    const control = (window as unknown as { __WRITEDOWN_MOCK__: Record<string, unknown> })
-      .__WRITEDOWN_MOCK__;
+    const control = (window as unknown as { __BACKTICKLE_MOCK__: Record<string, unknown> })
+      .__BACKTICKLE_MOCK__;
     return JSON.parse(JSON.stringify(control[key])) as unknown;
   }, property) as Promise<T>;
 }
@@ -119,8 +119,8 @@ export const settingsOf = (page: Page) => mockRead<MockSettings>(page, 'settings
 export async function diskFile(page: Page, path: string) {
   return page.evaluate((p) => {
     const file = (
-      window as unknown as { __WRITEDOWN_MOCK__: { file(p: string): unknown } }
-    ).__WRITEDOWN_MOCK__.file(p);
+      window as unknown as { __BACKTICKLE_MOCK__: { file(p: string): unknown } }
+    ).__BACKTICKLE_MOCK__.file(p);
     return file ? (JSON.parse(JSON.stringify(file)) as Record<string, unknown>) : undefined;
   }, path);
 }

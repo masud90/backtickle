@@ -12,7 +12,7 @@ export async function openPrefs(page: Page, seed: MockSeed = {}): Promise<void> 
 
 /** The settings the mock holds now. */
 export const settingsNow = (page: Page) =>
-  page.evaluate(() => JSON.parse(JSON.stringify(window.__WRITEDOWN_MOCK__?.settings)));
+  page.evaluate(() => JSON.parse(JSON.stringify(window.__BACKTICKLE_MOCK__?.settings)));
 
 export function at(source: unknown, key: string): unknown {
   let value = source;

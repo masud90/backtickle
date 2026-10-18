@@ -104,7 +104,7 @@ pub async fn read_text_file(
         .map_err(|_| "The file could not be read.".to_string())?
 }
 
-/// Prints a timing mark when the app runs with `WRITEDOWN_PERF=1`. Does nothing otherwise.
+/// Prints a timing mark when the app runs with `BACKTICKLE_PERF=1`. Does nothing otherwise.
 #[tauri::command]
 pub fn perf_mark(state: State<'_, LaunchState>, name: String) {
     if !state.options.perf {
@@ -115,8 +115,8 @@ pub fn perf_mark(state: State<'_, LaunchState>, name: String) {
     }
 }
 
-/// Prints the typing benchmark result and, with `WRITEDOWN_BENCH_EXIT=1`, quits the app.
-/// Does nothing unless the app runs in benchmark mode (`WRITEDOWN_PERF=1 WRITEDOWN_BENCH=typing`).
+/// Prints the typing benchmark result and, with `BACKTICKLE_BENCH_EXIT=1`, quits the app.
+/// Does nothing unless the app runs in benchmark mode (`BACKTICKLE_PERF=1 BACKTICKLE_BENCH=typing`).
 #[tauri::command]
 pub fn bench_report(
     app: AppHandle,
@@ -144,7 +144,7 @@ pub struct SearchBenchRun {
     pub truncated: bool,
 }
 
-/// Prints the search benchmark result and, with `WRITEDOWN_BENCH_EXIT=1`, quits the app.
+/// Prints the search benchmark result and, with `BACKTICKLE_BENCH_EXIT=1`, quits the app.
 /// Does nothing unless the app runs in benchmark mode.
 #[tauri::command]
 pub fn bench_search_report(
@@ -173,11 +173,11 @@ mod tests {
 
     fn package_info(version: &str) -> PackageInfo {
         PackageInfo {
-            name: "Writedown".into(),
+            name: "Backtickle".into(),
             version: version.parse().expect("valid semver"),
             authors: "",
             description: "",
-            crate_name: "writedown",
+            crate_name: "backtickle",
         }
     }
 

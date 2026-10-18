@@ -610,7 +610,7 @@ mod tests {
         if xattr::set(&path, "user.xdg.tags", b"red,work").is_err() {
             return;
         }
-        xattr::set(&path, "user.writedown-test", b"kept").expect("set custom");
+        xattr::set(&path, "user.backtickle-test", b"kept").expect("set custom");
 
         save(&path, "new", LF_UTF8, &options(None), None).expect("saves");
 
@@ -620,7 +620,7 @@ mod tests {
             Some(b"red,work".to_vec())
         );
         assert_eq!(
-            xattr::get(&path, "user.writedown-test").expect("get"),
+            xattr::get(&path, "user.backtickle-test").expect("get"),
             Some(b"kept".to_vec())
         );
     }
@@ -636,7 +636,7 @@ mod tests {
         finder_info[9] = 0x0C;
         xattr::set(&path, "com.apple.metadata:_kMDItemUserTags", &tags).expect("set tags");
         xattr::set(&path, "com.apple.FinderInfo", &finder_info).expect("set finder info");
-        xattr::set(&path, "user.writedown-test", b"kept").expect("set custom");
+        xattr::set(&path, "user.backtickle-test", b"kept").expect("set custom");
 
         save(&path, "new", LF_UTF8, &options(None), None).expect("saves");
 
@@ -650,7 +650,7 @@ mod tests {
             Some(finder_info.to_vec())
         );
         assert_eq!(
-            xattr::get(&path, "user.writedown-test").expect("get"),
+            xattr::get(&path, "user.backtickle-test").expect("get"),
             Some(b"kept".to_vec())
         );
     }

@@ -2,14 +2,14 @@
 title: Pandoc Guide
 tags: [markdown, pandoc, reference]
 version: 1.0.0
-subtitle: Pandoc and MultiMarkdown syntax in Writedown
+subtitle: Pandoc and MultiMarkdown syntax in Backtickle
 author:
-  - name: Writedown
+  - name: Backtickle
     affiliations:
       - Example Documentation Group
 date: 2026-10-06
 abstract: |
-  This guide shows the Pandoc Markdown syntax supported by Writedown. Every feature has one section with the source and the live result.
+  This guide shows the Pandoc Markdown syntax supported by Backtickle. Every feature has one section with the source and the live result.
 link-citations: true
 reference-section-title: References
 references:
@@ -58,7 +58,7 @@ references:
 
 # Pandoc Guide
 
-This guide shows the Pandoc Markdown syntax supported by Writedown. Each feature has one section: a short description, the source in a code block, and the rendered result directly below it. Everything in this guide is fictional example content, and nothing in a document is ever executed.
+This guide shows the Pandoc Markdown syntax supported by Backtickle. Each feature has one section: a short description, the source in a code block, and the rendered result directly below it. Everything in this guide is fictional example content, and nothing in a document is ever executed.
 
 ## Title block
 

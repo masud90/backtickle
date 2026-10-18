@@ -40,7 +40,7 @@ export function buildPage(
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
     '<meta name="color-scheme" content="light">',
-    '<meta name="generator" content="Writedown">',
+    '<meta name="generator" content="Backtickle">',
     `<title>${escapeHtml(title)}</title>`,
     `<style>\n${lightCss()}${preview.css === '' ? '' : `\n${preview.css}`}\n</style>`,
     '</head>',

@@ -1,5 +1,5 @@
 /**
- * Typing benchmark for the measurement harness: `WRITEDOWN_PERF=1 WRITEDOWN_BENCH=typing`.
+ * Typing benchmark for the measurement harness: `BACKTICKLE_PERF=1 BACKTICKLE_BENCH=typing`.
  *
  * After startup it types 60 characters into the middle of the document, one every 150 ms, and
  * measures for each one:

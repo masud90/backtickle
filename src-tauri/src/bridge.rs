@@ -869,7 +869,7 @@ pub async fn default_markdown_app(
         .ok_or_else(|| PlatformError::io("The default app could not be read."))
 }
 
-/// Preferences: "Make Writedown the default Markdown app". macOS shows its own confirmation; the
+/// Preferences: "Make Backtickle the default Markdown app". macOS shows its own confirmation; the
 /// command answers when the system reports the outcome.
 #[tauri::command]
 pub async fn make_default_markdown_app(app: AppHandle) -> PlatformResult<()> {
@@ -1019,7 +1019,7 @@ pub async fn export_pdf(
         app.state::<Trace>()
             .event("pdf-exported", json!({ "pages": pages }));
     }
-    // The PDF benchmark (`WRITEDOWN_BENCH_EXIT=1`) quits through the normal quit path.
+    // The PDF benchmark (`BACKTICKLE_BENCH_EXIT=1`) quits through the normal quit path.
     let launch = app.state::<crate::launch::LaunchState>();
     if launch.bench_exit && launch.options.bench_pdf.as_deref() == Some(path.as_str()) {
         match app.try_state::<crate::lifecycle::AppCloseProtocol>() {
@@ -1191,7 +1191,7 @@ pub async fn move_tab(
     }
     if let Err(error) = windows::create_document_window(&app, label.clone(), Some(&from), None) {
         docs.forget(&label);
-        eprintln!("writedown: the new window could not be created: {error}");
+        eprintln!("backtickle: the new window could not be created: {error}");
         return Err(PlatformError::io("The new window could not be opened."));
     }
     app.state::<Trace>()

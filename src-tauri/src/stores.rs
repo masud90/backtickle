@@ -9,6 +9,7 @@ use crate::doc_state::DocStates;
 use crate::error::{PlatformError, PlatformResult};
 use crate::fs_util;
 use crate::launch::LaunchState;
+use crate::legacy_import;
 use crate::menu;
 use crate::recents::{self, RecentEntry, Recents};
 use crate::recovery::RecoveryStore;
@@ -42,11 +43,33 @@ pub struct Stores {
 }
 
 /// The folders of the stores as (data, config): both are `chosen` when a folder was asked for
-/// (`WRITEDOWN_CONFIG_DIR`), otherwise the app's own folders.
+/// (`BACKTICKLE_CONFIG_DIR`), otherwise the app's own folders.
 pub fn store_folders(chosen: Option<&Path>, data: PathBuf, config: PathBuf) -> (PathBuf, PathBuf) {
     match chosen {
         Some(folder) => (folder.to_path_buf(), folder.to_path_buf()),
         None => (data, config),
+    }
+}
+
+/// Copies the stores of Writedown, the app's earlier name, into the app's folders at the first
+/// launch after the rename (`legacy_import.rs`).
+fn import_from_writedown(app: &AppHandle<Wry>, data: &Path, config: &Path) {
+    let identifier = &app.config().identifier;
+    let (Some(old_data), Some(old_config)) = (
+        legacy_import::old_folder(data, identifier),
+        legacy_import::old_folder(config, identifier),
+    ) else {
+        return;
+    };
+    match legacy_import::import(&old_data, &old_config, data, config) {
+        Ok(copied) if copied.is_empty() => {}
+        Ok(copied) => app
+            .state::<Trace>()
+            .event("legacy-import", json!({ "copied": copied })),
+        Err(error) => eprintln!(
+            "backtickle: the stores of Writedown could not be imported ({:?}).",
+            error.kind()
+        ),
     }
 }
 
@@ -57,22 +80,25 @@ fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
 impl Stores {
     /// Opens the three stores in the app's folders. Recents and document state are in the data
     /// folder, the settings in the config folder (the same folder on macOS). With
-    /// `WRITEDOWN_CONFIG_DIR` all three are in that folder instead, and the app's own folders are
+    /// `BACKTICKLE_CONFIG_DIR` all three are in that folder instead, and the app's own folders are
     /// not touched.
     pub fn open(app: &AppHandle<Wry>) -> Self {
-        let fallback = std::env::temp_dir().join("writedown");
+        let fallback = std::env::temp_dir().join("backtickle");
         let data = app
             .path()
             .app_data_dir()
             .unwrap_or_else(|_| fallback.clone());
         let config = app.path().app_config_dir().unwrap_or(fallback);
         let chosen = app.state::<LaunchState>().config_dir.clone();
+        if chosen.is_none() {
+            import_from_writedown(app, &data, &config);
+        }
         let (data, config) = store_folders(chosen.as_deref(), data, config);
         if let Some(folder) = chosen.as_deref()
             && let Err(error) = std::fs::create_dir_all(folder)
         {
             eprintln!(
-                "writedown: the folder for the stores could not be created ({:?}).",
+                "backtickle: the folder for the stores could not be created ({:?}).",
                 error.kind()
             );
         }
@@ -179,7 +205,7 @@ impl Stores {
             let changed = recents.moved(from, to);
             if changed && let Err(error) = recents.save() {
                 eprintln!(
-                    "writedown: the recents could not be saved ({:?}).",
+                    "backtickle: the recents could not be saved ({:?}).",
                     error.kind()
                 );
             }
@@ -211,7 +237,7 @@ pub fn record_open(app: &AppHandle<Wry>, path: &Path) {
         let changed = recents.touch(&fs_util::path_text(path), fs_util::now_ms(), limit);
         if let Err(error) = recents.save() {
             eprintln!(
-                "writedown: the recents could not be saved ({:?}).",
+                "backtickle: the recents could not be saved ({:?}).",
                 error.kind()
             );
         }
@@ -240,7 +266,7 @@ pub fn remove_recent(app: &AppHandle<Wry>, path: &str) {
         let changed = recents.remove(path);
         if changed && let Err(error) = recents.save() {
             eprintln!(
-                "writedown: the recents could not be saved ({:?}).",
+                "backtickle: the recents could not be saved ({:?}).",
                 error.kind()
             );
         }
@@ -261,7 +287,7 @@ pub fn clear_recents(app: &AppHandle<Wry>) {
         let changed = recents.clear();
         if changed && let Err(error) = recents.save() {
             eprintln!(
-                "writedown: the recents could not be saved ({:?}).",
+                "backtickle: the recents could not be saved ({:?}).",
                 error.kind()
             );
         }
@@ -279,7 +305,7 @@ pub fn forget_window_session(app: &AppHandle<Wry>, label: &str) {
         && let Err(error) = stores.forget_window_session(label)
     {
         eprintln!(
-            "writedown: the session could not be saved ({:?}).",
+            "backtickle: the session could not be saved ({:?}).",
             error.kind()
         );
     }
@@ -328,7 +354,7 @@ pub fn update_settings(app: &AppHandle<Wry>, patch: &Value) -> PlatformResult<Se
         }
         if !updated.saved {
             return Err(PlatformError::io(
-                "The settings could not be saved. They apply until you quit Writedown.",
+                "The settings could not be saved. They apply until you quit Backtickle.",
             ));
         }
     }

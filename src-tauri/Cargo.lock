@@ -214,6 +214,42 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
+name = "backtickle"
+version = "0.1.2"
+dependencies = [
+ "block2",
+ "chardetng",
+ "dunce",
+ "encoding_rs",
+ "grep-matcher",
+ "grep-regex",
+ "grep-searcher",
+ "gtk",
+ "ignore",
+ "libc",
+ "muda",
+ "notify",
+ "objc2",
+ "objc2-app-kit",
+ "objc2-foundation",
+ "objc2-web-kit",
+ "percent-encoding",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-opener",
+ "tauri-plugin-single-instance",
+ "trash",
+ "url",
+ "webkit2gtk",
+ "webview2-com",
+ "windows",
+ "xattr",
+]
+
+[[package]]
 name = "base64"
 version = "0.21.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5042,42 +5078,6 @@ name = "writeable"
 version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3ad82d2a33cdc9674dc7465672f271e096168fcdbe0f799d9e6db8c5892679dc"
-
-[[package]]
-name = "writedown"
-version = "0.1.2"
-dependencies = [
- "block2",
- "chardetng",
- "dunce",
- "encoding_rs",
- "grep-matcher",
- "grep-regex",
- "grep-searcher",
- "gtk",
- "ignore",
- "libc",
- "muda",
- "notify",
- "objc2",
- "objc2-app-kit",
- "objc2-foundation",
- "objc2-web-kit",
- "percent-encoding",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tauri-plugin-opener",
- "tauri-plugin-single-instance",
- "trash",
- "url",
- "webkit2gtk",
- "webview2-com",
- "windows",
- "xattr",
-]
 
 [[package]]
 name = "wry"

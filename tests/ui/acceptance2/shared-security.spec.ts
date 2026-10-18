@@ -124,8 +124,8 @@ for (const [flavor, pill] of FLAVORS) {
       });
       await page.evaluate((p) => {
         (
-          window as unknown as { __WRITEDOWN_MOCK__: { openFiles(paths: string[]): void } }
-        ).__WRITEDOWN_MOCK__.openFiles([p]);
+          window as unknown as { __BACKTICKLE_MOCK__: { openFiles(paths: string[]): void } }
+        ).__BACKTICKLE_MOCK__.openFiles([p]);
       }, path);
       await expect(page.getByTestId('document-name')).toHaveText(`xss-${flavor}.md`);
       await choose(page, pill);

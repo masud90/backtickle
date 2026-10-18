@@ -9,7 +9,7 @@
   let { platform }: Props = $props();
 
   interface DefaultApp {
-    isWritedown: boolean;
+    isBacktickle: boolean;
     appName: string | null;
   }
 
@@ -22,24 +22,24 @@
   const status = $derived.by(() => {
     if (readFailed) return 'The default app could not be read.';
     if (current === null) return 'Looking up the default app.';
-    if (current.isWritedown) return 'Writedown is the default';
+    if (current.isBacktickle) return 'Backtickle is the default';
     return current.appName ? `Currently ${current.appName}` : 'No default app is set';
   });
 
-  const canMake = $derived(current !== null && !current.isWritedown && !busy);
+  const canMake = $derived(current !== null && !current.isBacktickle && !busy);
 
   // On Windows an app cannot make itself the default: the button opens the system's
-  // "Open with" chooser for .md files, where the user picks Writedown. On Linux Writedown makes
+  // "Open with" chooser for .md files, where the user picks Backtickle. On Linux Backtickle makes
   // itself the default for the Markdown type with xdg-mime, with no dialog, as on macOS.
   const description = byOs(
-    'Opens .md, .markdown and related files in Writedown. .qmd, .Rmd and .mdx stay under Open With.',
-    'Opens .md files in Writedown. The button shows the Windows "Open with" chooser: pick Writedown and choose Always.',
-    'Opens Markdown files (.md, .markdown) in Writedown in your file manager. .qmd, .Rmd and .mdx stay under Open With.',
+    'Opens .md, .markdown and related files in Backtickle. .qmd, .Rmd and .mdx stay under Open With.',
+    'Opens .md files in Backtickle. The button shows the Windows "Open with" chooser: pick Backtickle and choose Always.',
+    'Opens Markdown files (.md, .markdown) in Backtickle in your file manager. .qmd, .Rmd and .mdx stay under Open With.',
   );
   const buttonLabel = byOs(
-    'Make Writedown the default',
+    'Make Backtickle the default',
     'Choose the default app…',
-    'Make Writedown the default',
+    'Make Backtickle the default',
   );
 
   async function read() {

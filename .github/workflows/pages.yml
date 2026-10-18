@@ -1,6 +1,6 @@
 name: Website
 
-# Publishes README.md as the project website at https://masud90.github.io/writedown/.
+# Publishes README.md as the project website at https://masud90.github.io/backtickle/.
 # Needs Settings > Pages > Build and deployment > Source set to "GitHub Actions".
 
 on:

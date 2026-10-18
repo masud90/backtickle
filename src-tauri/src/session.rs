@@ -1,6 +1,6 @@
 //! The session: which documents and folder were open when the app quit (and
 //! 2.7). One JSON file, `session.json`, in the same folder as the other stores (so
-//! `WRITEDOWN_CONFIG_DIR` covers it):
+//! `BACKTICKLE_CONFIG_DIR` covers it):
 //!
 //! ```text
 //! {"version": 1, "tabs": [{"path": "/a.md", "view": "split"}], "active": 0,

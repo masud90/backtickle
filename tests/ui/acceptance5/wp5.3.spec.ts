@@ -22,8 +22,9 @@ async function open(page: Page, extra: Partial<MockSeed> = {}): Promise<void> {
   await expect(page.getByTestId('preview').locator('h1').first()).toBeVisible();
 }
 
-const exportsOf = (page: Page) => page.evaluate(() => window.__WRITEDOWN_MOCK__?.pdfExports ?? []);
-const dialogsOf = (page: Page) => page.evaluate(() => window.__WRITEDOWN_MOCK__?.saveDialogs ?? []);
+const exportsOf = (page: Page) => page.evaluate(() => window.__BACKTICKLE_MOCK__?.pdfExports ?? []);
+const dialogsOf = (page: Page) =>
+  page.evaluate(() => window.__BACKTICKLE_MOCK__?.saveDialogs ?? []);
 const rootCount = (page: Page) => page.locator('#wd-print-root').count();
 
 test.describe('One-click PDF', () => {
@@ -41,7 +42,7 @@ test.describe('One-click PDF', () => {
       { suggestedName: 'Guide.pdf', directory: `${HOME}/docs`, kind: 'pdf' },
     ]);
     // The print panel is never used.
-    expect(await page.evaluate(() => window.__WRITEDOWN_MOCK__?.prints)).toBe(0);
+    expect(await page.evaluate(() => window.__BACKTICKLE_MOCK__?.prints)).toBe(0);
   });
 
   test('E5.3-2: the print root is gone after a successful export', async ({ page }) => {
@@ -120,7 +121,7 @@ test.describe('One-click PDF', () => {
   }) => {
     await open(page);
     await menu(page, 'print');
-    await expect.poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.prints)).toBe(1);
+    await expect.poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.prints)).toBe(1);
     expect((await exportsOf(page)).length).toBe(0);
   });
 });

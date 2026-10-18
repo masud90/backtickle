@@ -1,9 +1,9 @@
 //! Guards for the security policy and the permission skeleton.
 //! They read the shipped configuration files, so a careless edit fails `cargo test`.
 
+use backtickle_lib::windows::{CANVAS_DARK, CANVAS_LIGHT, TRAFFIC_LIGHT_X, TRAFFIC_LIGHT_Y};
 use serde_json::Value;
 use std::collections::BTreeSet;
-use writedown_lib::windows::{CANVAS_DARK, CANVAS_LIGHT, TRAFFIC_LIGHT_X, TRAFFIC_LIGHT_Y};
 
 const TAURI_CONF: &str = include_str!("../tauri.conf.json");
 const MAIN_CAPABILITY: &str = include_str!("../capabilities/main.json");
@@ -59,8 +59,8 @@ fn versions_agree_across_cargo_tauri_conf_and_package_json() {
 fn app_identity_and_single_main_window() {
     let conf = json(TAURI_CONF);
 
-    assert_eq!(conf["productName"], "Writedown");
-    assert_eq!(conf["identifier"], "app.writedown.desktop");
+    assert_eq!(conf["productName"], "Backtickle");
+    assert_eq!(conf["identifier"], "app.backtickle.desktop");
     assert_eq!(conf["app"]["withGlobalTauri"], false);
 
     let windows = conf["app"]["windows"].as_array().expect("windows array");
@@ -500,7 +500,7 @@ fn extensions_with_rank(rank: &str) -> BTreeSet<String> {
 }
 
 #[test]
-fn markdown_files_can_have_writedown_as_their_default_app() {
+fn markdown_files_can_have_backtickle_as_their_default_app() {
     let default = extensions_with_rank("Default");
 
     let expected: BTreeSet<String> = ["md", "markdown", "mdown", "mkd", "mkdn"]

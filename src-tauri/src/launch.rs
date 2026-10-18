@@ -13,14 +13,14 @@
 //!   file managers pass a double-clicked document (macOS hands those over as an event instead).
 //!
 //! Environment variables (see `perf.rs` and `trace.rs`):
-//! - `WRITEDOWN_PERF=1`: the frontend reports timing marks, printed to stdout;
-//! - `WRITEDOWN_BENCH=typing` (only together with `WRITEDOWN_PERF=1`): run the typing benchmark;
-//! - `WRITEDOWN_BENCH=search` (only together with `WRITEDOWN_PERF=1`): run the search benchmark in the
-//!   open folder, for the term in `WRITEDOWN_BENCH_QUERY` (default `lantern`);
-//! - `WRITEDOWN_BENCH_EXIT=1` (only in benchmark mode): quit the app when the benchmark is done;
-//! - `WRITEDOWN_TRACE=1`: print one JSON line per backend event (opened files, menu actions,
+//! - `BACKTICKLE_PERF=1`: the frontend reports timing marks, printed to stdout;
+//! - `BACKTICKLE_BENCH=typing` (only together with `BACKTICKLE_PERF=1`): run the typing benchmark;
+//! - `BACKTICKLE_BENCH=search` (only together with `BACKTICKLE_PERF=1`): run the search benchmark in the
+//!   open folder, for the term in `BACKTICKLE_BENCH_QUERY` (default `lantern`);
+//! - `BACKTICKLE_BENCH_EXIT=1` (only in benchmark mode): quit the app when the benchmark is done;
+//! - `BACKTICKLE_TRACE=1`: print one JSON line per backend event (opened files, menu actions,
 //!   close requests, saves, changed recents and settings, the folder of the stores at startup).
-//! - `WRITEDOWN_CONFIG_DIR=<folder>`: keep all stores (recents, settings, document state) in that
+//! - `BACKTICKLE_CONFIG_DIR=<folder>`: keep all stores (recents, settings, document state) in that
 //!   folder instead of the app's own folders, so measurement runs and checks leave the real ones
 //!   alone. The folder is created if it is missing. An empty value counts as not set.
 
@@ -47,18 +47,18 @@ pub struct LaunchConfig {
     pub welcome: bool,
     pub perf: bool,
     pub bench: bool,
-    /// The search benchmark's term (`WRITEDOWN_BENCH=search`), `None` for the typing benchmark.
+    /// The search benchmark's term (`BACKTICKLE_BENCH=search`), `None` for the typing benchmark.
     pub bench_search: Option<String>,
     pub bench_exit: bool,
-    /// `WRITEDOWN_BENCH=pdf` with `WRITEDOWN_BENCH_PDF=<absolute .pdf path>`: export the opened
+    /// `BACKTICKLE_BENCH=pdf` with `BACKTICKLE_BENCH_PDF=<absolute .pdf path>`: export the opened
     /// document to that path once it is ready (real-app check of the PDF export).
     pub bench_pdf: Option<String>,
-    /// `WRITEDOWN_BENCH=recovery-edit`: the page types a fixed sentence into the open (or a new)
+    /// `BACKTICKLE_BENCH=recovery-edit`: the page types a fixed sentence into the open (or a new)
     /// document once ready and waits until its recovery entry is written (real-app check of crash
     /// recovery: the person running it then kills the process).
     pub bench_recovery: bool,
     pub trace: bool,
-    /// `WRITEDOWN_CONFIG_DIR`: the folder for all stores, if one was asked for.
+    /// `BACKTICKLE_CONFIG_DIR`: the folder for all stores, if one was asked for.
     pub config_dir: Option<PathBuf>,
     /// Plain arguments, in order: files to open (see the module comment).
     pub files: Vec<String>,
@@ -110,26 +110,26 @@ impl LaunchConfig {
         }
 
         let is_one = |name: &str| env(name).as_deref() == Some("1");
-        config.perf = is_one("WRITEDOWN_PERF");
-        let bench_kind = env("WRITEDOWN_BENCH");
+        config.perf = is_one("BACKTICKLE_PERF");
+        let bench_kind = env("BACKTICKLE_BENCH");
         config.bench = config.perf && matches!(bench_kind.as_deref(), Some("typing" | "search"));
         if config.bench && bench_kind.as_deref() == Some("search") {
             config.bench_search = Some(
-                env("WRITEDOWN_BENCH_QUERY")
+                env("BACKTICKLE_BENCH_QUERY")
                     .filter(|value| !value.is_empty())
                     .unwrap_or_else(|| "lantern".to_string()),
             );
         }
         if bench_kind.as_deref() == Some("pdf") {
-            config.bench_pdf = env("WRITEDOWN_BENCH_PDF").filter(|value| {
+            config.bench_pdf = env("BACKTICKLE_BENCH_PDF").filter(|value| {
                 std::path::Path::new(value).is_absolute() && value.to_lowercase().ends_with(".pdf")
             });
         }
         config.bench_recovery = bench_kind.as_deref() == Some("recovery-edit");
         config.bench_exit =
-            (config.bench || config.bench_pdf.is_some()) && is_one("WRITEDOWN_BENCH_EXIT");
-        config.trace = is_one("WRITEDOWN_TRACE");
-        config.config_dir = env("WRITEDOWN_CONFIG_DIR")
+            (config.bench || config.bench_pdf.is_some()) && is_one("BACKTICKLE_BENCH_EXIT");
+        config.trace = is_one("BACKTICKLE_TRACE");
+        config.config_dir = env("BACKTICKLE_CONFIG_DIR")
             .filter(|value| !value.is_empty())
             .map(PathBuf::from);
         config
@@ -160,7 +160,7 @@ pub struct LaunchOptions {
     pub bench_search: Option<String>,
     /// The path of the PDF benchmark, or `None`.
     pub bench_pdf: Option<String>,
-    /// True for the crash recovery check (`WRITEDOWN_BENCH=recovery-edit`).
+    /// True for the crash recovery check (`BACKTICKLE_BENCH=recovery-edit`).
     pub bench_recovery: bool,
     /// `--view`: `editor`, `split` or `preview`.
     pub view: Option<String>,
@@ -351,20 +351,20 @@ mod tests {
 
     #[test]
     fn perf_needs_exactly_one() {
-        assert!(parse(&[], &[("WRITEDOWN_PERF", "1")]).perf);
-        assert!(!parse(&[], &[("WRITEDOWN_PERF", "0")]).perf);
-        assert!(!parse(&[], &[("WRITEDOWN_PERF", "true")]).perf);
+        assert!(parse(&[], &[("BACKTICKLE_PERF", "1")]).perf);
+        assert!(!parse(&[], &[("BACKTICKLE_PERF", "0")]).perf);
+        assert!(!parse(&[], &[("BACKTICKLE_PERF", "true")]).perf);
         assert!(!parse(&[], &[]).perf);
     }
 
     #[test]
     fn trace_needs_exactly_one() {
-        assert!(parse(&[], &[("WRITEDOWN_TRACE", "1")]).trace);
-        assert!(!parse(&[], &[("WRITEDOWN_TRACE", "0")]).trace);
-        assert!(!parse(&[], &[("WRITEDOWN_TRACE", "yes")]).trace);
+        assert!(parse(&[], &[("BACKTICKLE_TRACE", "1")]).trace);
+        assert!(!parse(&[], &[("BACKTICKLE_TRACE", "0")]).trace);
+        assert!(!parse(&[], &[("BACKTICKLE_TRACE", "yes")]).trace);
         assert!(!parse(&[], &[]).trace);
         assert!(
-            !parse(&[], &[("WRITEDOWN_PERF", "1")]).trace,
+            !parse(&[], &[("BACKTICKLE_PERF", "1")]).trace,
             "perf does not switch tracing on"
         );
     }
@@ -373,21 +373,24 @@ mod tests {
     fn the_config_folder_comes_from_the_environment_and_empty_means_not_set() {
         assert_eq!(parse(&[], &[]).config_dir, None);
         assert_eq!(
-            parse(&[], &[("WRITEDOWN_CONFIG_DIR", "/tmp/wd-measure")]).config_dir,
+            parse(&[], &[("BACKTICKLE_CONFIG_DIR", "/tmp/wd-measure")]).config_dir,
             Some(PathBuf::from("/tmp/wd-measure"))
         );
-        assert_eq!(parse(&[], &[("WRITEDOWN_CONFIG_DIR", "")]).config_dir, None);
+        assert_eq!(
+            parse(&[], &[("BACKTICKLE_CONFIG_DIR", "")]).config_dir,
+            None
+        );
     }
 
     #[test]
     fn the_benchmark_only_runs_together_with_perf() {
-        let bench = [("WRITEDOWN_BENCH", "typing")];
+        let bench = [("BACKTICKLE_BENCH", "typing")];
         assert!(!parse(&[], &bench).bench);
-        assert!(parse(&[], &[("WRITEDOWN_PERF", "1"), bench[0]]).bench);
+        assert!(parse(&[], &[("BACKTICKLE_PERF", "1"), bench[0]]).bench);
         assert!(
             !parse(
                 &[],
-                &[("WRITEDOWN_PERF", "1"), ("WRITEDOWN_BENCH", "other")]
+                &[("BACKTICKLE_PERF", "1"), ("BACKTICKLE_BENCH", "other")]
             )
             .bench
         );
@@ -395,34 +398,34 @@ mod tests {
 
     #[test]
     fn the_search_benchmark_takes_its_term_from_the_environment() {
-        let perf = ("WRITEDOWN_PERF", "1");
-        let search = ("WRITEDOWN_BENCH", "search");
+        let perf = ("BACKTICKLE_PERF", "1");
+        let search = ("BACKTICKLE_BENCH", "search");
         assert_eq!(parse(&[], &[search]).bench_search, None);
         let default = parse(&[], &[perf, search]);
         assert!(default.bench);
         assert_eq!(default.bench_search.as_deref(), Some("lantern"));
-        let named = parse(&[], &[perf, search, ("WRITEDOWN_BENCH_QUERY", "beacon")]);
+        let named = parse(&[], &[perf, search, ("BACKTICKLE_BENCH_QUERY", "beacon")]);
         assert_eq!(named.bench_search.as_deref(), Some("beacon"));
-        let empty = parse(&[], &[perf, search, ("WRITEDOWN_BENCH_QUERY", "")]);
+        let empty = parse(&[], &[perf, search, ("BACKTICKLE_BENCH_QUERY", "")]);
         assert_eq!(empty.bench_search.as_deref(), Some("lantern"));
         // The typing benchmark has no search term, and the exit switch works for both.
         let typing = parse(
             &[],
             &[
                 perf,
-                ("WRITEDOWN_BENCH", "typing"),
-                ("WRITEDOWN_BENCH_QUERY", "x"),
+                ("BACKTICKLE_BENCH", "typing"),
+                ("BACKTICKLE_BENCH_QUERY", "x"),
             ],
         );
         assert!(typing.bench && typing.bench_search.is_none());
-        assert!(parse(&[], &[perf, search, ("WRITEDOWN_BENCH_EXIT", "1")]).bench_exit);
+        assert!(parse(&[], &[perf, search, ("BACKTICKLE_BENCH_EXIT", "1")]).bench_exit);
     }
 
     #[test]
     fn the_pdf_benchmark_needs_an_absolute_pdf_path_and_no_perf() {
-        let kind = ("WRITEDOWN_BENCH", "pdf");
+        let kind = ("BACKTICKLE_BENCH", "pdf");
         assert_eq!(parse(&[], &[kind]).bench_pdf, None);
-        let path = |value| parse(&[], &[kind, ("WRITEDOWN_BENCH_PDF", value)]).bench_pdf;
+        let path = |value| parse(&[], &[kind, ("BACKTICKLE_BENCH_PDF", value)]).bench_pdf;
         let absolute = if cfg!(windows) {
             "C:/tmp/a.pdf"
         } else {
@@ -434,25 +437,29 @@ mod tests {
         let other = parse(
             &[],
             &[
-                ("WRITEDOWN_BENCH", "typing"),
-                ("WRITEDOWN_BENCH_PDF", "/a.pdf"),
+                ("BACKTICKLE_BENCH", "typing"),
+                ("BACKTICKLE_BENCH_PDF", "/a.pdf"),
             ],
         );
         assert_eq!(other.bench_pdf, None);
         let exit = [
             kind,
-            ("WRITEDOWN_BENCH_PDF", absolute),
-            ("WRITEDOWN_BENCH_EXIT", "1"),
+            ("BACKTICKLE_BENCH_PDF", absolute),
+            ("BACKTICKLE_BENCH_EXIT", "1"),
         ];
         assert!(parse(&[], &exit).bench_exit);
     }
 
     #[test]
     fn exit_after_the_benchmark_needs_the_benchmark() {
-        let exit = ("WRITEDOWN_BENCH_EXIT", "1");
+        let exit = ("BACKTICKLE_BENCH_EXIT", "1");
         assert!(!parse(&[], &[exit]).bench_exit);
-        assert!(!parse(&[], &[("WRITEDOWN_PERF", "1"), exit]).bench_exit);
-        let all = [("WRITEDOWN_PERF", "1"), ("WRITEDOWN_BENCH", "typing"), exit];
+        assert!(!parse(&[], &[("BACKTICKLE_PERF", "1"), exit]).bench_exit);
+        let all = [
+            ("BACKTICKLE_PERF", "1"),
+            ("BACKTICKLE_BENCH", "typing"),
+            exit,
+        ];
         assert!(parse(&[], &all).bench_exit);
     }
 
@@ -469,7 +476,7 @@ mod tests {
     fn launch_options_serialize_with_the_names_the_frontend_expects() {
         let config = parse(
             &["--welcome", "--view", "split"],
-            &[("WRITEDOWN_PERF", "1")],
+            &[("BACKTICKLE_PERF", "1")],
         );
         let state = LaunchState::new(&config, Some("/a.md".into()));
         let json = serde_json::to_value(&state.options).expect("serializes");
@@ -504,7 +511,7 @@ mod tests {
 
     #[test]
     fn the_state_carries_the_switches_only_rust_needs() {
-        let state = LaunchState::new(&parse(&["--prefs"], &[("WRITEDOWN_TRACE", "1")]), None);
+        let state = LaunchState::new(&parse(&["--prefs"], &[("BACKTICKLE_TRACE", "1")]), None);
 
         assert!(state.prefs && state.trace && !state.bench_exit);
     }

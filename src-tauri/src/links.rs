@@ -156,7 +156,7 @@ fn resolve_from_folder(folder: Option<&Path>, href: &str) -> PlatformResult<Path
     })
 }
 
-/// Like `resolve`, and the target must be a document Writedown opens: a regular file with one
+/// Like `resolve`, and the target must be a document Backtickle opens: a regular file with one
 /// of the document extensions (judged on the resolved path, so a link named `x.md` that points
 /// to something else does not count). Otherwise `not-markdown`.
 pub fn resolve_document(from: &Path, href: &str) -> PlatformResult<PathBuf> {
@@ -167,7 +167,7 @@ pub fn resolve_document(from: &Path, href: &str) -> PlatformResult<PathBuf> {
     } else {
         Err(PlatformError::new(
             ErrorCode::NotMarkdown,
-            "This link points to something Writedown does not open as a document.",
+            "This link points to something Backtickle does not open as a document.",
         ))
     }
 }
@@ -588,7 +588,7 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn a_markdown_file_with_the_executable_bit_is_still_only_read_as_text() {
-        // Files from FAT or exFAT volumes often look executable. Nothing in Writedown runs a
+        // Files from FAT or exFAT volumes often look executable. Nothing in Backtickle runs a
         // file, and the type is judged by the extension, so such a document opens.
         let (dir, index) = workspace();
         let path = dir.write("odd.md", b"# Odd");

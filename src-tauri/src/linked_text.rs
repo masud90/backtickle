@@ -77,7 +77,7 @@ fn wrong_kind(purpose: Purpose) -> PlatformError {
         ),
         Purpose::Include | Purpose::Embed => PlatformError::new(
             ErrorCode::NotMarkdown,
-            "This link points to something Writedown does not read as a document.",
+            "This link points to something Backtickle does not read as a document.",
         ),
     }
 }

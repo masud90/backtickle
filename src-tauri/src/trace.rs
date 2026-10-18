@@ -1,4 +1,4 @@
-//! `WRITEDOWN_TRACE=1`: one JSON line on stdout per backend event, so the real app can be
+//! `BACKTICKLE_TRACE=1`: one JSON line on stdout per backend event, so the real app can be
 //! checked without driving its interface.
 //!
 //! ```text

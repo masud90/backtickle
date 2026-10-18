@@ -70,8 +70,8 @@ const rowNames = (page: Page) =>
   page
     .getByTestId('files-row')
     .evaluateAll((els) => els.map((el) => el.getAttribute('data-path')?.split('/folder/')[1]));
-const mock = <T>(page: Page, read: (m: NonNullable<Window['__WRITEDOWN_MOCK__']>) => T) =>
-  page.evaluate(`(${read.toString()})(window.__WRITEDOWN_MOCK__)`) as Promise<T>;
+const mock = <T>(page: Page, read: (m: NonNullable<Window['__BACKTICKLE_MOCK__']>) => T) =>
+  page.evaluate(`(${read.toString()})(window.__BACKTICKLE_MOCK__)`) as Promise<T>;
 
 test.describe('C11 Open Folder', () => {
   test('the welcome button opens the folder in the Files tab: order and filters', async ({
@@ -106,8 +106,8 @@ test.describe('C11 Open Folder', () => {
     await expect(page.getByTestId('files-empty')).toContainText('No folder open');
     await page.getByTestId('files-open-folder').click();
     await expect(page.getByTestId('files-tree')).toBeVisible();
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.setFolderAnswers(null));
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.menuAction('open-folder'));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.setFolderAnswers(null));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.menuAction('open-folder'));
     // Cancelled: the folder stays.
     await expect(page.getByTestId('files-tree')).toBeVisible();
     expect(await mock(page, (m) => m.folderDialogs)).toEqual(['open', 'open']);
@@ -175,7 +175,7 @@ test.describe('C12 Opening and the active row', () => {
     await page.keyboard.press('Enter');
     await expect(page.getByTestId('document-name')).toHaveText('c.mkdn');
     await page.evaluate(
-      (path) => window.__WRITEDOWN_MOCK__?.openFiles([path]),
+      (path) => window.__BACKTICKLE_MOCK__?.openFiles([path]),
       p('sub/deep/note.markdown'),
     );
     await expect(row(page, 'sub/deep/note.markdown')).toHaveAttribute('aria-current', 'true');
@@ -295,7 +295,7 @@ test.describe('C13 Operations', () => {
     await expect(page.getByTestId('document-name')).toHaveText('now.qmd');
     await expect(page.getByTestId('flavor-pill')).toContainText('Quarto');
     // Recents follow: close the tab and read the welcome screen.
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.menuAction('close-tab'));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.menuAction('close-tab'));
     await expect(page.getByTestId('recent-name').first()).toHaveText('now.qmd');
     await expect(page.getByTestId('recent-name')).toHaveCount(1);
   });
@@ -328,7 +328,7 @@ test.describe('C13 Operations', () => {
     await start(page, { ask: true });
     await openFolderFromWelcome(page);
     await row(page, 'a.mdown').click();
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.menuAction('view-editor'));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.menuAction('view-editor'));
     await editor(page).click();
     await page.keyboard.type('more');
     await expect(page.getByTestId('dirty-dot')).toBeVisible();
@@ -428,23 +428,23 @@ test.describe('C15 Folder changes', () => {
     await openFolderFromWelcome(page);
     await row(page, 'sub').click();
     await page.evaluate((path) => {
-      window.__WRITEDOWN_MOCK__?.externallyCreate(path, '# new\n');
-      window.__WRITEDOWN_MOCK__?.fileChanged([{ path, kind: 'created', scope: 'folder' }]);
+      window.__BACKTICKLE_MOCK__?.externallyCreate(path, '# new\n');
+      window.__BACKTICKLE_MOCK__?.fileChanged([{ path, kind: 'created', scope: 'folder' }]);
     }, p('sub/added.md'));
     await expect(row(page, 'sub/added.md')).toBeVisible();
     await page.evaluate((path) => {
-      window.__WRITEDOWN_MOCK__?.externallyCreate(path, '# top\n');
-      window.__WRITEDOWN_MOCK__?.fileChanged([{ path, kind: 'created', scope: 'folder' }]);
+      window.__BACKTICKLE_MOCK__?.externallyCreate(path, '# top\n');
+      window.__BACKTICKLE_MOCK__?.fileChanged([{ path, kind: 'created', scope: 'folder' }]);
     }, p('top.md'));
     await expect(row(page, 'top.md')).toBeVisible();
     await page.evaluate((path) => {
-      window.__WRITEDOWN_MOCK__?.externallyRemove(path);
-      window.__WRITEDOWN_MOCK__?.fileChanged([{ path, kind: 'removed', scope: 'folder' }]);
+      window.__BACKTICKLE_MOCK__?.externallyRemove(path);
+      window.__BACKTICKLE_MOCK__?.fileChanged([{ path, kind: 'removed', scope: 'folder' }]);
     }, p('sub/added.md'));
     await expect(row(page, 'sub/added.md')).toHaveCount(0);
     await page.evaluate((path) => {
-      window.__WRITEDOWN_MOCK__?.externallyRemove(path);
-      window.__WRITEDOWN_MOCK__?.fileChanged([{ path, kind: 'removed', scope: 'folder' }]);
+      window.__BACKTICKLE_MOCK__?.externallyRemove(path);
+      window.__BACKTICKLE_MOCK__?.fileChanged([{ path, kind: 'removed', scope: 'folder' }]);
     }, p('sub'));
     await expect(row(page, 'sub')).toHaveCount(0);
     await expect(row(page, 'sub/deep')).toHaveCount(0);
@@ -454,8 +454,8 @@ test.describe('C15 Folder changes', () => {
     await start(page);
     await openFolderFromWelcome(page);
     await page.evaluate((path) => {
-      window.__WRITEDOWN_MOCK__?.externallyCreate(path, '# x\n');
-      window.__WRITEDOWN_MOCK__?.fileChanged([{ path, kind: 'created', scope: 'document' }]);
+      window.__BACKTICKLE_MOCK__?.externallyCreate(path, '# x\n');
+      window.__BACKTICKLE_MOCK__?.fileChanged([{ path, kind: 'created', scope: 'document' }]);
     }, p('quiet.md'));
     await page.waitForTimeout(150);
     await expect(row(page, 'quiet.md')).toHaveCount(0);
@@ -489,7 +489,7 @@ test.describe('C16 Title menu and File menu', () => {
 
   test('the rename sheet cancels with Escape', async ({ page }) => {
     await openDocument(page);
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.menuAction('rename'));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.menuAction('rename'));
     await expect(page.getByTestId('rename-sheet')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('rename-sheet')).toHaveCount(0);
@@ -498,7 +498,7 @@ test.describe('C16 Title menu and File menu', () => {
 
   test('Move To… moves the file and the tab follows', async ({ page }) => {
     await openDocument(page);
-    await page.evaluate((folder) => window.__WRITEDOWN_MOCK__?.setFolderAnswers(folder), p('sub'));
+    await page.evaluate((folder) => window.__BACKTICKLE_MOCK__?.setFolderAnswers(folder), p('sub'));
     await page.getByTestId('document-menu-button').click();
     await page.getByRole('menuitem', { name: 'Move To…' }).click();
     await expect(row(page, 'a.mdown')).toHaveCount(0);
@@ -509,7 +509,7 @@ test.describe('C16 Title menu and File menu', () => {
       to: p('sub/a.mdown'),
     });
     await expect(page.getByTestId('document-name')).toHaveText('a.mdown');
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.menuAction('reveal-in-finder'));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.menuAction('reveal-in-finder'));
     await expect.poll(() => mock(page, (m) => m.reveals.at(-1))).toBe(p('sub/a.mdown'));
   });
 
@@ -523,9 +523,9 @@ test.describe('C16 Title menu and File menu', () => {
 
   test('Revert to Saved asks only when dirty, then restores the file', async ({ page }) => {
     await openDocument(page, 'a.mdown', { ask: [true, false] });
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.menuAction('view-editor'));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.menuAction('view-editor'));
     // Clean: no question.
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.menuAction('revert'));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.menuAction('revert'));
     await expect(page.getByTestId('document-name')).toHaveText('a.mdown');
     expect(await mock(page, (m) => m.asks)).toHaveLength(0);
     await editor(page).click();
@@ -541,7 +541,7 @@ test.describe('C16 Title menu and File menu', () => {
     await editor(page).click();
     await page.keyboard.press('ControlOrMeta+End');
     await page.keyboard.type('KEEP');
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.menuAction('revert'));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.menuAction('revert'));
     await expect(editor(page)).toContainText('KEEP');
     await expect(page.getByTestId('dirty-dot')).toBeVisible();
   });

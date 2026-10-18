@@ -11,8 +11,8 @@ const A = `${HOME}/a.md`;
 const B = `${HOME}/b.md`;
 const FILES = { [A]: '# Alpha\n\nfirst\n', [B]: '# Beta\n\nsecond\n' };
 
-const mock = <T>(page: Page, read: (m: NonNullable<Window['__WRITEDOWN_MOCK__']>) => T) =>
-  page.evaluate(`(${read.toString()})(window.__WRITEDOWN_MOCK__)`) as Promise<T>;
+const mock = <T>(page: Page, read: (m: NonNullable<Window['__BACKTICKLE_MOCK__']>) => T) =>
+  page.evaluate(`(${read.toString()})(window.__BACKTICKLE_MOCK__)`) as Promise<T>;
 const entries = (page: Page) => mock(page, (m) => m.recoveryEntries);
 const firstEntry = async (page: Page) => {
   const [entry] = await entries(page);

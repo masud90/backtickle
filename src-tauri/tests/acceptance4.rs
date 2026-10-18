@@ -2,12 +2,12 @@
 //! configuration files. Expected values come from
 //! tests/fixtures/settings-defaults.json, not from the code under test.
 
+use backtickle_lib::settings::{Settings, SettingsStore};
 use serde_json::{Value, json};
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use writedown_lib::settings::{Settings, SettingsStore};
 
 const PREFERENCES_CAPABILITY: &str = include_str!("../capabilities/preferences.json");
 const MAIN_CAPABILITY: &str = include_str!("../capabilities/main.json");

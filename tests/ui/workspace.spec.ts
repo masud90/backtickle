@@ -5,7 +5,7 @@ import { editor, fixture, HOME, menu, preview, seedMock } from './helpers';
 
 /** Replaces the answers of the mock's dialogs while the page runs. */
 async function seedAnswers(page: Page, answers: Record<string, unknown>) {
-  await page.evaluate((value) => window.__WRITEDOWN_MOCK__?.setAnswers(value as never), answers);
+  await page.evaluate((value) => window.__BACKTICKLE_MOCK__?.setAnswers(value as never), answers);
 }
 
 const SAMPLE_BYTES = readFileSync(
@@ -227,7 +227,7 @@ test.describe('no document open (--welcome)', () => {
     });
     await page.goto('/');
 
-    await expect(page.getByTestId('welcome')).toContainText('Welcome to Writedown');
+    await expect(page.getByTestId('welcome')).toContainText('Welcome to Backtickle');
     await expect(page.getByTestId('workspace')).toHaveCount(0);
     await expect(page.locator('.cm-editor')).toHaveCount(0);
     await expect(page.getByTestId('document-name')).toHaveCount(0);
@@ -441,7 +441,7 @@ test.describe('security', () => {
 
     await preview(page).getByRole('link', { name: 'Example', exact: true }).click();
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.externalUrls))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.externalUrls))
       .toEqual(['https://example.com/page']);
 
     expect(page.url()).toBe(before);
@@ -471,11 +471,11 @@ test.describe('measurement hooks', () => {
     await openSampleAndWait(page, { perf: true });
 
     await expect
-      .poll(() => page.evaluate(() => (window.__WRITEDOWN_MOCK_MARKS__ ?? []).map((m) => m.name)))
+      .poll(() => page.evaluate(() => (window.__BACKTICKLE_MOCK_MARKS__ ?? []).map((m) => m.name)))
       .toEqual(['frontend-init', 'doc-loaded', 'first-preview-painted', 'ready']);
 
     const times = await page.evaluate(() =>
-      (window.__WRITEDOWN_MOCK_MARKS__ ?? []).map((m) => m.ms),
+      (window.__BACKTICKLE_MOCK_MARKS__ ?? []).map((m) => m.ms),
     );
     expect([...times].sort((a, b) => a - b)).toEqual(times);
   });
@@ -485,7 +485,7 @@ test.describe('measurement hooks', () => {
     await page.waitForTimeout(300);
 
     const names = await page.evaluate(() =>
-      (window.__WRITEDOWN_MOCK_MARKS__ ?? []).map((m) => m.name),
+      (window.__BACKTICKLE_MOCK_MARKS__ ?? []).map((m) => m.name),
     );
     expect(names).toEqual(['frontend-init']);
   });
@@ -495,7 +495,7 @@ test.describe('measurement hooks', () => {
     await page.goto('/');
 
     await expect
-      .poll(() => page.evaluate(() => (window.__WRITEDOWN_MOCK_MARKS__ ?? []).map((m) => m.name)))
+      .poll(() => page.evaluate(() => (window.__BACKTICKLE_MOCK_MARKS__ ?? []).map((m) => m.name)))
       .toEqual(['frontend-init', 'ready']);
   });
 
@@ -521,7 +521,7 @@ test.describe('measurement hooks', () => {
     await page.waitForTimeout(500);
     await expect(preview(page).locator('h1')).toHaveCount(0);
     const early = await page.evaluate(() =>
-      (window.__WRITEDOWN_MOCK_MARKS__ ?? []).map((m) => m.name),
+      (window.__BACKTICKLE_MOCK_MARKS__ ?? []).map((m) => m.name),
     );
     expect(early).toEqual(['frontend-init', 'page-hidden', 'doc-loaded']);
 
@@ -533,7 +533,7 @@ test.describe('measurement hooks', () => {
       preview(page).getByRole('heading', { level: 1, name: SAMPLE_TITLE }),
     ).toBeVisible();
     await expect
-      .poll(() => page.evaluate(() => (window.__WRITEDOWN_MOCK_MARKS__ ?? []).map((m) => m.name)))
+      .poll(() => page.evaluate(() => (window.__BACKTICKLE_MOCK_MARKS__ ?? []).map((m) => m.name)))
       .toEqual([
         'frontend-init',
         'page-hidden',
@@ -552,13 +552,13 @@ test.describe('measurement hooks', () => {
     await page.goto('/');
 
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK_BENCH__ !== undefined), {
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK_BENCH__ !== undefined), {
         timeout: 40_000,
         intervals: [500],
       })
       .toBe(true);
 
-    const report = await page.evaluate(() => window.__WRITEDOWN_MOCK_BENCH__);
+    const report = await page.evaluate(() => window.__BACKTICKLE_MOCK_BENCH__);
     expect(report?.renderMs).toHaveLength(60);
     expect(report?.e2eMs).toHaveLength(60);
     expect(report?.docBytes).toBe(SAMPLE_BYTES);

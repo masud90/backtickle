@@ -2,8 +2,8 @@
 title: Quarto Guide
 tags: [markdown, quarto, reference]
 version: 1.0.0
-subtitle: Quarto and R Markdown syntax in Writedown
-author: Writedown
+subtitle: Quarto and R Markdown syntax in Backtickle
+author: Backtickle
 date: 2026-10-06
 number-sections: true
 link-citations: true
@@ -37,11 +37,11 @@ references:
 
 # Quarto Guide
 
-This guide shows the Quarto and R Markdown syntax supported by Writedown. Each feature has one section: a short description, the source in a code block, and the rendered result directly below it. Quarto documents also accept everything described in the Pandoc guide (footnotes, definition lists, fenced divs, tables, attributes, math and more); this guide covers what Quarto users meet most.
+This guide shows the Quarto and R Markdown syntax supported by Backtickle. Each feature has one section: a short description, the source in a code block, and the rendered result directly below it. Quarto documents also accept everything described in the Pandoc guide (footnotes, definition lists, fenced divs, tables, attributes, math and more); this guide covers what Quarto users meet most.
 
 ## Code is never run
 
-Writedown shows code chunks, inline code and figure chunks as formatted source. It never starts R, Python, Julia or any other program, so chunk output (tables, plots, printed values) is never shown. This keeps the app safe and light, and it means a document cannot do anything by being opened. To see computed output, render the document with Quarto or R Markdown outside Writedown.
+Backtickle shows code chunks, inline code and figure chunks as formatted source. It never starts R, Python, Julia or any other program, so chunk output (tables, plots, printed values) is never shown. This keeps the app safe and light, and it means a document cannot do anything by being opened. To see computed output, render the document with Quarto or R Markdown outside Backtickle.
 
 ## Citations
 
@@ -229,7 +229,7 @@ The wide column, with more room for text.
 
 ## Shortcodes
 
-Shortcodes are written between `{{<` and `>}}`. Writedown understands `pagebreak`, `meta`, `kbd` and `include`; any other shortcode is shown as code. An `include` of a file that does not exist shows a muted "not found" card (this guide has no folder).
+Shortcodes are written between `{{<` and `>}}`. Backtickle understands `pagebreak`, `meta`, `kbd` and `include`; any other shortcode is shown as code. An `include` of a file that does not exist shows a muted "not found" card (this guide has no folder).
 
 ```markdown
 {{< kbd Cmd-S >}} saves the file. The title is {{< meta title >}}.
@@ -331,7 +331,7 @@ The trend is plotted in @fig-trend.
 
 ## Mermaid diagrams
 
-A `{mermaid}` chunk draws a diagram from text. The diagram is drawn by Writedown itself, not by running code.
+A `{mermaid}` chunk draws a diagram from text. The diagram is drawn by Backtickle itself, not by running code.
 
 ````markdown
 ```{mermaid}

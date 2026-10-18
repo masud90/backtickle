@@ -19,7 +19,7 @@ try {
   document.body.dataset.platform = platform.kind;
   mount(Prefs, { target, props: { platform } });
   // For the measurement harness: this window is drawn and at rest. Does nothing unless the app
-  // runs with WRITEDOWN_PERF=1.
+  // runs with BACKTICKLE_PERF=1.
   void whenSettled().then(() => platform.perfMark('prefs-ready'));
 } catch (error) {
   console.error(error);

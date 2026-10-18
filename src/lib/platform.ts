@@ -41,15 +41,15 @@ export interface LaunchOptions {
   openPath: string | null;
   /** `--welcome`: start without a document. */
   welcome: boolean;
-  /** `WRITEDOWN_PERF=1`: report timing marks through `perfMark`. */
+  /** `BACKTICKLE_PERF=1`: report timing marks through `perfMark`. */
   perf: boolean;
-  /** `WRITEDOWN_BENCH=typing` together with `perf`: run the typing benchmark after startup. */
+  /** `BACKTICKLE_BENCH=typing` together with `perf`: run the typing benchmark after startup. */
   bench: boolean;
-  /** `WRITEDOWN_BENCH=search`: the term the search benchmark looks for; otherwise null or absent. */
+  /** `BACKTICKLE_BENCH=search`: the term the search benchmark looks for; otherwise null or absent. */
   benchSearch?: string | null;
-  /** `WRITEDOWN_BENCH=pdf`: the path the opened document is exported to as a PDF once ready. */
+  /** `BACKTICKLE_BENCH=pdf`: the path the opened document is exported to as a PDF once ready. */
   benchPdf?: string | null;
-  /** `WRITEDOWN_BENCH=recovery-edit`: type a fixed sentence after startup and keep the recovery entry. */
+  /** `BACKTICKLE_BENCH=recovery-edit`: type a fixed sentence after startup and keep the recovery entry. */
   benchRecovery?: boolean;
   /**
    * `--view editor|split|preview`: the view mode of the document opened with `--open`. Both
@@ -669,7 +669,7 @@ export interface Platform {
   openFileDialog(): Promise<string | null>;
   /** Reads a file that was chosen with the dialog or `--open`. Anything else is refused. */
   readTextFile(path: string): Promise<TextFile>;
-  /** Reports a startup timing mark. Does nothing unless the app runs with `WRITEDOWN_PERF=1`. */
+  /** Reports a startup timing mark. Does nothing unless the app runs with `BACKTICKLE_PERF=1`. */
   perfMark(name: string): void;
   /** Reports the typing benchmark result (only has an effect in benchmark mode). */
   benchReport(report: BenchReport): Promise<void>;
@@ -796,11 +796,11 @@ export interface Platform {
   chooseDefaultFolder(): Promise<string | null>;
   /**
    * Preferences: the current default app for Markdown, read when Preferences opens.
-   * `isWritedown` is true when it is this app; `appName` is null when macOS names none.
+   * `isBacktickle` is true when it is this app; `appName` is null when macOS names none.
    */
-  defaultMarkdownApp(): Promise<{ isWritedown: boolean; appName: string | null }>;
+  defaultMarkdownApp(): Promise<{ isBacktickle: boolean; appName: string | null }>;
   /**
-   * Preferences: makes Writedown the default app for Markdown. macOS shows its own confirmation;
+   * Preferences: makes Backtickle the default app for Markdown. macOS shows its own confirmation;
    * resolves when the system reports the outcome, rejects with `io` when it did not change.
    */
   makeDefaultMarkdownApp(): Promise<void>;
@@ -820,7 +820,7 @@ export interface Platform {
   exportPdf(path: string): Promise<void>;
   /**
    * File > Render with Quarto: opens the saved .qmd or .Rmd document in RStudio, or runs the render
-   * in Terminal. Resolves to where it went. Writedown runs nothing itself.
+   * in Terminal. Resolves to where it went. Backtickle runs nothing itself.
    */
   renderWithQuarto(path: string): Promise<'rstudio' | 'terminal'>;
 
@@ -1032,7 +1032,7 @@ function createTauriPlatform(): Platform {
     choosePandoc: () => call<string | null>('choose_pandoc'),
     chooseDefaultFolder: () => call<string | null>('choose_default_folder'),
     defaultMarkdownApp: () =>
-      call<{ isWritedown: boolean; appName: string | null }>('default_markdown_app'),
+      call<{ isBacktickle: boolean; appName: string | null }>('default_markdown_app'),
     makeDefaultMarkdownApp: () => call<void>('make_default_markdown_app'),
     exportDocx: (request) => call<void>('export_docx', { request }),
     pandocPreview: (request) => call<string>('pandoc_preview', { request }),

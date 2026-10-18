@@ -2,12 +2,12 @@
 title: Markdown Guide
 tags: [markdown, gfm, reference]
 version: 1.0.0
-author: Writedown
+author: Backtickle
 ---
 
 # Markdown Guide
 
-This guide shows you the Markdown syntax supported by Writedown for GitHub Flavored Markdown (GFM). Each feature has one section: a short description, the Markdown source in a code block, and the rendered result directly below it.
+This guide shows you the Markdown syntax supported by Backtickle for GitHub Flavored Markdown (GFM). Each feature has one section: a short description, the Markdown source in a code block, and the rendered result directly below it.
 
 ## Headings
 

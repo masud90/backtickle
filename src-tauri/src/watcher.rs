@@ -488,7 +488,7 @@ impl Watcher {
         }));
         let thread_shared = Arc::clone(&shared);
         std::thread::Builder::new()
-            .name("writedown-watcher".to_owned())
+            .name("backtickle-watcher".to_owned())
             .spawn(move || worker(events, thread_shared, own, sink))
             .map_err(notify::Error::io)?;
         Ok(Watcher {

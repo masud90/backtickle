@@ -195,14 +195,14 @@ test.describe('Graphviz export', () => {
     await menu(page, 'export-html');
     await expect
       .poll(
-        () => page.evaluate(() => window.__WRITEDOWN_MOCK__?.exports.at(-1)?.contents ?? null),
+        () => page.evaluate(() => window.__BACKTICKLE_MOCK__?.exports.at(-1)?.contents ?? null),
         {
           timeout: 30_000,
         },
       )
       .not.toBeNull();
     const html = (await page.evaluate(
-      () => window.__WRITEDOWN_MOCK__?.exports.at(-1)?.contents ?? '',
+      () => window.__BACKTICKLE_MOCK__?.exports.at(-1)?.contents ?? '',
     )) as string;
     expect(html).toContain('<svg');
     expect(html).toContain('shortcut');

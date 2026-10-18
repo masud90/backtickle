@@ -96,7 +96,7 @@ test('D22 a setting change re-renders each open document once and keeps the scro
   await page.goto('/');
   await expect(preview(page).locator('p').first()).toContainText('alpha');
   // A second tab, opened as the shell does on a file open.
-  await page.evaluate(() => window.__WRITEDOWN_MOCK__?.openFiles(['/Users/mock/b.md']));
+  await page.evaluate(() => window.__BACKTICKLE_MOCK__?.openFiles(['/Users/mock/b.md']));
   await expect(page.getByTestId('document-name')).toHaveText('b.md');
   await page.getByTestId('tab').first().click();
   await expect(page.getByTestId('document-name')).toHaveText('a.md');

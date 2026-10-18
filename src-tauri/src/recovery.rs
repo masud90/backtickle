@@ -1,5 +1,5 @@
 //! Crash recovery: the text of documents with unsaved changes, kept in
-//! `recovery/` in the app's data folder (the folder `WRITEDOWN_CONFIG_DIR` points to in tests).
+//! `recovery/` in the app's data folder (the folder `BACKTICKLE_CONFIG_DIR` points to in tests).
 //!
 //! One file per document, named by a random id the page chose (`<id>.json`, the id is checked
 //! here: letters, digits and `-` only, so it cannot name another folder). The folder is mode 0700

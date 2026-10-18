@@ -26,7 +26,7 @@ for (const autoSave of [false, true]) {
     // The welcome screen means the shell listens for opened files.
     await expect(page.getByTestId('recent-empty')).toBeVisible();
     for (const path of Object.keys(FILES)) {
-      await page.evaluate((p) => window.__WRITEDOWN_MOCK__?.openFiles([p]), path);
+      await page.evaluate((p) => window.__BACKTICKLE_MOCK__?.openFiles([p]), path);
       await expect(preview(page)).toContainText(
         path.endsWith('a.md') ? 'Alpha' : path.endsWith('b.md') ? 'Beta' : 'Gamma',
       );

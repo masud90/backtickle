@@ -1,6 +1,6 @@
 //! The path allowlist.
 //!
-//! The web view can ask Rust to read or save a file, but only a file the user gave to Writedown
+//! The web view can ask Rust to read or save a file, but only a file the user gave to Backtickle
 //! in this session. Grants come from Rust code only:
 //!
 //! - the open and save dialogs (which Rust shows itself) and the `--open` argument;

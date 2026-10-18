@@ -277,7 +277,7 @@ export function refusal(combo: Combo): string | null {
   if (!isMac()) return windowsRefusal(combo);
   const canonical = formatShortcut(combo);
   if (RESERVED_SHORTCUTS.includes(canonical)) {
-    return `${canonical} is reserved by macOS and Writedown.`;
+    return `${canonical} is reserved by macOS and Backtickle.`;
   }
   if (!combo.cmd && !combo.ctrl && !combo.alt && !/^F\d+$/.test(combo.key)) {
     return 'A shortcut needs ⌘, ⌃ or ⌥ with a key, or a function key.';
@@ -291,7 +291,7 @@ function windowsRefusal(combo: Combo): string | null {
   if (keys === null) return `This combination cannot be used on ${linux ? 'Linux' : 'Windows'}.`;
   const label = formatWindowsKeys(keys);
   if (RESERVED_WINDOWS_SHORTCUTS.includes(label)) {
-    return `${label} is reserved by ${linux ? 'the system' : 'Windows'} and Writedown.`;
+    return `${label} is reserved by ${linux ? 'the system' : 'Windows'} and Backtickle.`;
   }
   if (!keys.ctrl && !keys.alt && !/^F\d+$/.test(keys.key)) {
     return 'A shortcut needs Ctrl or Alt with a key, or a function key.';

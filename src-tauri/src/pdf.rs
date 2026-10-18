@@ -31,7 +31,7 @@ pub fn temp_path_for(target: &Path) -> PathBuf {
         .file_stem()
         .map(|stem| stem.to_string_lossy().into_owned())
         .unwrap_or_default();
-    let hidden = format!(".{name}.writedown-{}.pdf", std::process::id());
+    let hidden = format!(".{name}.backtickle-{}.pdf", std::process::id());
     target.with_file_name(hidden)
 }
 
@@ -523,7 +523,7 @@ mod tests {
         let temp = temp_path_for(Path::new("/notes/Guide.pdf"));
         assert_eq!(temp.parent(), Some(Path::new("/notes")));
         let name = temp.file_name().unwrap().to_string_lossy().into_owned();
-        assert!(name.starts_with(".Guide.writedown-"), "{name}");
+        assert!(name.starts_with(".Guide.backtickle-"), "{name}");
         assert!(name.ends_with(".pdf"), "{name}");
         assert_ne!(temp, Path::new("/notes/Guide.pdf"));
     }
@@ -580,7 +580,7 @@ mod tests {
         let target = dir.join("a.pdf");
         std::fs::create_dir(&target).unwrap();
         std::fs::write(target.join("x"), b"x").unwrap();
-        let temp = dir.join(".a.writedown-1.pdf");
+        let temp = dir.join(".a.backtickle-1.pdf");
         std::fs::write(&temp, b"%PDF").unwrap();
 
         assert!(finish(&temp, &target).is_err());

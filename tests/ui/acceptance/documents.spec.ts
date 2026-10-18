@@ -58,7 +58,7 @@ test('A01 Welcome screen lists existing recents newest first (at most 8, missing
   ];
   await launch(page, { seed: { files, recents } });
 
-  await expect(page.getByRole('heading', { name: 'Welcome to Writedown' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Welcome to Backtickle' })).toBeVisible();
   await expect(page.getByTestId('welcome-new')).toBeVisible();
   await expect(page.getByTestId('welcome-open')).toBeVisible();
 
@@ -260,8 +260,8 @@ test('A06 Save with modified-externally asks; Cancel keeps the document dirty; O
   // Someone else changes the file on disk.
   await page.evaluate((p) => {
     (
-      window as unknown as { __WRITEDOWN_MOCK__: { externallyModify(p: string): void } }
-    ).__WRITEDOWN_MOCK__.externallyModify(p);
+      window as unknown as { __BACKTICKLE_MOCK__: { externallyModify(p: string): void } }
+    ).__BACKTICKLE_MOCK__.externallyModify(p);
   }, path);
 
   await menu(page, 'save');
@@ -427,7 +427,7 @@ test('A08 Closing the window walks the dirty tabs in tab order; Cancel stops the
 
   // A second request walks the rest (gamma, delta) and finishes.
   await page.evaluate(() =>
-    (window as unknown as { __WRITEDOWN_MOCK__: { reset(): void } }).__WRITEDOWN_MOCK__.reset(),
+    (window as unknown as { __BACKTICKLE_MOCK__: { reset(): void } }).__BACKTICKLE_MOCK__.reset(),
   );
   await setAnswers(page, { confirmUnsaved: ['discard', 'discard'] });
   await mockCallClose(page, 'window');
@@ -439,8 +439,8 @@ test('A08 Closing the window walks the dirty tabs in tab order; Cancel stops the
 async function mockCallClose(page: import('@playwright/test').Page, reason: 'window' | 'quit') {
   await page.evaluate((r) => {
     (
-      window as unknown as { __WRITEDOWN_MOCK__: { closeRequested(r: string): void } }
-    ).__WRITEDOWN_MOCK__.closeRequested(r);
+      window as unknown as { __BACKTICKLE_MOCK__: { closeRequested(r: string): void } }
+    ).__BACKTICKLE_MOCK__.closeRequested(r);
   }, reason);
 }
 

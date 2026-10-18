@@ -92,8 +92,8 @@ describe('recording on Windows', () => {
     expect(eventRefusal(ev('KeyE', { meta: true }))).toBeNull();
   });
 
-  it('refuses the keys Windows and Writedown keep, in Windows words', () => {
-    expect(refusal(combo('⌘C'))).toBe('Ctrl+C is reserved by Windows and Writedown.');
+  it('refuses the keys Windows and Backtickle keep, in Windows words', () => {
+    expect(refusal(combo('⌘C'))).toBe('Ctrl+C is reserved by Windows and Backtickle.');
     expect(refusal(combo('⌘Q'))).toMatch(/reserved by Windows/);
     expect(refusal(combo('⌘,'))).toMatch(/reserved by Windows/);
     expect(refusal(combo('⌥F4'))).toMatch(/Alt\+F4 is reserved/);

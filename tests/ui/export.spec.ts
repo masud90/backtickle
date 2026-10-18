@@ -41,7 +41,7 @@ async function open(page: Page, text: string, extra: Record<string, unknown> = {
 }
 
 const exported = (page: Page) =>
-  page.evaluate(() => window.__WRITEDOWN_MOCK__?.exports.at(-1)?.contents ?? null);
+  page.evaluate(() => window.__BACKTICKLE_MOCK__?.exports.at(-1)?.contents ?? null);
 
 test.describe('Export HTML', () => {
   test('C27: a self-contained page with the title, every block, no app controls, light theme', async ({
@@ -62,7 +62,7 @@ test.describe('Export HTML', () => {
     expect(html).toContain('☑');
     expect(html).toContain('☐');
     expect(html).toContain('const');
-    const saved = await page.evaluate(() => window.__WRITEDOWN_MOCK__?.saveDialogs.at(-1));
+    const saved = await page.evaluate(() => window.__BACKTICKLE_MOCK__?.saveDialogs.at(-1));
     expect(saved?.suggestedName).toBe('report.html');
     expect(saved?.directory).toBe(`${HOME}/docs`);
   });
@@ -121,8 +121,8 @@ test.describe('Print', () => {
   }) => {
     await open(page, SOURCE);
     await menu(page, 'print');
-    await expect.poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.prints)).toBe(1);
-    const atPrint = await page.evaluate(() => window.__WRITEDOWN_MOCK__?.printRoots[0] ?? '');
+    await expect.poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.prints)).toBe(1);
+    const atPrint = await page.evaluate(() => window.__BACKTICKLE_MOCK__?.printRoots[0] ?? '');
     expect(atPrint).toContain('Heading one');
     expect(atPrint).toContain('Second paragraph to select.');
     expect(atPrint).not.toContain('data-line=');
@@ -153,9 +153,9 @@ test.describe('Copy as HTML', () => {
     await open(page, SOURCE);
     await menu(page, 'copy-html');
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.clipboardWrites.length))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.clipboardWrites.length))
       .toBe(1);
-    const write = await page.evaluate(() => window.__WRITEDOWN_MOCK__?.clipboardWrites[0]);
+    const write = await page.evaluate(() => window.__BACKTICKLE_MOCK__?.clipboardWrites[0]);
     expect(write?.html).toBe(write?.text);
     expect(write?.html).toContain('<h1');
     expect(write?.html).toContain('Second paragraph to select.');
@@ -176,9 +176,9 @@ test.describe('Copy as HTML', () => {
     });
     await menu(page, 'copy-html');
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.clipboardWrites.length))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.clipboardWrites.length))
       .toBe(1);
-    const write = await page.evaluate(() => window.__WRITEDOWN_MOCK__?.clipboardWrites[0]);
+    const write = await page.evaluate(() => window.__BACKTICKLE_MOCK__?.clipboardWrites[0]);
     expect(write?.html).toBe('Second paragraph to select.');
     expect(write?.text).toBe(write?.html);
   });

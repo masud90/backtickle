@@ -39,7 +39,7 @@ pub mod os_code {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ErrorCode {
-    /// The path is not one the user gave to Writedown (see `grants.rs`).
+    /// The path is not one the user gave to Backtickle (see `grants.rs`).
     NotAllowed,
     NotFound,
     TooLarge,
@@ -78,7 +78,7 @@ impl PlatformError {
     pub fn not_allowed() -> Self {
         Self::new(
             ErrorCode::NotAllowed,
-            "Writedown has not been given access to this file. Open it with File > Open.",
+            "Backtickle has not been given access to this file. Open it with File > Open.",
         )
     }
 
@@ -141,7 +141,7 @@ impl PlatformError {
     fn read_only_folder() -> Self {
         Self::new(
             ErrorCode::ReadOnly,
-            "Writedown cannot write to this location. Use Save As to save a copy elsewhere.",
+            "Backtickle cannot write to this location. Use Save As to save a copy elsewhere.",
         )
     }
 }

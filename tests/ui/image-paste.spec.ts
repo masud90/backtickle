@@ -45,7 +45,7 @@ const docText = (page: Page) =>
     return lines.map((line) => line.textContent ?? '').join('\n');
   });
 
-const saved = (page: Page) => page.evaluate(() => window.__WRITEDOWN_MOCK__?.savedImages ?? []);
+const saved = (page: Page) => page.evaluate(() => window.__BACKTICKLE_MOCK__?.savedImages ?? []);
 
 test.describe('image paste and drop', () => {
   test('a pasted screenshot is saved in assets and linked at the caret, with the alt text selected', async ({
@@ -103,7 +103,7 @@ test.describe('image paste and drop', () => {
 
     await page.evaluate(
       ([x, y]) =>
-        window.__WRITEDOWN_MOCK__?.dropImages(
+        window.__BACKTICKLE_MOCK__?.dropImages(
           ['/Users/mock/Desktop/Team photo.jpg', '/Users/mock/Desktop/notes.txt'],
           x as number,
           y as number,
@@ -127,7 +127,7 @@ test.describe('image paste and drop', () => {
     await editor(page).click();
 
     await page.evaluate(() =>
-      window.__WRITEDOWN_MOCK__?.dropImages(['/Users/mock/Documents/pics/my chart.png'], 0, 0),
+      window.__BACKTICKLE_MOCK__?.dropImages(['/Users/mock/Documents/pics/my chart.png'], 0, 0),
     );
 
     await expect.poll(() => docText(page)).toBe('![my chart](pics/my%20chart.png)');

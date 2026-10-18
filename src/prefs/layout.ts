@@ -120,10 +120,10 @@ export const SWATCH_KEYS: ReadonlySet<string> = new Set(['a11y.rulerTint']);
 
 /** The one-line description under each category title. */
 export const CATEGORY_DESCRIPTIONS: Record<SettingCategory | 'shortcuts', string> = {
-  general: 'How Writedown looks, opens documents and counts reading time.',
+  general: 'How Backtickle looks, opens documents and counts reading time.',
   editor: 'The typeface and behavior of the Markdown editor.',
   preview: 'How the preview renders your documents and which Markdown flavor applies.',
   accessibility: 'Reading comfort, motion and contrast, and the size of the interface.',
-  saving: 'When and how files are saved, and which folders Writedown skips.',
+  saving: 'When and how files are saved, and which folders Backtickle skips.',
   shortcuts: 'Every keyboard shortcut of the menus and the editor. Choose Change to set your own.',
 };

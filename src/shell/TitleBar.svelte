@@ -219,7 +219,7 @@
     class="pointer-events-none absolute left-1/2 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap font-headline-sm text-headline-sm font-semibold text-on-surface"
   >
     <span class="inline-flex text-primary"><AppMark variant="glyph" size={16} /></span>
-    <span>Writedown</span>
+    <span>Backtickle</span>
   </div>
 
   <div class="ml-auto flex items-center gap-2">

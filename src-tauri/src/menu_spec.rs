@@ -218,7 +218,7 @@ const HEADINGS: &[Entry] = &[
 ];
 
 /// The label of the app menu (macOS only; see `windows_extras`).
-pub const APP_MENU_LABEL: &str = "Writedown";
+pub const APP_MENU_LABEL: &str = "Backtickle";
 
 /// What a menu gets at its end on Windows and Linux, where there is no app menu: File ends with
 /// Settings and Exit or Quit (the Quit item), Help with About.
@@ -238,9 +238,14 @@ const SETTINGS_ITEM: Entry = item(
     Some("CmdOrCtrl+,"),
     Need::Always,
 );
-const QUIT_ITEM: Entry = item(QUIT_ID, "Quit Writedown", Some("CmdOrCtrl+Q"), Need::Always);
+const QUIT_ITEM: Entry = item(
+    QUIT_ID,
+    "Quit Backtickle",
+    Some("CmdOrCtrl+Q"),
+    Need::Always,
+);
 
-const WRITEDOWN_MENU: &[Entry] = &[
+const BACKTICKLE_MENU: &[Entry] = &[
     Entry::Predefined(Predefined::About),
     Entry::Separator,
     SETTINGS_ITEM,
@@ -459,7 +464,7 @@ pub const MENUS: &[Menu] = &[
     Menu {
         label: APP_MENU_LABEL,
         special: None,
-        entries: WRITEDOWN_MENU,
+        entries: BACKTICKLE_MENU,
     },
     Menu {
         label: "File",
@@ -789,7 +794,7 @@ pub enum Focus {
     /// Any document window (`main` or a window a tab was moved to).
     Main,
     Preferences,
-    /// No Writedown window (the app is in the background or has no window).
+    /// No Backtickle window (the app is in the background or has no window).
     Nothing,
 }
 
@@ -1027,7 +1032,7 @@ mod tests {
         assert_eq!(
             labels,
             [
-                "Writedown",
+                "Backtickle",
                 "File",
                 "Edit",
                 "Format",
@@ -1093,7 +1098,7 @@ mod tests {
         assert_eq!(label_of("toggle-sidebar"), "Show Sidebar");
         assert_eq!(label_of("next-tab"), "Show Next Tab");
         assert_eq!(label_of("markdown-guide"), "Markdown Guide");
-        assert_eq!(label_of(QUIT_ID), "Quit Writedown");
+        assert_eq!(label_of(QUIT_ID), "Quit Backtickle");
     }
 
     #[test]

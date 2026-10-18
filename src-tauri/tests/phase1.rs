@@ -5,17 +5,17 @@
 // Some tests here need symbolic links or Unix permissions and run on macOS only.
 #![cfg_attr(windows, allow(unused))]
 
+use backtickle_lib::documents::read_document;
+use backtickle_lib::encoding::Encoding;
+use backtickle_lib::error::ErrorCode;
+use backtickle_lib::grants::PathGrants;
+use backtickle_lib::line_endings::LineEnding;
+use backtickle_lib::safe_save::{SaveFormat, SaveOptions, Tracked, save};
 use serde_json::{Value, json};
 #[cfg(unix)]
 use std::os::unix::fs::{PermissionsExt, symlink};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use writedown_lib::documents::read_document;
-use writedown_lib::encoding::Encoding;
-use writedown_lib::error::ErrorCode;
-use writedown_lib::grants::PathGrants;
-use writedown_lib::line_endings::LineEnding;
-use writedown_lib::safe_save::{SaveFormat, SaveOptions, Tracked, save};
 
 fn fixtures() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -29,9 +29,9 @@ struct Temp(PathBuf);
 impl Temp {
     fn new() -> Self {
         static COUNTER: AtomicUsize = AtomicUsize::new(0);
-        let base = writedown_lib::fs_util::canonicalize(std::env::temp_dir()).expect("temp dir");
+        let base = backtickle_lib::fs_util::canonicalize(std::env::temp_dir()).expect("temp dir");
         let path = base.join(format!(
-            "writedown-phase1-{}-{}",
+            "backtickle-phase1-{}-{}",
             std::process::id(),
             COUNTER.fetch_add(1, Ordering::Relaxed)
         ));
@@ -405,10 +405,10 @@ mod r03_refusals {
 
 mod r04_grants_links_images {
     use super::*;
-    use writedown_lib::{assets, links};
+    use backtickle_lib::{assets, links};
 
     fn index() -> PathBuf {
-        writedown_lib::fs_util::canonicalize(fixtures().join("links").join("index.md"))
+        backtickle_lib::fs_util::canonicalize(fixtures().join("links").join("index.md"))
             .expect("fixture")
     }
 
@@ -420,7 +420,7 @@ mod r04_grants_links_images {
         let parent = links::resolve_document(&index, "../flavors/plain.md").expect("parent");
         assert!(parent.ends_with("tests/fixtures/flavors/plain.md"));
         // An existing file that is not a document, written from the root of its drive.
-        let manifest = writedown_lib::fs_util::canonicalize(
+        let manifest = backtickle_lib::fs_util::canonicalize(
             Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"),
         )
         .expect("manifest");
@@ -523,7 +523,7 @@ mod r04_grants_links_images {
 
     #[test]
     fn recents_only_grant_what_is_in_the_list() {
-        use writedown_lib::recents::Recents;
+        use backtickle_lib::recents::Recents;
         let temp = Temp::new();
         let mut recents = Recents::load(temp.path().join("recents.json"));
         recents.touch("/in/the/list.md", 1, 20);
@@ -535,8 +535,8 @@ mod r04_grants_links_images {
 
 mod r05_recents_and_doc_state {
     use super::*;
-    use writedown_lib::doc_state::{DocStates, MAX_ENTRIES};
-    use writedown_lib::recents::{self, Recents};
+    use backtickle_lib::doc_state::{DocStates, MAX_ENTRIES};
+    use backtickle_lib::recents::{self, Recents};
 
     #[test]
     fn order_dedup_cap_missing_files_and_corrupt_store() {
@@ -599,7 +599,7 @@ mod r05_recents_and_doc_state {
 
 mod r06_settings {
     use super::*;
-    use writedown_lib::settings::{Settings, SettingsStore};
+    use backtickle_lib::settings::{Settings, SettingsStore};
 
     #[test]
     fn defaults_clamping_wrong_types_unknown_keys_and_version() {
@@ -636,14 +636,14 @@ mod r06_settings {
 
 mod r07_location_and_vault {
     use super::*;
-    use writedown_lib::context::{LocationKind, detect_location, in_obsidian_vault};
+    use backtickle_lib::context::{LocationKind, detect_location, in_obsidian_vault};
 
     #[test]
     fn vault_and_cloud_folders_are_detected() {
         let vault_note =
-            writedown_lib::fs_util::canonicalize(fixtures().join("flavors/vault/notes/idea.md"))
+            backtickle_lib::fs_util::canonicalize(fixtures().join("flavors/vault/notes/idea.md"))
                 .expect("fixture");
-        let plain = writedown_lib::fs_util::canonicalize(fixtures().join("flavors/plain.md"))
+        let plain = backtickle_lib::fs_util::canonicalize(fixtures().join("flavors/plain.md"))
             .expect("fixture");
         assert!(in_obsidian_vault(&vault_note));
         assert!(!in_obsidian_vault(&plain));
@@ -673,8 +673,8 @@ mod r07_location_and_vault {
 
 mod r08_open_events {
     use super::*;
-    use writedown_lib::open_files::{accept_paths, urls_to_paths};
-    use writedown_lib::pending::{Pages, Routed};
+    use backtickle_lib::open_files::{accept_paths, urls_to_paths};
+    use backtickle_lib::pending::{Pages, Routed};
 
     #[test]
     fn only_documents_are_accepted_and_granted_and_the_rest_is_ignored() {
@@ -696,7 +696,7 @@ mod r08_open_events {
             ],
         );
 
-        assert_eq!(accepted, [writedown_lib::fs_util::path_text(&md)]);
+        assert_eq!(accepted, [backtickle_lib::fs_util::path_text(&md)]);
         assert!(grants.is_granted(&md));
         assert!(!grants.is_granted(&png));
         let url = url::Url::from_file_path(&md).expect("url");

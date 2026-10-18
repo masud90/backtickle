@@ -1,31 +1,31 @@
 <div align="center">
 
-<img src="docs/media/icon.png" width="96" height="96" alt="Writedown icon">
+<img src="docs/media/icon.png" width="96" height="96" alt="Backtickle icon">
 
-# Writedown
+# Backtickle
 
 **The open-source Markdown reader and writer.**<br>
 Write on the left, read on the right, on macOS, Windows and Linux. Free, private, and nothing in a document ever runs.
 
-[![Download for macOS](https://img.shields.io/badge/macOS-download%20.dmg-0058bc?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/masud90/writedown/releases/latest)
-[![Download for Windows](https://img.shields.io/badge/Windows-download%20.exe%20%2F%20.msi-0058bc?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/masud90/writedown/releases/latest)
-[![Download for Linux](https://img.shields.io/badge/Linux-download%20.deb%20%2F%20AppImage-0058bc?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/masud90/writedown/releases/latest)
+[![Download for macOS](https://img.shields.io/badge/macOS-download%20.dmg-0058bc?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/masud90/backtickle/releases/latest)
+[![Download for Windows](https://img.shields.io/badge/Windows-download%20.exe%20%2F%20.msi-0058bc?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/masud90/backtickle/releases/latest)
+[![Download for Linux](https://img.shields.io/badge/Linux-download%20.deb%20%2F%20AppImage-0058bc?style=for-the-badge&logo=linux&logoColor=white)](https://github.com/masud90/backtickle/releases/latest)
 
-[![Latest release](https://img.shields.io/github/v/release/masud90/writedown?label=release&color=4c4aca)](https://github.com/masud90/writedown/releases/latest)
-[![CI](https://github.com/masud90/writedown/actions/workflows/ci.yml/badge.svg)](https://github.com/masud90/writedown/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/masud90/backtickle?label=release&color=4c4aca)](https://github.com/masud90/backtickle/releases/latest)
+[![CI](https://github.com/masud90/backtickle/actions/workflows/ci.yml/badge.svg)](https://github.com/masud90/backtickle/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-008733)](LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-008733)](#contributing)
 
-<img src="docs/media/writedown-intro.gif" width="880" alt="Writedown in motion: Markdown source typed on the left renders as a formatted document on the right, with math, task lists and a callout; then the macOS, Windows and Linux versions and the Writedown logo">
+<img src="docs/media/backtickle-intro.gif" width="880" alt="Backtickle in motion: Markdown source typed on the left renders as a formatted document on the right, with math, task lists and a callout; then the macOS, Windows and Linux versions and the Backtickle logo">
 
-<sub>[Watch the full-quality video (MP4)](docs/media/writedown-intro.mp4)</sub>
+<sub>[Watch the full-quality video (MP4)](docs/media/backtickle-intro.mp4)</sub>
 
 </div>
 
-## Why Writedown
+## Why Backtickle
 
 Markdown is everywhere now: READMEs, notes, papers, AI assistants' answers, and the instruction files coding
-agents read. Most of the time the only way to read one properly is to open a code editor. Writedown is a calm
+agents read. Most of the time the only way to read one properly is to open a code editor. Backtickle is a calm
 desktop app that shows a Markdown file the way it is meant to be read, and lets you edit it beside the result.
 
 - **Six flavors, detected for you.** CommonMark, GitHub Flavored Markdown, Obsidian, Pandoc / MultiMarkdown,
@@ -37,39 +37,39 @@ desktop app that shows a Markdown file the way it is meant to be read, and lets 
 
 ## Download
 
-Get the latest version from the [Releases page](https://github.com/masud90/writedown/releases/latest).
+Get the latest version from the [Releases page](https://github.com/masud90/backtickle/releases/latest).
 One release holds every platform.
 
 | Platform | File | Install |
 | --- | --- | --- |
-| **macOS** 14 Sonoma or later, Apple Silicon and Intel | `Writedown-<version>.dmg` | Open the DMG and drag Writedown to Applications. |
-| **Windows** 10 or 11, 64-bit | `Writedown_<version>_x64-setup.exe` (for your user) or `Writedown_<version>_x64_en-US.msi` | Run the installer. |
-| **Linux** x86-64 (Ubuntu 22.04, Debian 12, Fedora 39 or later) | `Writedown_<version>_amd64.deb` or `Writedown_<version>_amd64.AppImage` | `sudo apt install ./Writedown_<version>_amd64.deb`, or `chmod +x` the AppImage and run it. |
+| **macOS** 14 Sonoma or later, Apple Silicon and Intel | `Backtickle-<version>.dmg` | Open the DMG and drag Backtickle to Applications. |
+| **Windows** 10 or 11, 64-bit | `Backtickle_<version>_x64-setup.exe` (for your user) or `Backtickle_<version>_x64_en-US.msi` | Run the installer. |
+| **Linux** x86-64 (Ubuntu 22.04, Debian 12, Fedora 39 or later) | `Backtickle_<version>_amd64.deb` or `Backtickle_<version>_amd64.AppImage` | `sudo apt install ./Backtickle_<version>_amd64.deb`, or `chmod +x` the AppImage and run it. |
 
 Every file has a `.sha256` next to it on the release page if you want to check your download.
 
 ### First launch: the macOS and Windows builds are not signed yet
 
-Writedown is a free personal project, and code-signing certificates cost money every year (an Apple Developer
+Backtickle is a free personal project, and code-signing certificates cost money every year (an Apple Developer
 membership for macOS, a code-signing certificate for Windows). Until it has them, your system will warn you the
 first time you open the app. The builds are made in public by the
-[Release workflow](https://github.com/masud90/writedown/actions/workflows/release.yml) from the source in this
+[Release workflow](https://github.com/masud90/backtickle/actions/workflows/release.yml) from the source in this
 repository, and you only need to allow the app once.
 
 <details open>
-<summary><b>macOS</b>: "Apple could not verify Writedown is free of malware"</summary>
+<summary><b>macOS</b>: "Apple could not verify Backtickle is free of malware"</summary>
 
-1. Open Writedown from Applications. macOS blocks it; click **Done** (or **OK**).
-2. Open **System Settings > Privacy & Security** and scroll down to the message about Writedown.
+1. Open Backtickle from Applications. macOS blocks it; click **Done** (or **OK**).
+2. Open **System Settings > Privacy & Security** and scroll down to the message about Backtickle.
 3. Click **Open Anyway**, confirm with your password or Touch ID, then click **Open**.
 
-Writedown opens normally from then on. (On macOS 15 Sequoia and later, Control-click > Open no longer skips
+Backtickle opens normally from then on. (On macOS 15 Sequoia and later, Control-click > Open no longer skips
 this check, so use the steps above.)
 
 If you prefer Terminal, removing the download quarantine flag does the same thing:
 
 ```sh
-xattr -dr com.apple.quarantine /Applications/Writedown.app
+xattr -dr com.apple.quarantine /Applications/Backtickle.app
 ```
 
 </details>
@@ -88,13 +88,13 @@ download, then **Keep**, then **Show more > Keep anyway**).
 <details>
 <summary><b>Linux</b>: nothing to bypass</summary>
 
-Linux does not check for a publisher signature, so there is no warning to get past. The `.deb` adds Writedown to the app menu and to
+Linux does not check for a publisher signature, so there is no warning to get past. The `.deb` adds Backtickle to the app menu and to
 "Open With" for Markdown files; Preferences can then make it the default Markdown app. The AppImage only needs
-to be made executable (`chmod +x Writedown_<version>_amd64.AppImage`).
+to be made executable (`chmod +x Backtickle_<version>_amd64.AppImage`).
 
 </details>
 
-If you would like to help Writedown get signed releases, see [Contributing](#contributing).
+If you would like to help Backtickle get signed releases, see [Contributing](#contributing).
 
 ## Screenshots
 
@@ -133,7 +133,7 @@ If you would like to help Writedown get signed releases, see [Contributing](#con
 **Files and search**
 - Folder sidebar with rename, move, duplicate and move to Trash (nothing is deleted permanently).
 - Folder search, Quick Open and a command palette.
-- Changes made outside Writedown are detected; session restore and crash recovery.
+- Changes made outside Backtickle are detected; session restore and crash recovery.
 
 **Export**
 - HTML, one-click PDF, print, Copy as HTML, Word (through Pandoc) and Render with Quarto.
@@ -153,7 +153,7 @@ If you would like to help Writedown get signed releases, see [Contributing](#con
 ## Requirements
 
 macOS 14 Sonoma or later, with Safari 26 installed (Software Update offers it on Sonoma and Sequoia;
-Writedown draws its window with the system WebKit that Safari brings). The release DMG is universal
+Backtickle draws its window with the system WebKit that Safari brings). The release DMG is universal
 (Apple Silicon and Intel).
 
 Windows 10 or 11 (64-bit) with the Microsoft Edge WebView2 Runtime, which Windows 11 has built in (the
@@ -164,29 +164,29 @@ sidebar is always opaque on Linux.
 
 ## Optional tools
 
-- **Pandoc** enables Word export and Exact Preview. Writedown finds the Pandoc inside RStudio (on Windows and Linux also a Pandoc or Quarto install, or one on PATH), or you can choose one in Preferences.
+- **Pandoc** enables Word export and Exact Preview. Backtickle finds the Pandoc inside RStudio (on Windows and Linux also a Pandoc or Quarto install, or one on PATH), or you can choose one in Preferences.
 - **RStudio and Quarto**: Render with Quarto hands the document to RStudio, where you press Render. Without RStudio, Terminal (a Command Prompt window on Windows, the system's terminal app on Linux) runs the render command.
 
 ## Contributing
 
-Writedown is young, and there is room to shape it. You do not need to be a Rust or Svelte expert to help;
+Backtickle is young, and there is room to shape it. You do not need to be a Rust or Svelte expert to help;
 some of the most useful contributions are not code at all. The [roadmap](ROADMAP.md) shows what is planned next,
 with an issue for each item.
 
-- **Try it and tell us what breaks.** [Open an issue](https://github.com/masud90/writedown/issues/new) with the
+- **Try it and tell us what breaks.** [Open an issue](https://github.com/masud90/backtickle/issues/new) with the
   file that rendered wrong (or a small piece of it), your platform and the version. Rendering bugs with a sample
   are the easiest to fix.
 - **Send Markdown that trips it up.** Real-world documents in any of the six flavors make the best test fixtures,
   especially Pandoc, Quarto and Obsidian files.
 - **Package it.** Homebrew, winget, Scoop, Flatpak, the AUR or another package manager you use: help is welcome
-  getting Writedown into them.
+  getting Backtickle into them.
 - **Help with signing.** If you can sponsor or advise on an Apple Developer ID or a Windows code-signing
   certificate (for example through an open-source signing program), please get in touch through an issue.
 - **Check accessibility.** Screen reader and keyboard-only reports on any platform are very valuable.
 - **Write code.** Look for issues labeled
-  [good first issue](https://github.com/masud90/writedown/labels/good%20first%20issue) or
-  [help wanted](https://github.com/masud90/writedown/labels/help%20wanted) (packaging tasks are labeled
-  [packaging](https://github.com/masud90/writedown/labels/packaging)), or open an issue to discuss an idea before
+  [good first issue](https://github.com/masud90/backtickle/labels/good%20first%20issue) or
+  [help wanted](https://github.com/masud90/backtickle/labels/help%20wanted) (packaging tasks are labeled
+  [packaging](https://github.com/masud90/backtickle/labels/packaging)), or open an issue to discuss an idea before
   a large change.
 
 Four principles guide every change: nothing in a document is ever executed, the app makes no network requests
@@ -201,7 +201,7 @@ build also run `rustup target add x86_64-apple-darwin`).
 
 ```sh
 npm ci
-npm run build:app             # release app for this Mac, copied to outputs/Writedown.app
+npm run build:app             # release app for this Mac, copied to outputs/Backtickle.app
 npm run build:app:universal   # Apple Silicon and Intel
 npm run dmg                   # packs the app into a DMG in outputs/
 npm run app:dev               # the app window with hot reload
@@ -245,7 +245,7 @@ release that already has its DMG, run the Release workflow by hand with the tag,
 
 ## License and acknowledgments
 
-Writedown is released under the [MIT License](LICENSE). It builds on Tauri, Svelte, CodeMirror, markdown-it,
+Backtickle is released under the [MIT License](LICENSE). It builds on Tauri, Svelte, CodeMirror, markdown-it,
 KaTeX, Mermaid, Graphviz (through @viz-js/viz) and many other open source packages; see
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the list and licenses. Bundled fonts (Inter, JetBrains Mono,
 Literata, Atkinson Hyperlegible, Lexend, OpenDyslexic) are under the SIL Open Font License 1.1.

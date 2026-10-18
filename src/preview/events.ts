@@ -33,7 +33,7 @@ export function taskLineFromEvent(event: Event): number | null {
   return Number.isInteger(line) && line >= 0 ? line : null;
 }
 
-/** Extensions of files that Writedown opens as documents (the Markdown family and text). */
+/** Extensions of files that Backtickle opens as documents (the Markdown family and text). */
 const DOCUMENT_EXTENSIONS = new Set([
   'md',
   'markdown',

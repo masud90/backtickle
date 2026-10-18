@@ -85,7 +85,7 @@ describe('mock platform: folders', () => {
 
     expect(await platform.folderDialog('move')).toBe(ROOT);
 
-    const control = window.__WRITEDOWN_MOCK__;
+    const control = window.__BACKTICKLE_MOCK__;
     expect(control?.grantedFolders).toEqual([ROOT]);
     expect(control?.folderDialogs).toEqual(['move']);
   });
@@ -177,7 +177,7 @@ describe('mock platform: file operations', () => {
 
     await platform.trashPath('/notes/b.md');
 
-    const control = window.__WRITEDOWN_MOCK__;
+    const control = window.__BACKTICKLE_MOCK__;
     expect(control?.trashed).toEqual(['/notes/b.md']);
     expect(control?.tree().files).not.toContain('/notes/b.md');
     expect(control?.tree().files).toContain('/notes/A.md');
@@ -207,7 +207,7 @@ describe('mock platform: clipboard, export, session, state', () => {
     await platform.writeClipboard({ text: 'b' });
 
     expect(await platform.readClipboardText()).toBe('b');
-    expect(window.__WRITEDOWN_MOCK__?.clipboardWrites).toEqual([
+    expect(window.__BACKTICKLE_MOCK__?.clipboardWrites).toEqual([
       { text: 'a', html: '<p>a</p>' },
       { text: 'b', html: null },
     ]);
@@ -228,10 +228,10 @@ describe('mock platform: clipboard, export, session, state', () => {
     });
     await platform.writeExport('/out/doc.html', '<html></html>');
     await expect(platform.writeExport('/out/doc.html', 'again')).rejects.toBeTruthy();
-    expect(window.__WRITEDOWN_MOCK__?.exports).toEqual([
+    expect(window.__BACKTICKLE_MOCK__?.exports).toEqual([
       { path: '/out/doc.html', contents: '<html></html>' },
     ]);
-    expect(window.__WRITEDOWN_MOCK__?.granted).not.toContain('/out/doc.html');
+    expect(window.__BACKTICKLE_MOCK__?.granted).not.toContain('/out/doc.html');
   });
 
   it('runs a scripted Word export, with an error or held until finished', async () => {
@@ -260,10 +260,10 @@ describe('mock platform: clipboard, export, session, state', () => {
     });
     await Promise.resolve();
     expect(done).toBe(false);
-    window.__WRITEDOWN_MOCK__?.finishDocx();
+    window.__BACKTICKLE_MOCK__?.finishDocx();
     await pending;
     expect(done).toBe(true);
-    expect(window.__WRITEDOWN_MOCK__?.docxRequests).toEqual([request]);
+    expect(window.__BACKTICKLE_MOCK__?.docxRequests).toEqual([request]);
   });
 
   it('scripts search results and cancels a held search', async () => {
@@ -285,13 +285,13 @@ describe('mock platform: clipboard, export, session, state', () => {
     };
 
     const first = platform.searchFolder(request);
-    window.__WRITEDOWN_MOCK__?.finishSearch(1);
+    window.__BACKTICKLE_MOCK__?.finishSearch(1);
     expect(await first).toMatchObject({ id: 1, matchCount: 1, fileCount: 1, cancelled: false });
 
     const second = platform.searchFolder({ ...request, id: 2 });
     await platform.cancelSearch(2);
     expect(await second).toMatchObject({ id: 2, cancelled: true, matchCount: 0 });
-    expect(window.__WRITEDOWN_MOCK__?.cancelledSearches).toEqual([2]);
+    expect(window.__BACKTICKLE_MOCK__?.cancelledSearches).toEqual([2]);
   });
 
   it('delivers scripted file changes and records the watch set', async () => {
@@ -300,14 +300,14 @@ describe('mock platform: clipboard, export, session, state', () => {
     const stop = await platform.onFileChanged((changes) => batches.push(changes));
     await platform.watch({ documents: ['/a.md'], linked: [], folder: '/n' });
 
-    window.__WRITEDOWN_MOCK__?.fileChanged([
+    window.__BACKTICKLE_MOCK__?.fileChanged([
       { path: '/a.md', kind: 'modified', scope: 'document' },
     ]);
     stop();
-    window.__WRITEDOWN_MOCK__?.fileChanged([{ path: '/b.md', kind: 'removed', scope: 'folder' }]);
+    window.__BACKTICKLE_MOCK__?.fileChanged([{ path: '/b.md', kind: 'removed', scope: 'folder' }]);
 
     expect(batches).toEqual([[{ path: '/a.md', kind: 'modified', scope: 'document' }]]);
-    expect(window.__WRITEDOWN_MOCK__?.watches).toEqual([
+    expect(window.__BACKTICKLE_MOCK__?.watches).toEqual([
       { documents: ['/a.md'], linked: [], folder: '/n' },
     ]);
   });
@@ -326,7 +326,7 @@ describe('mock platform: clipboard, export, session, state', () => {
     await platform.printPage();
 
     expect(await platform.getSession()).toEqual(session);
-    expect(window.__WRITEDOWN_MOCK__?.prints).toBe(1);
+    expect(window.__BACKTICKLE_MOCK__?.prints).toBe(1);
   });
 
   it('keeps cursor and scroll in the document state and validates them', async () => {
@@ -354,7 +354,7 @@ describe('mock platform: clipboard, export, session, state', () => {
     expect(plain).toMatchObject({ folderPath: null, restoreSession: true });
     const withFolder = createMockPlatform({ launch: { folderPath: '/notes' } });
     expect((await withFolder.launchOptions()).restoreSession).toBe(false);
-    expect(window.__WRITEDOWN_MOCK__?.grantedFolders).toEqual(['/notes']);
+    expect(window.__BACKTICKLE_MOCK__?.grantedFolders).toEqual(['/notes']);
     for (const launch of [{ openPath: '/a.md' }, { welcome: true }]) {
       expect((await createMockPlatform({ launch }).launchOptions()).restoreSession).toBe(false);
     }

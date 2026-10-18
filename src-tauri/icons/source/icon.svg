@@ -1,11 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <title>Writedown</title>
-  <rect x="100" y="100" width="824" height="824" rx="185" fill="#0058bc"/>
-  <g fill="#ffffff">
-    <rect x="212" y="232" width="600" height="72"/>
-    <rect x="336" y="304" width="72" height="266"/>
-    <polygon points="232,560 512,560 372,800"/>
-    <rect x="616" y="304" width="72" height="266"/>
-    <polygon points="512,560 792,560 652,800"/>
+  <title>Backtickle</title>
+  <g transform="translate(100 100) scale(0.8046875)">
+    <rect width="1024" height="1024" rx="230" fill="#2B2D42"/>
+    <rect x="202" y="222" width="620" height="620" rx="110" fill="#9AA3B2"/>
+    <rect x="242" y="232" width="540" height="530" rx="86" fill="#F4F5F7"/>
+    <path d="M318 352 C346 314 374 314 402 340 S458 366 486 328" stroke="#2B2D42" stroke-width="30" stroke-linecap="round" fill="none"/>
+    <line x1="470" y1="440" x2="560" y2="610" stroke="#E5383B" stroke-width="84" stroke-linecap="round"/>
   </g>
 </svg>

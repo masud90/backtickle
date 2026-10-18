@@ -14,38 +14,26 @@ function render(variant: 'tile' | 'glyph', size = 16) {
   return document.body.querySelector('svg') as SVGSVGElement;
 }
 
-function geometry(svg: SVGSVGElement): string[] {
-  return [...svg.querySelectorAll('g > *')].map((el) =>
-    el.tagName === 'polygon'
-      ? `polygon ${el.getAttribute('points')}`
-      : `rect ${el.getAttribute('x')},${el.getAttribute('y')} ${el.getAttribute('width')}x${el.getAttribute('height')}`,
-  );
+function shapes(svg: SVGSVGElement): string[] {
+  return [...svg.querySelectorAll('g > *')].map((el) => el.tagName);
 }
 
-const SHAPES = [
-  'rect 212,232 600x72',
-  'rect 336,304 72x266',
-  'polygon 232,560 512,560 372,800',
-  'rect 616,304 72x266',
-  'polygon 512,560 792,560 652,800',
-];
-
 describe('AppMark', () => {
-  it('draws the five B3 shapes on the blue tile', () => {
+  it('draws the backtick keycap on its dark tile, like the app icon', () => {
     const svg = render('tile', 80);
     expect(svg.getAttribute('viewBox')).toBe('100 100 824 824');
-    expect(geometry(svg)).toEqual(SHAPES);
-    expect(svg.querySelector('rect[fill="#0058bc"]')).not.toBeNull();
-    expect(svg.querySelector('g')?.getAttribute('fill')).toBe('#ffffff');
+    expect(shapes(svg)).toEqual(['rect', 'rect', 'rect', 'path', 'line']);
+    expect(svg.querySelector('rect[fill="#2B2D42"]')).not.toBeNull();
+    expect(svg.querySelector('line[stroke="#E5383B"]')).not.toBeNull();
     expect(svg.getAttribute('aria-hidden')).toBe('true');
   });
 
-  it('draws only the glyph in currentColor', () => {
+  it('draws only the keycap outline and backtick in currentColor', () => {
     const svg = render('glyph');
-    expect(svg.getAttribute('viewBox')).toBe('212 232 600 568');
-    expect(geometry(svg)).toEqual(SHAPES);
-    expect(svg.querySelector('rect[fill="#0058bc"]')).toBeNull();
-    expect(svg.querySelector('g')?.getAttribute('fill')).toBe('currentColor');
+    expect(svg.getAttribute('viewBox')).toBe('182 202 660 660');
+    expect(shapes(svg)).toEqual(['rect', 'line']);
+    expect(svg.querySelector('[fill="#2B2D42"]')).toBeNull();
+    expect(svg.querySelector('g')?.getAttribute('stroke')).toBe('currentColor');
     expect(svg.classList.contains('wd-icon-16')).toBe(true);
   });
 

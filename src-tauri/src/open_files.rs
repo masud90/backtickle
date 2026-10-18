@@ -115,7 +115,7 @@ fn route(app: &AppHandle<Wry>, preferred: Option<&str>, paths: Vec<String>) {
         app.state::<lifecycle::Lifecycle>().is_setup_done(),
     ) && let Err(error) = lifecycle::create_main_window(app)
     {
-        eprintln!("writedown: the main window could not be created: {error}");
+        eprintln!("backtickle: the main window could not be created: {error}");
         return;
     }
     let default = preferred
@@ -315,7 +315,7 @@ mod tests {
             format!("file:///{drive}Users/me/a%20b.md"),
             "https://example.org/a.md".to_owned(),
             format!("file://localhost/{drive}Users/me/c.md"),
-            "writedown://open?file=/etc/hosts".to_owned(),
+            "backtickle://open?file=/etc/hosts".to_owned(),
             "file://example.org/share/d.md".to_owned(),
         ]
         .iter()

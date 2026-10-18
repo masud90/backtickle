@@ -106,8 +106,8 @@ test('B32 two open documents: the tab strip has no serious or critical issue', a
   await page.evaluate(
     (paths) => {
       (
-        window as unknown as { __WRITEDOWN_MOCK__: { openFiles(p: string[]): void } }
-      ).__WRITEDOWN_MOCK__.openFiles(paths);
+        window as unknown as { __BACKTICKLE_MOCK__: { openFiles(p: string[]): void } }
+      ).__BACKTICKLE_MOCK__.openFiles(paths);
     },
     [a, b],
   );

@@ -157,7 +157,7 @@ test.describe('D02 every control type, pointer and keyboard', () => {
   }) => {
     const main = await context.newPage();
     await main.addInitScript(() => {
-      window.__WRITEDOWN_MOCK_SEED__ = { launch: { welcome: true } };
+      window.__BACKTICKLE_MOCK_SEED__ = { launch: { welcome: true } };
     });
     await main.goto('/');
     await expect(main.getByTestId('welcome')).toBeVisible();
@@ -167,7 +167,7 @@ test.describe('D02 every control type, pointer and keyboard', () => {
     expect(stored).toBe('dark');
     // The two pages hold separate mocks; deliver the stored value as settings-changed would.
     await main.evaluate(
-      (appearance) => window.__WRITEDOWN_MOCK__?.settingsChanged({ appearance } as never),
+      (appearance) => window.__BACKTICKLE_MOCK__?.settingsChanged({ appearance } as never),
       stored,
     );
     await expect(main.locator('html')).toHaveAttribute('data-theme', 'dark');
@@ -226,7 +226,7 @@ test.describe('D04 Cancel, Done and the close button', () => {
     await control(page, 'editor.autoPair').click();
     await gotoCategory(page, 'saving');
     await control(page, 'saving.autoSave').click();
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.settingsChanged({ view: { zoom: 1.3 } }));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.settingsChanged({ view: { zoom: 1.3 } }));
   }
 
   test('D04 Cancel puts back exactly the three keys and keeps the zoom', async ({ page }) => {
@@ -297,7 +297,7 @@ test.describe('D05 reset', () => {
       // Put every settings key (all categories) off its default, as another window would.
       for (const meta of SETTINGS_META) {
         await page.evaluate(
-          (patch) => window.__WRITEDOWN_MOCK__?.settingsChanged(patch as never),
+          (patch) => window.__BACKTICKLE_MOCK__?.settingsChanged(patch as never),
           nested(meta.key, nonDefault(meta)),
         );
       }
@@ -351,7 +351,7 @@ test.describe('D06 invalid input', () => {
 test.describe('D07 Choose Pandoc', () => {
   const pandocBox = (page: Page) => control(page, 'export.pandocPath');
   const answer = (page: Page, value: string | null) =>
-    page.evaluate((v) => window.__WRITEDOWN_MOCK__?.setPandocAnswers(v), value);
+    page.evaluate((v) => window.__BACKTICKLE_MOCK__?.setPandocAnswers(v), value);
 
   test('D07 refuses a file not named pandoc, Cancel changes nothing, Find automatically stores null', async ({
     page,

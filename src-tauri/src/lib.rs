@@ -15,6 +15,7 @@ pub mod folders;
 pub mod fs_util;
 pub mod grants;
 pub mod launch;
+pub mod legacy_import;
 pub mod lifecycle;
 pub mod line_endings;
 pub mod linked_text;
@@ -122,7 +123,7 @@ fn open_argument_files(app: &tauri::AppHandle, files: &[String], cwd: &Path) {
 }
 
 pub fn run() {
-    // First thing: the clock that WRITEDOWN_PERF marks are measured against.
+    // First thing: the clock that BACKTICKLE_PERF marks are measured against.
     perf::start_clock();
 
     let config = LaunchConfig::from_process();
@@ -194,7 +195,7 @@ pub fn run() {
             }
             let protocol: AppCloseProtocol = CloseProtocol::new(Arc::new(AppHost::new(handle)));
             app.manage(protocol);
-            // The PDF benchmark (`WRITEDOWN_BENCH=pdf`): its one path is an export target.
+            // The PDF benchmark (`BACKTICKLE_BENCH=pdf`): its one path is an export target.
             if let Some(path) = app.state::<LaunchState>().options.bench_pdf.clone() {
                 app.state::<ExportTargets>()
                     .allow(std::path::Path::new(&path));
@@ -312,7 +313,7 @@ pub fn run() {
             bridge::cancel_search
         ])
         .build(tauri::generate_context!())
-        .expect("error while building Writedown");
+        .expect("error while building Backtickle");
 
     app.run(lifecycle::on_run_event);
 }

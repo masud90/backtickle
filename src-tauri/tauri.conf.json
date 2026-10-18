@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Writedown",
+  "productName": "Backtickle",
   "version": "0.1.2",
-  "identifier": "app.writedown.desktop",
+  "identifier": "app.backtickle.desktop",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
@@ -15,7 +15,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Writedown",
+        "title": "Backtickle",
         "url": "index.html",
         "width": 1280,
         "height": 820,
@@ -74,8 +74,8 @@
       "../THIRD_PARTY_LICENSES.txt": "THIRD_PARTY_LICENSES.txt"
     },
     "shortDescription": "A Markdown reader and writer for macOS",
-    "longDescription": "Writedown reads and writes Markdown in six flavors, with a live preview, on macOS.",
-    "homepage": "https://github.com/masud90/writedown",
+    "longDescription": "Backtickle reads and writes Markdown in six flavors, with a live preview, on macOS.",
+    "homepage": "https://github.com/masud90/backtickle",
     "category": "Productivity",
     "fileAssociations": [
       {

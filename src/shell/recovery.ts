@@ -169,7 +169,7 @@ export class Recovery {
 
   /**
    * Types a fixed sentence into the open document (a new one when none is open) and keeps it
-   * now: the launch hook of the real-app check (`WRITEDOWN_BENCH=recovery-edit`).
+   * now: the launch hook of the real-app check (`BACKTICKLE_BENCH=recovery-edit`).
    */
   async runEditBench(): Promise<void> {
     const shell = this.shell;

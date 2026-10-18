@@ -226,7 +226,7 @@ test.describe('D02 controls', () => {
     await page.getByRole('radio', { name: 'Light' }).click();
     expect(at(await settingsNow(page), 'appearance')).toBe('light');
     // A change made elsewhere shows up in the window.
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.settingsChanged({ appearance: 'dark' }));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.settingsChanged({ appearance: 'dark' }));
     await expect(page.getByRole('radio', { name: 'Dark' })).toBeChecked();
   });
 });
@@ -299,7 +299,7 @@ test.describe('D04 Cancel and Done', () => {
       .click();
     await page.getByTestId('category-accessibility').click();
     await page.getByTestId('control-a11y.ruler').click();
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.settingsChanged({ view: { zoom: 1.4 } }));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.settingsChanged({ view: { zoom: 1.4 } }));
     const during = await settingsNow(page);
     expect(at(during, 'appearance')).toBe('dark');
     expect(at(during, 'editor.fontSize')).toBe((at(before, 'editor.fontSize') as number) + 1);
@@ -392,7 +392,7 @@ test.describe('D05 reset', () => {
     await list.getByLabel('Name to ignore').fill('build');
     await list.getByRole('button', { name: 'Add' }).click();
     await page.evaluate(() =>
-      window.__WRITEDOWN_MOCK__?.setDefaultFolderAnswers('/Users/mock/Docs'),
+      window.__BACKTICKLE_MOCK__?.setDefaultFolderAnswers('/Users/mock/Docs'),
     );
     await page
       .getByTestId('control-saving.defaultFolder')
@@ -452,19 +452,19 @@ test.describe('D07 Pandoc path', () => {
     const box = page.getByTestId('control-export.pandocPath');
     await expect(box).toContainText('Found automatically: /opt/homebrew/bin/pandoc');
     await page.evaluate(() =>
-      window.__WRITEDOWN_MOCK__?.setPandocAnswers('/Users/mock/bin/notpandoc'),
+      window.__BACKTICKLE_MOCK__?.setPandocAnswers('/Users/mock/bin/notpandoc'),
     );
     await box.getByRole('button', { name: 'Choose…' }).click();
     await expect(box.getByRole('alert')).toContainText('not Pandoc');
     expect(at(await settingsNow(page), 'export.pandocPath')).toBeNull();
     // Cancel in the file sheet.
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.setPandocAnswers(null));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.setPandocAnswers(null));
     await box.getByRole('button', { name: 'Choose…' }).click();
     expect(at(await settingsNow(page), 'export.pandocPath')).toBeNull();
     await expect(box.getByRole('alert')).toHaveCount(0);
     // A real choice.
     await page.evaluate(() =>
-      window.__WRITEDOWN_MOCK__?.setPandocAnswers('/Users/mock/tools/pandoc'),
+      window.__BACKTICKLE_MOCK__?.setPandocAnswers('/Users/mock/tools/pandoc'),
     );
     await box.getByRole('button', { name: 'Choose…' }).click();
     expect(at(await settingsNow(page), 'export.pandocPath')).toBe('/Users/mock/tools/pandoc');
@@ -478,7 +478,7 @@ test.describe('D07 Pandoc path', () => {
     await openPrefs(page);
     await page.getByTestId('category-preview').click();
     await page.evaluate(() =>
-      window.__WRITEDOWN_MOCK__?.setPandocAnswers('/Users/mock/tools/pandoc'),
+      window.__BACKTICKLE_MOCK__?.setPandocAnswers('/Users/mock/tools/pandoc'),
     );
     await page
       .getByTestId('control-export.pandocPath')

@@ -24,11 +24,11 @@ async function open(
 
 const state = (page: Page) =>
   page.evaluate(() => {
-    const m = window.__WRITEDOWN_MOCK__?.menuStates.at(-1);
+    const m = window.__BACKTICKLE_MOCK__?.menuStates.at(-1);
     return { can: m?.canExactPreview, on: m?.exactPreview };
   });
 const requests = (page: Page) =>
-  page.evaluate(() => window.__WRITEDOWN_MOCK__?.pandocPreviewRequests ?? []);
+  page.evaluate(() => window.__BACKTICKLE_MOCK__?.pandocPreviewRequests ?? []);
 
 test.describe('E5.11 exact preview (Pandoc)', () => {
   test('E5.11-1 View menu toggles it; status bar says Pandoc preview; request is fixed', async ({
@@ -92,11 +92,11 @@ test.describe('E5.11 exact preview (Pandoc)', () => {
     await page.getByTestId('editor').click();
     await page.keyboard.type('x');
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.pandocPreviewCancels))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.pandocPreviewCancels))
       .toBe(1);
     expect(await requests(page)).toHaveLength(1);
     await page.evaluate(() =>
-      window.__WRITEDOWN_MOCK__?.setPandocPreview({ html: '<p>fresh</p>' }),
+      window.__BACKTICKLE_MOCK__?.setPandocPreview({ html: '<p>fresh</p>' }),
     );
     await page.waitForTimeout(500);
     expect(await requests(page)).toHaveLength(1);
@@ -109,7 +109,7 @@ test.describe('E5.11 exact preview (Pandoc)', () => {
     await menu(page, 'toggle-exact-preview');
     await expect(page.getByTestId('pandoc-preview-content')).toContainText('good render');
     await page.evaluate(() =>
-      window.__WRITEDOWN_MOCK__?.setPandocPreview({ error: 'Error at line 3' }),
+      window.__BACKTICKLE_MOCK__?.setPandocPreview({ error: 'Error at line 3' }),
     );
     await page.getByTestId('editor').click();
     await page.keyboard.type('y');

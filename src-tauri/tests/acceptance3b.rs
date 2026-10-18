@@ -5,6 +5,20 @@
 // Some tests here need symbolic links or Unix permissions and run on macOS only.
 #![cfg_attr(windows, allow(unused))]
 
+use backtickle_lib::doc_state::DocStates;
+use backtickle_lib::encoding::Encoding;
+use backtickle_lib::error::ErrorCode;
+use backtickle_lib::file_ops::{self, Trasher};
+use backtickle_lib::grants::PathGrants;
+use backtickle_lib::line_endings::LineEnding;
+use backtickle_lib::menu_spec::{self, Entry, MenuState, Need};
+use backtickle_lib::safe_save::{self, SaveFormat, SaveOptions};
+use backtickle_lib::session::{self, Session};
+use backtickle_lib::store;
+use backtickle_lib::stores::Stores;
+use backtickle_lib::watcher::{
+    ChangeKind, FileChange, OwnWrites, ResolvedSet, Scope, Sink, Watcher,
+};
 use serde_json::json;
 use std::collections::HashSet;
 use std::fs;
@@ -13,20 +27,6 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::mpsc::{self, Receiver};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
-use writedown_lib::doc_state::DocStates;
-use writedown_lib::encoding::Encoding;
-use writedown_lib::error::ErrorCode;
-use writedown_lib::file_ops::{self, Trasher};
-use writedown_lib::grants::PathGrants;
-use writedown_lib::line_endings::LineEnding;
-use writedown_lib::menu_spec::{self, Entry, MenuState, Need};
-use writedown_lib::safe_save::{self, SaveFormat, SaveOptions};
-use writedown_lib::session::{self, Session};
-use writedown_lib::store;
-use writedown_lib::stores::Stores;
-use writedown_lib::watcher::{
-    ChangeKind, FileChange, OwnWrites, ResolvedSet, Scope, Sink, Watcher,
-};
 
 static COUNTER: AtomicUsize = AtomicUsize::new(0);
 
@@ -36,7 +36,7 @@ fn temp() -> PathBuf {
     let dir = std::env::temp_dir().join(format!("wd-acc3b-{}-{n}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
-    writedown_lib::fs_util::canonicalize(&dir).unwrap()
+    backtickle_lib::fs_util::canonicalize(&dir).unwrap()
 }
 
 fn write(path: &Path, text: &str) -> PathBuf {
@@ -323,7 +323,7 @@ fn c26_operations_outside_granted_folders_are_refused() {
     let inside = write(&root.join("in.md"), "x");
     let outside = write(&other.join("out.md"), "x");
 
-    let code = |result: Result<PathBuf, writedown_lib::error::PlatformError>| {
+    let code = |result: Result<PathBuf, backtickle_lib::error::PlatformError>| {
         result.expect_err("refused").code
     };
     assert_eq!(
@@ -666,10 +666,10 @@ fn c35_the_menu_state_fields_default_to_false_when_the_page_omits_them() {
 
 // ---- C32 (Rust part): the fixed argument list ---------------------------------------------------
 
+use backtickle_lib::pandoc::{self, DocxRequest};
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use std::time::Duration as StdDuration;
-use writedown_lib::pandoc::{self, DocxRequest};
 
 fn request(from: &str, citeproc: bool, input: &str, doc: Option<&Path>, out: &Path) -> DocxRequest {
     serde_json::from_value(json!({

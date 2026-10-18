@@ -7,9 +7,9 @@
  * recents keep their order and cap, settings are clamped, and a save fails with the same error
  * codes (`modified-externally`, `lossy`, `read-only`, `not-allowed`).
  *
- * Tests shape the mock before the page loads by defining `window.__WRITEDOWN_MOCK_SEED__`
+ * Tests shape the mock before the page loads by defining `window.__BACKTICKLE_MOCK_SEED__`
  * (Playwright: `page.addInitScript`). While the page runs they fire events and read what the
- * app did through `window.__WRITEDOWN_MOCK__` (see `MockControl`).
+ * app did through `window.__BACKTICKLE_MOCK__` (see `MockControl`).
  */
 import { isAbsolutePath, joinPath, parentFolder, pathRoot } from './paths';
 import type {
@@ -244,8 +244,8 @@ export interface MockSeed {
   defaultFolderDialog?: string | null | Array<string | null>;
   /** What `pandocInfo` returns. Default null (no Pandoc). */
   pandoc?: { path: string; version: string } | null;
-  /** What `defaultMarkdownApp` returns. Default: another app named Typora, not Writedown. */
-  defaultApp?: { isWritedown: boolean; appName: string | null };
+  /** What `defaultMarkdownApp` returns. Default: another app named Typora, not Backtickle. */
+  defaultApp?: { isBacktickle: boolean; appName: string | null };
   /** `makeDefaultMarkdownApp` rejects with this message (the system did not change it). */
   makeDefaultError?: string;
   /** `exportDocx`: `error` makes it reject with that message; `hold` keeps it pending until `finishDocx`. */
@@ -289,7 +289,7 @@ export interface MockAsk {
   cancel: string;
 }
 
-/** What tests use to drive and inspect the mock: `window.__WRITEDOWN_MOCK__`. */
+/** What tests use to drive and inspect the mock: `window.__BACKTICKLE_MOCK__`. */
 export interface MockControl {
   // Fire events, as the Rust side would.
   /** Files opened from Finder, the Dock or drag and drop (documents only; granted). */
@@ -325,7 +325,7 @@ export interface MockControl {
   /** Scripts what `pandocInfo` returns. */
   setPandoc(info: { path: string; version: string } | null): void;
   /** Scripts what `defaultMarkdownApp` returns. */
-  setDefaultMarkdownApp(app: { isWritedown: boolean; appName: string | null }): void;
+  setDefaultMarkdownApp(app: { isBacktickle: boolean; appName: string | null }): void;
   /** Makes `makeDefaultMarkdownApp` reject with this message, or succeed with null. */
   setMakeDefaultError(message: string | null): void;
   /** Scripts the result of a search for `query`. */
@@ -434,15 +434,15 @@ export interface MockControl {
 
 declare global {
   interface Window {
-    __WRITEDOWN_MOCK_SEED__?: MockSeed;
+    __BACKTICKLE_MOCK_SEED__?: MockSeed;
     /** Test control and inspection object of the mock platform. */
-    __WRITEDOWN_MOCK__?: MockControl;
+    __BACKTICKLE_MOCK__?: MockControl;
     /** Marks reported through `perfMark`, in order (milliseconds since page load). */
-    __WRITEDOWN_MOCK_MARKS__?: Array<{ name: string; ms: number }>;
+    __BACKTICKLE_MOCK_MARKS__?: Array<{ name: string; ms: number }>;
     /** The last typing benchmark report. */
-    __WRITEDOWN_MOCK_BENCH__?: BenchReport;
+    __BACKTICKLE_MOCK_BENCH__?: BenchReport;
     /** The last search benchmark report. */
-    __WRITEDOWN_MOCK_SEARCH_BENCH__?: SearchBenchReport;
+    __BACKTICKLE_MOCK_SEARCH_BENCH__?: SearchBenchReport;
   }
 }
 
@@ -453,7 +453,7 @@ function fail(code: PlatformErrorCode, message: string): Promise<never> {
   return Promise.reject(error);
 }
 
-const NOT_ALLOWED = 'Writedown has not been given access to this file. Open it with File > Open.';
+const NOT_ALLOWED = 'Backtickle has not been given access to this file. Open it with File > Open.';
 const NOT_FOUND = 'The file was not found. It may have been moved or deleted.';
 const EXISTS = 'An item with that name already exists in this folder.';
 const INVALID_NAME =
@@ -982,7 +982,7 @@ export function relativeImageSrc(folder: string, path: string): string {
 export function createMockPlatform(
   seed: MockSeed | undefined = typeof window === 'undefined'
     ? undefined
-    : window.__WRITEDOWN_MOCK_SEED__,
+    : window.__BACKTICKLE_MOCK_SEED__,
 ): Platform {
   const home = seed?.home ?? MOCK_HOME;
   const files = new Map<string, StoredFile>(
@@ -1026,8 +1026,8 @@ export function createMockPlatform(
   const exportTargets = new Set<string>();
   let clipboardText = seed?.clipboard ?? '';
   let pandoc = seed?.pandoc ?? null;
-  let defaultApp: { isWritedown: boolean; appName: string | null } = seed?.defaultApp ?? {
-    isWritedown: false,
+  let defaultApp: { isBacktickle: boolean; appName: string | null } = seed?.defaultApp ?? {
+    isBacktickle: false,
     appName: 'Typora',
   };
   let makeDefaultError: string | null = seed?.makeDefaultError ?? null;
@@ -1344,7 +1344,10 @@ export function createMockPlatform(
     const file = files.get(path);
     if (!file) return fail('not-found', NOT_FOUND);
     if (file.bytes > limit) {
-      return fail('too-large', 'The file is larger than its limit, which Writedown does not read.');
+      return fail(
+        'too-large',
+        'The file is larger than its limit, which Backtickle does not read.',
+      );
     }
     return Promise.resolve({ path, text: file.text });
   };
@@ -1724,7 +1727,7 @@ export function createMockPlatform(
       phase3.sessions.length = 0;
     },
   };
-  if (typeof window !== 'undefined') window.__WRITEDOWN_MOCK__ = control;
+  if (typeof window !== 'undefined') window.__BACKTICKLE_MOCK__ = control;
 
   const subscribe = <T>(set: Set<T>, handler: T): Promise<() => void> => {
     set.add(handler);
@@ -1781,16 +1784,16 @@ export function createMockPlatform(
 
     perfMark: (name) => {
       if (typeof window === 'undefined') return;
-      const marks = window.__WRITEDOWN_MOCK_MARKS__ ?? [];
+      const marks = window.__BACKTICKLE_MOCK_MARKS__ ?? [];
       marks.push({ name, ms: performance.now() });
-      window.__WRITEDOWN_MOCK_MARKS__ = marks;
+      window.__BACKTICKLE_MOCK_MARKS__ = marks;
     },
 
     benchReport: async (report) => {
-      if (typeof window !== 'undefined') window.__WRITEDOWN_MOCK_BENCH__ = report;
+      if (typeof window !== 'undefined') window.__BACKTICKLE_MOCK_BENCH__ = report;
     },
     benchSearchReport: async (report) => {
-      if (typeof window !== 'undefined') window.__WRITEDOWN_MOCK_SEARCH_BENCH__ = report;
+      if (typeof window !== 'undefined') window.__BACKTICKLE_MOCK_SEARCH_BENCH__ = report;
     },
 
     // ---- dialogs ----
@@ -1835,7 +1838,7 @@ export function createMockPlatform(
       const file = files.get(path);
       if (!file) return fail('not-found', NOT_FOUND);
       if (file.bytes > MAX_TEXT_FILE_BYTES) {
-        return fail('too-large', 'The file is larger than 50 MB, which Writedown does not open.');
+        return fail('too-large', 'The file is larger than 50 MB, which Backtickle does not open.');
       }
       seen.set(path, {
         modifiedMs: file.modifiedMs,
@@ -1961,7 +1964,7 @@ export function createMockPlatform(
       if (!files.has(resolved) || !DOCUMENT_EXTENSIONS.includes(extensionOf(resolved))) {
         return fail(
           'not-markdown',
-          'This link points to something Writedown does not open as a document.',
+          'This link points to something Backtickle does not open as a document.',
         );
       }
       granted.add(resolved);
@@ -2062,7 +2065,7 @@ export function createMockPlatform(
             )
           : fail(
               'not-markdown',
-              'This link points to something Writedown does not read as a document.',
+              'This link points to something Backtickle does not read as a document.',
             );
       }
       if (purpose === 'embed') {
@@ -2397,7 +2400,7 @@ export function createMockPlatform(
     defaultMarkdownApp: async () => ({ ...defaultApp }),
     makeDefaultMarkdownApp: async () => {
       if (makeDefaultError !== null) return fail('io', makeDefaultError);
-      defaultApp = { isWritedown: true, appName: 'Writedown' };
+      defaultApp = { isBacktickle: true, appName: 'Backtickle' };
     },
     choosePandoc: async () => {
       const path = pandocAnswers.next(null);

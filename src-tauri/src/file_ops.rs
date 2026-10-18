@@ -93,7 +93,7 @@ fn cannot_change() -> PlatformError {
     PlatformError::new(
         ErrorCode::ReadOnly,
         format!(
-            "Writedown cannot change this location. Check its permissions in {}.",
+            "Backtickle cannot change this location. Check its permissions in {}.",
             crate::os_text::FILE_MANAGER
         ),
     )
@@ -109,7 +109,7 @@ fn failed(error: &io::Error) -> PlatformError {
             Some(code) if os_code::NAME_TOO_LONG.contains(&code) => PlatformError::invalid_name(),
             Some(code) if os_code::READ_ONLY.contains(&code) => cannot_change(),
             Some(code) if os_code::OTHER_VOLUME.contains(&code) => PlatformError::io(
-                "This folder is on another disk. Writedown moves items within one disk only.",
+                "This folder is on another disk. Backtickle moves items within one disk only.",
             ),
             Some(code) if os_code::DISK_FULL.contains(&code) => {
                 PlatformError::io("The disk is full.")

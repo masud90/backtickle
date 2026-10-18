@@ -17,8 +17,8 @@ const tabCount = (page: Page, count: number) =>
 const docName = (page: Page) => page.getByTestId('document-name');
 const dirtyDot = (page: Page) => page.getByTestId('dirty-dot');
 
-const mock = <T>(page: Page, read: (m: NonNullable<Window['__WRITEDOWN_MOCK__']>) => T) =>
-  page.evaluate(`(${read.toString()})(window.__WRITEDOWN_MOCK__)`) as Promise<T>;
+const mock = <T>(page: Page, read: (m: NonNullable<Window['__BACKTICKLE_MOCK__']>) => T) =>
+  page.evaluate(`(${read.toString()})(window.__BACKTICKLE_MOCK__)`) as Promise<T>;
 
 async function startMain(page: Page, seed: Partial<MockSeed> = {}) {
   await seedMock(page, {

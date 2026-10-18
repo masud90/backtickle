@@ -1,12 +1,12 @@
 name: Bug report
-description: Something in Writedown doesn't work as it should.
+description: Something in Backtickle doesn't work as it should.
 labels: [bug]
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for taking the time to report this. If a document renders wrong, the **Rendering problem** form is a better fit.
-        Please report security problems privately, as described in [SECURITY.md](https://github.com/masud90/writedown/blob/main/SECURITY.md).
+        Please report security problems privately, as described in [SECURITY.md](https://github.com/masud90/backtickle/blob/main/SECURITY.md).
   - type: textarea
     id: what
     attributes:
@@ -21,8 +21,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: Writedown version
-      description: From About Writedown (Writedown menu on macOS, Help menu on Windows and Linux).
+      label: Backtickle version
+      description: From About Backtickle (Backtickle menu on macOS, Help menu on Windows and Linux).
       placeholder: "0.1.2"
     validations:
       required: true

@@ -2,12 +2,12 @@
 title: MDX Guide
 tags: [markdown, mdx, reference]
 version: 1.0.0
-author: Writedown
+author: Backtickle
 ---
 
 # MDX Guide
 
-This guide shows the MDX syntax supported by Writedown, on top of GitHub Flavored Markdown. Each feature has one section: a short description, the source in a code block, and the rendered result directly below it. Components are shown, never run: Writedown displays each component as a labeled box with its props and its Markdown children, and it never evaluates JavaScript, imports or expressions from a document.
+This guide shows the MDX syntax supported by Backtickle, on top of GitHub Flavored Markdown. Each feature has one section: a short description, the source in a code block, and the rendered result directly below it. Components are shown, never run: Backtickle displays each component as a labeled box with its props and its Markdown children, and it never evaluates JavaScript, imports or expressions from a document.
 
 ## Imports and exports
 
@@ -41,7 +41,7 @@ Result:
 
 ## Props
 
-Props are written as attributes. Strings use quotes, and anything else goes in braces. Writedown shows the source text of each value and does not evaluate it.
+Props are written as attributes. Strings use quotes, and anything else goes in braces. Backtickle shows the source text of each value and does not evaluate it.
 
 ```markdown
 <Card title="Example" count={3} enabled tags={['a', 'b']} />
@@ -105,7 +105,7 @@ Result:
 
 ## Expressions
 
-Curly braces hold a JavaScript expression. Writedown shows the expression as code and does not evaluate it.
+Curly braces hold a JavaScript expression. Backtickle shows the expression as code and does not evaluate it.
 
 ```markdown
 Two plus two is {2 + 2}, and the title is {frontmatter.title}.
@@ -149,7 +149,7 @@ This is ~~struck out~~ text with a note.[^mdx] See https://example.org.
 
 ## Errors
 
-MDX is stricter than plain Markdown. An unclosed tag or an unbalanced brace is a parse error. Writedown keeps the last good preview, shows a banner "MDX error on line N" above it, and the banner has a button that moves the cursor to that line. The source below is an error, so it is shown as code only.
+MDX is stricter than plain Markdown. An unclosed tag or an unbalanced brace is a parse error. Backtickle keeps the last good preview, shows a banner "MDX error on line N" above it, and the banner has a button that moves the cursor to that line. The source below is an error, so it is shown as code only.
 
 ```markdown
 <Banner>

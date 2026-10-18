@@ -99,7 +99,7 @@ test.describe('typewriter scrolling', () => {
     await start(page);
     await editor(page).click();
     await page.evaluate(() =>
-      window.__WRITEDOWN_MOCK__?.settingsChanged({ editor: { typewriter: false } } as never),
+      window.__BACKTICKLE_MOCK__?.settingsChanged({ editor: { typewriter: false } } as never),
     );
     await page.keyboard.press('ControlOrMeta+Home');
     for (let i = 0; i < 12; i++) await page.keyboard.press('ArrowDown');

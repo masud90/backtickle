@@ -91,16 +91,16 @@ jobs:
         run: |
           npm run dmg
           cd outputs
-          for dmg in Writedown-*.dmg; do shasum -a 256 "$dmg" > "$dmg.sha256"; done
+          for dmg in Backtickle-*.dmg; do shasum -a 256 "$dmg" > "$dmg.sha256"; done
 
       - name: Attach to a draft release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" --draft --title "Writedown ${TAG#v}" --notes "See CHANGELOG.md."
+            gh release create "$TAG" --draft --title "Backtickle ${TAG#v}" --notes "See CHANGELOG.md."
           fi
-          gh release upload "$TAG" outputs/Writedown-*.dmg outputs/Writedown-*.dmg.sha256 --clobber
+          gh release upload "$TAG" outputs/Backtickle-*.dmg outputs/Backtickle-*.dmg.sha256 --clobber
 
   windows:
     # After the macOS job, which creates the draft release, unless only Windows is built.
@@ -141,7 +141,7 @@ jobs:
           cd outputs
           for file in *.exe *.msi; do sha256sum "$file" > "$file.sha256"; done
           if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" --draft --title "Writedown ${TAG#v}" --notes "See CHANGELOG.md."
+            gh release create "$TAG" --draft --title "Backtickle ${TAG#v}" --notes "See CHANGELOG.md."
           fi
           gh release upload "$TAG" *.exe *.msi *.sha256 --clobber
 
@@ -186,6 +186,6 @@ jobs:
           cd outputs
           for file in *.deb *.AppImage; do sha256sum "$file" > "$file.sha256"; done
           if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" --draft --title "Writedown ${TAG#v}" --notes "See CHANGELOG.md."
+            gh release create "$TAG" --draft --title "Backtickle ${TAG#v}" --notes "See CHANGELOG.md."
           fi
           gh release upload "$TAG" *.deb *.AppImage *.sha256 *.sources.txt --clobber
