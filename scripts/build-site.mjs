@@ -176,6 +176,7 @@ function page(body) {
 <meta name="description" content="${escapeAttr(description)}">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#0058bc">
+<meta name="google-site-verification" content="hIaX0_6ekcrHBbs0jC7U26eNvEE7TsffvZdCypQ9tVQ">
 <link rel="canonical" href="${siteUrl}">
 <link rel="icon" type="image/png" href="docs/media/icon.png">
 <link rel="apple-touch-icon" href="docs/media/icon.png">
