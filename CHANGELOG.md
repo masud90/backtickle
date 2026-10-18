@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (2026-10-18)
 
 - Writedown is now called Backtickle. The first launch of Backtickle brings over the settings, snippets,
   recent files, open session and recovered unsaved text of Writedown.
