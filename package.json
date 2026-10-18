@@ -1,11 +1,11 @@
 {
-  "name": "writedown",
+  "name": "backtickle",
   "version": "0.1.2",
   "private": true,
   "description": "A free, open-source Markdown editor and reader for macOS, Windows and Linux",
   "license": "MIT",
   "author": "Masud Rahman",
-  "repository": "github:masud90/writedown",
+  "repository": "github:masud90/backtickle",
   "type": "module",
   "engines": {
     "node": ">=22.12.0"

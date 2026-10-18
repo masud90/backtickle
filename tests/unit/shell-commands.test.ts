@@ -161,7 +161,7 @@ describe('shell commands', () => {
     await shell.start();
     await new Promise((resolve) => setTimeout(resolve, 0));
     flushSync();
-    const control = window.__WRITEDOWN_MOCK__;
+    const control = window.__BACKTICKLE_MOCK__;
 
     const last = control?.menuStates.at(-1);
     expect(last?.hasPath).toBe(false);

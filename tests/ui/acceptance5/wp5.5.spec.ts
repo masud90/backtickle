@@ -21,7 +21,7 @@ async function open(page: Page, extra: Record<string, unknown> = {}) {
   await expect(editor(page)).toBeVisible();
 }
 
-const stored = (page: Page) => page.evaluate(() => window.__WRITEDOWN_MOCK__?.snippets ?? []);
+const stored = (page: Page) => page.evaluate(() => window.__BACKTICKLE_MOCK__?.snippets ?? []);
 const docText = (page: Page) => editor(page).evaluate((el) => (el as HTMLElement).innerText);
 
 async function showTab(page: Page) {

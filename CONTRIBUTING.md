@@ -5,13 +5,13 @@ Issues and pull requests are welcome.
 ## Finding something to work on
 
 - The [roadmap](ROADMAP.md) lists what is planned next, with an issue for each item.
-- Issues labeled [good first issue](https://github.com/masud90/writedown/labels/good%20first%20issue) are small
-  and say where in the code to look. [packaging](https://github.com/masud90/writedown/labels/packaging) issues
+- Issues labeled [good first issue](https://github.com/masud90/backtickle/labels/good%20first%20issue) are small
+  and say where in the code to look. [packaging](https://github.com/masud90/backtickle/labels/packaging) issues
   mostly need no Rust or Svelte.
 - Comment on an issue before you start, so two people don't do the same work. For a larger change, agree on the
   approach in the issue first.
 - Bug reports, rendering problems and feature ideas each have a form under
-  [New issue](https://github.com/masud90/writedown/issues/new/choose).
+  [New issue](https://github.com/masud90/backtickle/issues/new/choose).
 
 ## Principles
 

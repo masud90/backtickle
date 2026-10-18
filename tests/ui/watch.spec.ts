@@ -13,8 +13,8 @@ const OTHER = `${DOCS}/other.md`;
 const BODY = Array.from({ length: 8 }, (_, i) => `Line ${i + 1} of the note.`).join('\n\n');
 const NOTE_TEXT = `# Note\n\n${BODY}\n`;
 
-const mock = <T>(page: Page, read: (m: NonNullable<Window['__WRITEDOWN_MOCK__']>) => T) =>
-  page.evaluate(`(${read.toString()})(window.__WRITEDOWN_MOCK__)`) as Promise<T>;
+const mock = <T>(page: Page, read: (m: NonNullable<Window['__BACKTICKLE_MOCK__']>) => T) =>
+  page.evaluate(`(${read.toString()})(window.__BACKTICKLE_MOCK__)`) as Promise<T>;
 
 async function openNote(page: Page, seed: MockSeed = {}) {
   await seedMock(page, {
@@ -36,7 +36,7 @@ const change = (
 ) =>
   page.evaluate(
     ([k, p, s]) =>
-      window.__WRITEDOWN_MOCK__?.fileChanged([{ path: p, kind: k, scope: s } as never]),
+      window.__BACKTICKLE_MOCK__?.fileChanged([{ path: p, kind: k, scope: s } as never]),
     [kind, path, scope] as const,
   );
 
@@ -50,7 +50,7 @@ test.describe('the watch set', () => {
       .toEqual({ documents: [NOTE], linked: [], folder: null });
 
     await page.evaluate(() =>
-      window.__WRITEDOWN_MOCK__?.openFiles(['/Users/mock/Documents/other.md']),
+      window.__BACKTICKLE_MOCK__?.openFiles(['/Users/mock/Documents/other.md']),
     );
     await expect(tabs(page)).toHaveCount(2);
     await expect
@@ -94,7 +94,8 @@ test.describe('C21 a document changed on disk', () => {
     const changed = `# Note\n\nA new paragraph.\n\n${BODY}\n\nAnd one more.\n`;
     await mock(page, () => undefined);
     await page.evaluate(
-      ([path, text]) => window.__WRITEDOWN_MOCK__?.externallyModify(path as string, text as string),
+      ([path, text]) =>
+        window.__BACKTICKLE_MOCK__?.externallyModify(path as string, text as string),
       [NOTE, changed],
     );
     await change(page, 'modified');
@@ -113,7 +114,8 @@ test.describe('C21 a document changed on disk', () => {
     await openNote(page, { ask: false });
     await typeAtEnd(page, 'mine');
     await page.evaluate(
-      ([path, text]) => window.__WRITEDOWN_MOCK__?.externallyModify(path as string, text as string),
+      ([path, text]) =>
+        window.__BACKTICKLE_MOCK__?.externallyModify(path as string, text as string),
       [NOTE, '# Theirs\n'],
     );
     await change(page, 'modified');
@@ -135,7 +137,8 @@ test.describe('C21 a document changed on disk', () => {
     await openNote(page);
     await typeAtEnd(page, 'mine');
     await page.evaluate(
-      ([path, text]) => window.__WRITEDOWN_MOCK__?.externallyModify(path as string, text as string),
+      ([path, text]) =>
+        window.__BACKTICKLE_MOCK__?.externallyModify(path as string, text as string),
       [NOTE, '# Theirs\n\nTheir text.\n'],
     );
     await change(page, 'modified');
@@ -154,7 +157,7 @@ test.describe('C21 a document changed on disk', () => {
     page,
   }) => {
     await openNote(page, { saveDialog: `${DOCS}/restored.md` });
-    await page.evaluate((path) => window.__WRITEDOWN_MOCK__?.externallyRemove(path), NOTE);
+    await page.evaluate((path) => window.__BACKTICKLE_MOCK__?.externallyRemove(path), NOTE);
     await change(page, 'removed');
 
     const banner = page.getByTestId('banner-missing');
@@ -190,7 +193,8 @@ test.describe('C23 linked files', () => {
     await expect(preview(page)).toContainText('(Smith 2020)');
 
     await page.evaluate(
-      ([path, text]) => window.__WRITEDOWN_MOCK__?.externallyModify(path as string, text as string),
+      ([path, text]) =>
+        window.__BACKTICKLE_MOCK__?.externallyModify(path as string, text as string),
       [`${DIR}/refs.bib`, BIB(2021)],
     );
     await change(page, 'modified', `${DIR}/refs.bib`, 'linked');
@@ -214,7 +218,7 @@ test.describe('C23 linked files', () => {
     await expect(link).not.toHaveAttribute('href', /.+/);
 
     await page.evaluate(
-      (path) => window.__WRITEDOWN_MOCK__?.externallyCreate(path, '# Newcomer\n'),
+      (path) => window.__BACKTICKLE_MOCK__?.externallyCreate(path, '# Newcomer\n'),
       `${ROOT}/Newcomer.md`,
     );
     await change(page, 'created', `${ROOT}/Newcomer.md`, 'folder');

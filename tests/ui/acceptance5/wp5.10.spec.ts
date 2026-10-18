@@ -162,7 +162,7 @@ test('E5.10-9 the palette shows the changed shortcut, and a change from another 
   await expect(rowOf('Find…')).not.toContainText('⌘F');
   // A change from another window arrives live.
   await page.evaluate(() =>
-    window.__WRITEDOWN_MOCK__?.settingsChanged({ shortcuts: { 'save-as': '⌃⌘J' } }),
+    window.__BACKTICKLE_MOCK__?.settingsChanged({ shortcuts: { 'save-as': '⌃⌘J' } }),
   );
   await expect(rowOf('Save As…')).toContainText('⌃⌘J');
 });
@@ -187,7 +187,7 @@ test('E5.10-10 an editing command takes the new key and the old key no longer wo
   await expect.poll(text).toMatch(/^two\none\nthree/);
   // Changing it live, as from Preferences, takes effect without reloading.
   await page.evaluate(() =>
-    window.__WRITEDOWN_MOCK__?.settingsChanged({ shortcuts: { 'editor:Alt-ArrowDown': null } }),
+    window.__BACKTICKLE_MOCK__?.settingsChanged({ shortcuts: { 'editor:Alt-ArrowDown': null } }),
   );
   await page.keyboard.press('Control+Alt+j');
   await page.keyboard.press('Alt+ArrowDown');

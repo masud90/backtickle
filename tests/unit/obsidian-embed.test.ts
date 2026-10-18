@@ -16,7 +16,7 @@ import { followWikilink, wikilinkOf } from '@/shell/wikilinks';
 import { FIXTURE_VAULT, fixtureText, inputs, VAULT_ROOT, vaultSeed } from './obsidian-helpers';
 
 beforeAll(async () => {
-  window.__WRITEDOWN_MOCK_SEED__ = vaultSeed();
+  window.__BACKTICKLE_MOCK_SEED__ = vaultSeed();
   await (await getPlatform()).launchOptions();
 });
 

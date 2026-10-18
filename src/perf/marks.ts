@@ -1,5 +1,5 @@
 /**
- * Timing helpers for the measurement harness (see `WRITEDOWN_PERF` in src-tauri/src/perf.rs).
+ * Timing helpers for the measurement harness (see `BACKTICKLE_PERF` in src-tauri/src/perf.rs).
  *
  * "Painted" means two animation frames later: the first frame runs the update, the second one
  * starts after the first was drawn.

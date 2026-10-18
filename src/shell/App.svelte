@@ -38,7 +38,7 @@
     if (tab.lossy && !tab.dismissed.lossy) {
       list.push({
         kind: 'lossy',
-        text: 'Some characters in this file could not be read and were replaced. Writedown asks before saving it.',
+        text: 'Some characters in this file could not be read and were replaced. Backtickle asks before saving it.',
       });
     }
     if (tab.readOnly && !tab.dismissed.readOnly) {
@@ -82,7 +82,7 @@
 
   {#if tab?.recovered}
     <Banner
-      message="Recovered after Writedown closed unexpectedly. This text was not saved."
+      message="Recovered after Backtickle closed unexpectedly. This text was not saved."
       testId="banner-recovered"
       buttons={[
         { label: 'Keep', onclick: () => shell.keepRecovered(tab.id), primary: true },

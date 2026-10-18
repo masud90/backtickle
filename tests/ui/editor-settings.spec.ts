@@ -16,11 +16,11 @@ async function open(page: Page, seed: MockSeed = {}, path: string | null = NOTE)
   if (path) await expect(editor(page)).toBeVisible();
 }
 
-const mock = <T>(page: Page, fn: (m: NonNullable<Window['__WRITEDOWN_MOCK__']>) => T) =>
-  page.evaluate(`(${fn.toString()})(window.__WRITEDOWN_MOCK__)`) as Promise<T>;
+const mock = <T>(page: Page, fn: (m: NonNullable<Window['__BACKTICKLE_MOCK__']>) => T) =>
+  page.evaluate(`(${fn.toString()})(window.__BACKTICKLE_MOCK__)`) as Promise<T>;
 
 const change = (page: Page, patch: unknown) =>
-  page.evaluate((p) => window.__WRITEDOWN_MOCK__?.settingsChanged(p as never), patch);
+  page.evaluate((p) => window.__BACKTICKLE_MOCK__?.settingsChanged(p as never), patch);
 
 test.describe('D11 font family, size and line height', () => {
   test('change the editor font and line box, and keep cursor, selection and undo', async ({
@@ -193,7 +193,8 @@ test.describe('D14 auto-save with the file changed outside', () => {
     await open(page, { settings: { saving: { autoSave: true } }, ask: false });
     await typeAtEnd(page, 'mine');
     await page.evaluate(
-      ([path, text]) => window.__WRITEDOWN_MOCK__?.externallyModify(path as string, text as string),
+      ([path, text]) =>
+        window.__BACKTICKLE_MOCK__?.externallyModify(path as string, text as string),
       [NOTE, '# Theirs\n'],
     );
     const banner = page.getByTestId('banner-external');
@@ -219,7 +220,7 @@ test.describe('D15 new documents', () => {
     await expect(editor(page)).toBeVisible();
     await typeAtEnd(page, 'a\nb');
     await page.evaluate(() =>
-      window.__WRITEDOWN_MOCK__?.setAnswers({ saveDialog: '/Users/mock/Documents/new.md' }),
+      window.__BACKTICKLE_MOCK__?.setAnswers({ saveDialog: '/Users/mock/Documents/new.md' }),
     );
     await menu(page, 'save');
     await expect.poll(() => saves(page)).toBe(1);
@@ -235,7 +236,7 @@ test.describe('D15 new documents', () => {
     await expect(editor(page)).toBeVisible();
     await typeAtEnd(page, 'a');
     await page.evaluate(() =>
-      window.__WRITEDOWN_MOCK__?.setAnswers({ saveDialog: '/Users/mock/Documents/new.md' }),
+      window.__BACKTICKLE_MOCK__?.setAnswers({ saveDialog: '/Users/mock/Documents/new.md' }),
     );
     await menu(page, 'save');
     await expect.poll(() => saves(page)).toBe(1);
@@ -245,7 +246,7 @@ test.describe('D15 new documents', () => {
     await menu(page, 'new');
     await typeAtEnd(page, 'b');
     await page.evaluate(() =>
-      window.__WRITEDOWN_MOCK__?.setAnswers({ saveDialog: '/Users/mock/Documents/two.md' }),
+      window.__BACKTICKLE_MOCK__?.setAnswers({ saveDialog: '/Users/mock/Documents/two.md' }),
     );
     await menu(page, 'save');
     await expect.poll(() => saves(page)).toBe(2);
@@ -254,7 +255,7 @@ test.describe('D15 new documents', () => {
     await menu(page, 'new');
     await typeAtEnd(page, 'c\n');
     await page.evaluate(() =>
-      window.__WRITEDOWN_MOCK__?.setAnswers({ saveDialog: '/Users/mock/Documents/three.md' }),
+      window.__BACKTICKLE_MOCK__?.setAnswers({ saveDialog: '/Users/mock/Documents/three.md' }),
     );
     await menu(page, 'save');
     await expect.poll(() => saves(page)).toBe(3);

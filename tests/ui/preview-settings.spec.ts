@@ -7,7 +7,10 @@ import { preview, seedMock } from './helpers';
 const ROOT = '/Users/mock/Vault';
 
 async function change(page: import('@playwright/test').Page, patch: object) {
-  await page.evaluate((value) => window.__WRITEDOWN_MOCK__?.settingsChanged(value as never), patch);
+  await page.evaluate(
+    (value) => window.__BACKTICKLE_MOCK__?.settingsChanged(value as never),
+    patch,
+  );
 }
 
 test('D17: detection off, a .md file in a vault is the default flavor; .qmd stays Quarto', async ({

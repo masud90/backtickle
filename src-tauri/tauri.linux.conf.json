@@ -4,7 +4,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Writedown",
+        "title": "Backtickle",
         "url": "index.html",
         "width": 1280,
         "height": 820,
@@ -17,12 +17,12 @@
   "bundle": {
     "targets": ["deb", "appimage"],
     "shortDescription": "A Markdown reader and writer for Linux",
-    "longDescription": "Writedown reads and writes Markdown in six flavors, with a live preview, on Linux.",
+    "longDescription": "Backtickle reads and writes Markdown in six flavors, with a live preview, on Linux.",
     "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.png"],
     "linux": {
       "deb": {
         "depends": ["xdg-utils"],
-        "desktopTemplate": "writedown.desktop",
+        "desktopTemplate": "backtickle.desktop",
         "section": "editors"
       }
     }

@@ -161,7 +161,7 @@ const RULES: Rule[] = [
     id: 'chunks-not-run',
     files: /^quarto\/chunks\.qmd$|^guide\/quarto/,
     apply(ours, ref, name) {
-      // Pandoc shows a chunk as plain text; Writedown shows a card. Nothing runs, so the
+      // Pandoc shows a chunk as plain text; Backtickle shows a card. Nothing runs, so the
       // figures the chunks would make do not exist in Quarto (no caption, no number).
       drop(ref.paragraphs, (p) => /^\{(r|python)\b/.test(p));
       for (const prefix of ['We use inline R code', 'Quarto form:', 'The trend is plotted in']) {
@@ -312,7 +312,7 @@ describe.skipIf(!HAVE_TOOLS)('fidelity against Pandoc 3.8.3 and Quarto 1.9.38', 
     });
   }
 
-  it('Quarto itself fails only on the include cycles, and Writedown does not', () => {
+  it('Quarto itself fails only on the include cycles, and Backtickle does not', () => {
     const failed = ALL.filter((f) => results.get(f.name)?.ref === null).map((f) => f.name);
     // Quarto 1.9.38 overflows its stack on an include cycle (allowed: quarto-cycle).
     expect(failed.sort()).toEqual([

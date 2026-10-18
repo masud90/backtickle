@@ -13,7 +13,7 @@ impl TempDir {
     pub fn new() -> Self {
         static COUNTER: AtomicUsize = AtomicUsize::new(0);
         let unique = format!(
-            "writedown-test-{}-{}",
+            "backtickle-test-{}-{}",
             std::process::id(),
             COUNTER.fetch_add(1, Ordering::Relaxed)
         );

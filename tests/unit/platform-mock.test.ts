@@ -115,13 +115,13 @@ describe('mock platform: launch options and hooks', () => {
   });
 
   it('records performance marks in order', () => {
-    window.__WRITEDOWN_MOCK_MARKS__ = [];
+    window.__BACKTICKLE_MOCK_MARKS__ = [];
     const platform = createMockPlatform({});
 
     platform.perfMark('frontend-init');
     platform.perfMark('ready');
 
-    expect(window.__WRITEDOWN_MOCK_MARKS__.map((mark) => mark.name)).toEqual([
+    expect(window.__BACKTICKLE_MOCK_MARKS__.map((mark) => mark.name)).toEqual([
       'frontend-init',
       'ready',
     ]);
@@ -132,7 +132,7 @@ describe('mock platform: launch options and hooks', () => {
 
     await platform.benchReport({ renderMs: [1], e2eMs: [2], docBytes: 3 });
 
-    expect(window.__WRITEDOWN_MOCK_BENCH__).toEqual({ renderMs: [1], e2eMs: [2], docBytes: 3 });
+    expect(window.__BACKTICKLE_MOCK_BENCH__).toEqual({ renderMs: [1], e2eMs: [2], docBytes: 3 });
   });
 });
 
@@ -143,6 +143,6 @@ describe('mock platform: search benchmark report', () => {
 
     await platform.benchSearchReport(report);
 
-    expect(window.__WRITEDOWN_MOCK_SEARCH_BENCH__).toEqual(report);
+    expect(window.__BACKTICKLE_MOCK_SEARCH_BENCH__).toEqual(report);
   });
 });

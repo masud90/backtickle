@@ -30,7 +30,7 @@ const FLAVORS: Array<{ id: string; file: string; pill?: RegExp }> = [
 ];
 
 const exported = (page: Page) =>
-  page.evaluate(() => window.__WRITEDOWN_MOCK__?.exports.at(-1)?.contents ?? null);
+  page.evaluate(() => window.__BACKTICKLE_MOCK__?.exports.at(-1)?.contents ?? null);
 
 async function exportHtml(page: Page, timeout = 30_000): Promise<string> {
   await menu(page, 'export-html');
@@ -85,7 +85,7 @@ test.describe('C27 Export HTML of each flavor guide', () => {
         settings: undefined,
       });
       await page.evaluate((out) => {
-        window.__WRITEDOWN_MOCK__?.setAnswers({ saveDialog: out });
+        window.__BACKTICKLE_MOCK__?.setAnswers({ saveDialog: out });
       }, OUT);
       await expect
         .poll(() =>
@@ -122,7 +122,7 @@ test.describe('C27 Export HTML of each flavor guide', () => {
       images: { [`${DOCS}/pic.png`]: PIXEL },
       extra: {},
     });
-    await page.evaluate((out) => window.__WRITEDOWN_MOCK__?.setAnswers({ saveDialog: out }), OUT);
+    await page.evaluate((out) => window.__BACKTICKLE_MOCK__?.setAnswers({ saveDialog: out }), OUT);
     const html = await exportHtml(page);
     expect(html).toMatch(/<img[^>]+src="data:image\/[a-z+]+;base64,/);
     expect(html).toContain('src="https://example.org/remote.png"');
@@ -134,7 +134,7 @@ test.describe('C27 Export HTML of each flavor guide', () => {
     const text = fixture('generated/large-5m.md');
     const headings = plainHeadings(text);
     await openDoc({ page, path: `${DOCS}/big.md`, text });
-    await page.evaluate((out) => window.__WRITEDOWN_MOCK__?.setAnswers({ saveDialog: out }), OUT);
+    await page.evaluate((out) => window.__BACKTICKLE_MOCK__?.setAnswers({ saveDialog: out }), OUT);
     const html = await exportHtml(page, 200_000);
     const count = (html.match(/<h[1-6][ >]/g) ?? []).length;
     let fenced = false;
@@ -176,7 +176,10 @@ for (const flavor of FLAVORS) {
           flavor.pill ??
           (flavor.id === 'quarto' ? /^Quarto/ : flavor.id === 'mdx' ? /^MDX/ : /^GitHub/),
       });
-      await page.evaluate((out) => window.__WRITEDOWN_MOCK__?.setAnswers({ saveDialog: out }), OUT);
+      await page.evaluate(
+        (out) => window.__BACKTICKLE_MOCK__?.setAnswers({ saveDialog: out }),
+        OUT,
+      );
       await expect
         .poll(() =>
           preview(page)
@@ -267,11 +270,11 @@ test.describe('C29 Print', () => {
     page,
   }) => {
     await openDoc({ page, path: `${DOCS}/print.md`, text: PRINT_SOURCE });
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.reset());
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.reset());
     await menu(page, 'print');
-    await expect.poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.prints)).toBe(1);
+    await expect.poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.prints)).toBe(1);
 
-    const atCall = await page.evaluate(() => window.__WRITEDOWN_MOCK__?.printRoots[0] ?? '');
+    const atCall = await page.evaluate(() => window.__BACKTICKLE_MOCK__?.printRoots[0] ?? '');
     for (const needle of [
       'Print heading',
       'Paragraph one of the printed document.',
@@ -312,7 +315,7 @@ test.describe('C29 Print', () => {
     await page.emulateMedia({ colorScheme: 'dark' });
     await openDoc({ page, path: `${DOCS}/print-dark.md`, text: PRINT_SOURCE });
     await menu(page, 'print');
-    await expect.poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.prints)).toBe(1);
+    await expect.poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.prints)).toBe(1);
     await page.emulateMedia({ media: 'print', colorScheme: 'dark' });
     const colors = await page.evaluate(() => {
       const heading = document.querySelector('#wd-print-root h1') as Element;
@@ -335,7 +338,7 @@ test.describe('C29 Print', () => {
   }) => {
     await openDoc({ page, path: `${DOCS}/print-breaks.md`, text: PRINT_SOURCE });
     await menu(page, 'print');
-    await expect.poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.prints)).toBe(1);
+    await expect.poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.prints)).toBe(1);
     await page.emulateMedia({ media: 'print' });
     const breaks = await page.evaluate(() => {
       const inside = (selector: string) => {
@@ -381,9 +384,9 @@ test.describe('C30 Copy as HTML', () => {
     await openDoc({ page, path: `${DOCS}/copy.md`, text: COPY_SOURCE });
     await menu(page, 'copy-html');
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.clipboardWrites.length))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.clipboardWrites.length))
       .toBe(1);
-    const write = await page.evaluate(() => window.__WRITEDOWN_MOCK__?.clipboardWrites[0]);
+    const write = await page.evaluate(() => window.__BACKTICKLE_MOCK__?.clipboardWrites[0]);
     const html = write?.html ?? '';
     expect(html).toContain('<h1');
     expect(html).toContain('Copy heading');
@@ -414,10 +417,10 @@ test.describe('C30 Copy as HTML', () => {
     });
     await menu(page, 'copy-html');
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.clipboardWrites.length))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.clipboardWrites.length))
       .toBe(1);
     const html =
-      (await page.evaluate(() => window.__WRITEDOWN_MOCK__?.clipboardWrites[0]?.html)) ?? '';
+      (await page.evaluate(() => window.__BACKTICKLE_MOCK__?.clipboardWrites[0]?.html)) ?? '';
     expect(html).toContain('First paragraph with');
     expect(html).toContain('Second paragraph with');
     expect(html).not.toContain('Copy heading');
@@ -429,7 +432,8 @@ test.describe('C30 Copy as HTML', () => {
 
 const PANDOC_INFO = { path: '/mock/pandoc', version: '3.8.3' };
 const DOCX_OUT = `${DOCS}/word.docx`;
-const requests = (page: Page) => page.evaluate(() => window.__WRITEDOWN_MOCK__?.docxRequests ?? []);
+const requests = (page: Page) =>
+  page.evaluate(() => window.__BACKTICKLE_MOCK__?.docxRequests ?? []);
 
 async function openForWord(
   page: Page,
@@ -441,8 +445,8 @@ async function openForWord(
   await openDoc({ page, path, text, pill: extra.pill });
   await page.evaluate(
     ([out, info]) => {
-      window.__WRITEDOWN_MOCK__?.setAnswers({ saveDialog: out as string });
-      window.__WRITEDOWN_MOCK__?.setPandoc(info as never);
+      window.__BACKTICKLE_MOCK__?.setAnswers({ saveDialog: out as string });
+      window.__BACKTICKLE_MOCK__?.setPandoc(info as never);
     },
     [DOCX_OUT, PANDOC_INFO] as const,
   );
@@ -514,7 +518,7 @@ test.describe('C31 Word export requests', () => {
 
   test('C31 without Pandoc the item is disabled and the action reports it', async ({ page }) => {
     await openForWord(page, 'nopandoc.md', '# One\n');
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.setPandoc(null));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.setPandoc(null));
     await menu(page, 'export-docx');
     await expect(page.getByRole('alert')).toContainText('Pandoc was not found');
     expect(await requests(page)).toEqual([]);
@@ -526,7 +530,7 @@ test.describe('C31 Word export errors and progress', () => {
     const path = `${DOCS}/err2.md`;
     await page.addInitScript(
       ([p, out]) => {
-        window.__WRITEDOWN_MOCK_SEED__ = {
+        window.__BACKTICKLE_MOCK_SEED__ = {
           files: { [p as string]: '# One\n' },
           saveDialog: out as string,
           pandoc: { path: '/mock/pandoc', version: '3.8.3' },
@@ -546,7 +550,7 @@ test.describe('C31 Word export errors and progress', () => {
     const path = `${DOCS}/hold.md`;
     await page.addInitScript(
       ([p, out]) => {
-        window.__WRITEDOWN_MOCK_SEED__ = {
+        window.__BACKTICKLE_MOCK_SEED__ = {
           files: { [p as string]: '# One\n' },
           saveDialog: out as string,
           pandoc: { path: '/mock/pandoc', version: '3.8.3' },
@@ -560,14 +564,14 @@ test.describe('C31 Word export errors and progress', () => {
     await expect(preview(page).locator('h1').first()).toBeVisible();
     await menu(page, 'export-docx');
     await expect(page.getByTestId('save-status')).toHaveText('Exporting…');
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.finishDocx());
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.finishDocx());
     await expect(page.getByTestId('save-status')).not.toHaveText('Exporting…');
     await expect(page.getByRole('alert')).toHaveCount(0);
   });
 
   test('C31 a cancelled save dialog sends no request', async ({ page }) => {
     await openForWord(page, 'cancel.md', '# One\n');
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.setAnswers({ saveDialog: null }));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.setAnswers({ saveDialog: null }));
     await menu(page, 'export-docx');
     await page.waitForTimeout(400);
     expect(await requests(page)).toEqual([]);

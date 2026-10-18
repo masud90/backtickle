@@ -1,6 +1,6 @@
 //! Render with Quarto.
 //!
-//! Writedown never runs the document's code and never starts a process itself. With RStudio
+//! Backtickle never runs the document's code and never starts a process itself. With RStudio
 //! installed the document is opened in RStudio (the user presses Render there). Without it a
 //! `.command` file is written to a private temporary folder and opened with Terminal through
 //! `NSWorkspace`; the script runs `quarto render` (or `rmarkdown::render` for `.Rmd`) and removes
@@ -109,7 +109,7 @@ pub fn script_text(folder: &str, name: &str, rmd: bool, script: &str, script_dir
          trap cleanup EXIT\n\
          cd -- {folder} || exit 1\n\
          if command -v quarto >/dev/null 2>&1; then\n  quarto render {arg}\n\
-         {fallback}else\n  echo 'Writedown could not render this document: neither quarto nor Rscript was found.'\n  echo 'Install Quarto from quarto.org, or open the document in RStudio.'\nfi\n"
+         {fallback}else\n  echo 'Backtickle could not render this document: neither quarto nor Rscript was found.'\n  echo 'Install Quarto from quarto.org, or open the document in RStudio.'\nfi\n"
     )
 }
 
@@ -167,7 +167,7 @@ pub fn cmd_script_text(folder: &str, name: &str, rmd: bool) -> String {
          cd /d {folder} || goto end\r\n\
          where quarto >nul 2>nul && (call quarto render {arg} & goto end)\r\n\
          {fallback}\
-         echo Writedown could not render this document: neither quarto nor Rscript was found.\r\n\
+         echo Backtickle could not render this document: neither quarto nor Rscript was found.\r\n\
          echo Install Quarto from quarto.org, or open the document in RStudio.\r\n\
          :end\r\n\
          pause\r\n\
@@ -199,7 +199,7 @@ pub fn write_command_file(
         .map(|d| d.as_nanos())
         .unwrap_or(0);
     let dir = base.join(format!(
-        "writedown-render-{}-{stamp}-{}",
+        "backtickle-render-{}-{stamp}-{}",
         std::process::id(),
         COUNTER.fetch_add(1, Ordering::Relaxed)
     ));

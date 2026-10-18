@@ -78,7 +78,7 @@ async function start(page: Page, seed: Record<string, unknown> = {}) {
 }
 
 const input = (page: Page) => page.getByTestId('search-input');
-const requests = (page: Page) => page.evaluate(() => window.__WRITEDOWN_MOCK__?.searches ?? []);
+const requests = (page: Page) => page.evaluate(() => window.__BACKTICKLE_MOCK__?.searches ?? []);
 
 test.describe('C17 Search tab', () => {
   test('C17 the command shows the Search tab with the field focused', async ({ page }) => {
@@ -243,7 +243,7 @@ test.describe('C19 Quick Open', () => {
       launch: { openPath: inFolder('a.mdown'), folderPath: FOLDER },
     });
     await expect(page.getByTestId('document-name')).toHaveText('a.mdown');
-    await page.evaluate((p) => window.__WRITEDOWN_MOCK__?.openFiles([p]), inFolder('c.mkdn'));
+    await page.evaluate((p) => window.__BACKTICKLE_MOCK__?.openFiles([p]), inFolder('c.mkdn'));
     await expect(page.getByTestId('document-name')).toHaveText('c.mkdn');
     await menu(page, 'quick-open');
     await expect(page.getByTestId('picker')).toBeVisible();

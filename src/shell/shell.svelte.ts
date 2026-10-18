@@ -441,7 +441,7 @@ export class Shell implements WorkspaceHost {
   }
 
   private pushTitle(): void {
-    const title = this.active?.name ?? 'Writedown';
+    const title = this.active?.name ?? 'Backtickle';
     if (title === this.lastTitle) return;
     this.lastTitle = title;
     this.platform.setWindowTitle(title).catch(() => {});
@@ -569,7 +569,7 @@ export class Shell implements WorkspaceHost {
     });
   }
 
-  /** The real-app check (`WRITEDOWN_BENCH=recovery-edit`): type a sentence and keep it at once. */
+  /** The real-app check (`BACKTICKLE_BENCH=recovery-edit`): type a sentence and keep it at once. */
   private async runRecoveryBench(): Promise<void> {
     const recovery = await this.loadRecovery();
     await this.enqueue(() => recovery.runEditBench());
@@ -1131,7 +1131,7 @@ export class Shell implements WorkspaceHost {
         if (code === 'modified-externally' && !options.overwriteExternalChange) {
           const overwrite = await this.platform.ask({
             title: 'The file changed on disk since you opened it',
-            message: 'Saving now replaces the version on disk with the one in Writedown.',
+            message: 'Saving now replaces the version on disk with the one in Backtickle.',
             ok: 'Overwrite',
             cancel: 'Cancel',
           });
@@ -1624,7 +1624,7 @@ export class Shell implements WorkspaceHost {
             'Show this file in File Explorer?',
             'Show this file in the file manager?',
           ),
-          message: `${link.href} is not a Markdown file, so Writedown cannot open it.`,
+          message: `${link.href} is not a Markdown file, so Backtickle cannot open it.`,
           ok: byOs('Show in Finder', 'Show in File Explorer', 'Show in File Manager'),
           cancel: 'Cancel',
         });

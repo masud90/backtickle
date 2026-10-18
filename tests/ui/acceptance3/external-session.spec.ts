@@ -14,8 +14,8 @@ const lines = (count: number, prefix = 'Row') =>
   Array.from({ length: count }, (_, i) => `${prefix} ${i + 1}`).join('\n\n');
 const NOTE_TEXT = `# Acc note\n\n${lines(10)}\n`;
 
-const mock = <T>(page: Page, read: (m: NonNullable<Window['__WRITEDOWN_MOCK__']>) => T) =>
-  page.evaluate(`(${read.toString()})(window.__WRITEDOWN_MOCK__)`) as Promise<T>;
+const mock = <T>(page: Page, read: (m: NonNullable<Window['__BACKTICKLE_MOCK__']>) => T) =>
+  page.evaluate(`(${read.toString()})(window.__BACKTICKLE_MOCK__)`) as Promise<T>;
 
 async function start(page: Page, seed: MockSeed) {
   await seedMock(page, seed);
@@ -43,7 +43,7 @@ async function outsideChange(
 ) {
   await page.evaluate(
     ([p, k, t, s]) => {
-      const m = window.__WRITEDOWN_MOCK__;
+      const m = window.__BACKTICKLE_MOCK__;
       if (!m) throw new Error('no mock');
       if (k === 'modified') m.externallyModify(p as string, (t as string | null) ?? undefined);
       else if (k === 'created') m.externallyCreate(p as string, (t as string | null) ?? '');
@@ -232,13 +232,13 @@ test.describe('C24 cursor and scroll come back', () => {
     for (let i = 0; i < 40; i++) await page.keyboard.press('ArrowDown');
     await expect(position(page)).toHaveText('Ln 41, Col 1');
 
-    await page.evaluate((p) => window.__WRITEDOWN_MOCK__?.openFiles([p]), b);
+    await page.evaluate((p) => window.__BACKTICKLE_MOCK__?.openFiles([p]), b);
     await expect(page.getByTestId('document-name')).toHaveText('long-b.md');
     await menu(page, 'close-tab');
     await menu(page, 'close-tab');
     await expect(page.getByTestId('welcome')).toBeVisible();
 
-    await page.evaluate((p) => window.__WRITEDOWN_MOCK__?.openFiles([p]), a);
+    await page.evaluate((p) => window.__BACKTICKLE_MOCK__?.openFiles([p]), a);
     await expect(page.getByTestId('document-name')).toHaveText('long-a.md');
     await expect(position(page)).toHaveText('Ln 41, Col 1');
   });
@@ -337,7 +337,7 @@ test.describe('C25 session restore', () => {
     await menu(page, 'new');
     await expect(tabs(page)).toHaveCount(3);
     await tabs(page).nth(1).click();
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.closeRequested('quit'));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.closeRequested('quit'));
     await expect.poll(() => mock(page, (m) => m.finishCloses)).toEqual(['quit']);
     const stored = await mock(page, (m) => m.session);
     expect(stored?.tabs).toEqual([

@@ -92,7 +92,7 @@ test.describe('sidebar tabs', () => {
     await page.getByRole('tab', { name: 'Files' }).click();
     await page.getByRole('button', { name: 'Open Folder…' }).click();
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.folderDialogs))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.folderDialogs))
       .toEqual(['open']);
     await expect(page.getByTestId('files-empty')).toBeVisible();
   });
@@ -113,7 +113,7 @@ test.describe('commands', () => {
     await expect
       .poll(() =>
         page.evaluate(() => {
-          const last = window.__WRITEDOWN_MOCK__?.menuStates.at(-1);
+          const last = window.__BACKTICKLE_MOCK__?.menuStates.at(-1);
           return last ? [last.hasPath, last.canExportDocx] : null;
         }),
       )
@@ -135,7 +135,7 @@ test.describe('commands', () => {
     await page.getByTestId('document-menu-button').click();
     await page.getByRole('menuitem', { name: 'Copy Path' }).click();
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.clipboardWrites.at(-1)))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.clipboardWrites.at(-1)))
       .toEqual({ text: NOTE, html: null });
   });
 

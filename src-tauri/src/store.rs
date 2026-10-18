@@ -61,7 +61,7 @@ pub fn quarantine(path: &Path) {
 
 fn log(path: &Path, what: &str) {
     eprintln!(
-        "writedown: the store {} {what}; starting empty.",
+        "backtickle: the store {} {what}; starting empty.",
         path.display()
     );
 }

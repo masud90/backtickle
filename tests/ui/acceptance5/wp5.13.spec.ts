@@ -21,9 +21,9 @@ async function open(
 }
 
 const can = (page: Page) =>
-  page.evaluate(() => window.__WRITEDOWN_MOCK__?.menuStates.at(-1)?.canRender);
+  page.evaluate(() => window.__BACKTICKLE_MOCK__?.menuStates.at(-1)?.canRender);
 const renders = (page: Page) =>
-  page.evaluate(() => window.__WRITEDOWN_MOCK__?.renderRequests ?? []);
+  page.evaluate(() => window.__BACKTICKLE_MOCK__?.renderRequests ?? []);
 
 test.describe('E5.13 Render with Quarto', () => {
   for (const [name, expected] of [
@@ -69,10 +69,10 @@ test.describe('E5.13 Render with Quarto', () => {
     await page.keyboard.type('more ');
     await menu(page, 'render-quarto');
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.asks.at(-1)?.ok))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.asks.at(-1)?.ok))
       .toBe('Save and Render');
     expect(await renders(page)).toEqual([]);
-    expect(await page.evaluate(() => window.__WRITEDOWN_MOCK__?.saves.length)).toBe(0);
+    expect(await page.evaluate(() => window.__BACKTICKLE_MOCK__?.saves.length)).toBe(0);
   });
 
   test('E5.13-6 Save and Render saves, then renders', async ({ page }) => {
@@ -81,7 +81,7 @@ test.describe('E5.13 Render with Quarto', () => {
     await page.keyboard.type('more ');
     await menu(page, 'render-quarto');
     await expect.poll(() => renders(page)).toEqual([doc]);
-    expect(await page.evaluate(() => window.__WRITEDOWN_MOCK__?.saves.length)).toBe(1);
+    expect(await page.evaluate(() => window.__BACKTICKLE_MOCK__?.saves.length)).toBe(1);
   });
 
   test('E5.13-7 a failure shows the error banner', async ({ page }) => {

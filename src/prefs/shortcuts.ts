@@ -109,7 +109,7 @@ export const MENU_GROUPS: ReadonlyArray<{ title: string; actions: readonly MenuA
 /** Menu items that are not `MenuAction`s (Settings and Quit are handled by Rust). */
 export const APP_MENU_ROWS: readonly ShortcutRow[] = [
   fixedRow('settings', 'Settings…', '⌘,'),
-  fixedRow('quit', 'Quit Writedown', '⌘Q'),
+  fixedRow('quit', 'Quit Backtickle', '⌘Q'),
 ];
 
 function fixedRow(id: string, name: string, keys: string): ShortcutRow {
@@ -170,7 +170,7 @@ function rowFor(
 }
 
 export function shortcutGroups(overrides?: Overrides): ShortcutGroup[] {
-  const groups: ShortcutGroup[] = [{ title: 'Writedown', rows: [...APP_MENU_ROWS] }];
+  const groups: ShortcutGroup[] = [{ title: 'Backtickle', rows: [...APP_MENU_ROWS] }];
   for (const { title, actions } of MENU_GROUPS) {
     const rows: ShortcutRow[] = [];
     for (const action of actions) {

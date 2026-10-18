@@ -11,8 +11,8 @@ const A = `${HOME}/a.md`;
 const B = `${HOME}/b.md`;
 const FILES = { [A]: '# Alpha\n\nfirst\n', [B]: '# Beta\n\nsecond\n' };
 
-const mock = <T>(page: Page, read: (m: NonNullable<Window['__WRITEDOWN_MOCK__']>) => T) =>
-  page.evaluate(`(${read.toString()})(window.__WRITEDOWN_MOCK__)`) as Promise<T>;
+const mock = <T>(page: Page, read: (m: NonNullable<Window['__BACKTICKLE_MOCK__']>) => T) =>
+  page.evaluate(`(${read.toString()})(window.__BACKTICKLE_MOCK__)`) as Promise<T>;
 const tabCount = (page: Page, count: number) =>
   expect.poll(() => mock(page, (m) => m.menuStates.at(-1)?.tabCount ?? 0)).toBe(count);
 const closeButton = (page: Page) => page.getByTestId('close-document-button');

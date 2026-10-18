@@ -1,6 +1,6 @@
 /**
  * Search benchmark for the measurement harness (scenario S12):
- * `WRITEDOWN_PERF=1 WRITEDOWN_BENCH=search [WRITEDOWN_BENCH_QUERY=lantern]`.
+ * `BACKTICKLE_PERF=1 BACKTICKLE_BENCH=search [BACKTICKLE_BENCH_QUERY=lantern]`.
  *
  * After startup it runs the Search tab's search for the query in the open folder 5 times, each one
  * after the previous result, and records for each the milliseconds from the `searchFolder` call to

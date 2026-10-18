@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Writedown is now called Backtickle. The first launch of Backtickle brings over the settings, snippets,
+  recent files, open session and recovered unsaved text of Writedown.
 - Paste a screenshot or drop image files into the editor: the images are saved in an `assets` folder next to
   the document and linked where the caret or the drop was.
 - Live Preview in Editor (View menu, off by default): the editor shows the Markdown formatted, with the source

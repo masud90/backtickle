@@ -176,7 +176,7 @@ test.describe('B13 chunks', () => {
     expect(calls.length).toBeGreaterThan(0);
 
     const control = await page.evaluate((docs) => {
-      const mock = window.__WRITEDOWN_MOCK__ as unknown as {
+      const mock = window.__BACKTICKLE_MOCK__ as unknown as {
         saves: unknown[];
         externalUrls: string[];
         reveals: string[];

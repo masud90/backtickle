@@ -1,5 +1,5 @@
 /**
- * Fidelity harness: Writedown's pipeline, Pandoc 3.8.3 and Quarto 1.9.38 (both inside RStudio)
+ * Fidelity harness: Backtickle's pipeline, Pandoc 3.8.3 and Quarto 1.9.38 (both inside RStudio)
  * render the same fixture; `extract` reduces each HTML to the structure that is compared
  *.
  */
@@ -19,7 +19,7 @@ export const HAVE_TOOLS = existsSync(QUARTO) && existsSync(PANDOC);
 export const ROOT = resolve(__dirname, '../..');
 export const FLAVORS = join(ROOT, 'tests/fixtures/flavors');
 
-// ---- Writedown --------------------------------------------------------------------------------
+// ---- Backtickle --------------------------------------------------------------------------------
 
 function nearestProject(path: string): { path: string; text: string } | null {
   let folder = dirname(path);

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Builds the project website (masud90.github.io/writedown) from README.md.
+// Builds the project website (masud90.github.io/backtickle) from README.md.
 //
 //   node scripts/build-site.mjs [--out _site]
 //
-// The page is the README rendered with markdown-it, wrapped in a small template with the Writedown
+// The page is the README rendered with markdown-it, wrapped in a small template with the Backtickle
 // palette. docs/media and docs/images are copied next to it, so the README's own relative image
 // paths keep working; every other relative link (LICENSE, CONTRIBUTING.md, ...) points at the file
 // on GitHub. Headings get GitHub-style ids, so #contributing and similar anchors work as they do on
@@ -18,23 +18,23 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const outArg = process.argv.indexOf('--out');
 const outDir = resolve(repoRoot, outArg > -1 ? process.argv[outArg + 1] : '_site');
 
-const repoUrl = 'https://github.com/masud90/writedown';
-const siteUrl = 'https://masud90.github.io/writedown/';
+const repoUrl = 'https://github.com/masud90/backtickle';
+const siteUrl = 'https://masud90.github.io/backtickle/';
 const releasesUrl = `${repoUrl}/releases/latest`;
 const { version } = JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8'));
 // The title and description are what search results show, so they carry the words people search
 // for ("Markdown editor", "viewer", the platforms) as well as the tagline.
 // The app's name in one place, so a rename only touches this line (and the README).
-const appName = 'Writedown';
+const appName = 'Backtickle';
 const shareTitle = `${appName}: the open-source Markdown editor and reader`;
 const title = `${appName}: free, open-source Markdown editor and reader for Mac, Windows and Linux`;
 const description =
   'Free, open-source Markdown editor and viewer for macOS, Windows and Linux. GitHub, Obsidian, ' +
   'Pandoc and Quarto Markdown, math, Mermaid, PDF and Word export.';
-const posterUrl = `${siteUrl}docs/media/writedown-poster.png`;
+const posterUrl = `${siteUrl}docs/media/backtickle-poster.png`;
 const posterAlt = `${appName}: Markdown source on the left, the formatted document on the right`;
 
-// Search engines read this to show Writedown as an app (price, platforms) in results.
+// Search engines read this to show Backtickle as an app (price, platforms) in results.
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
@@ -158,9 +158,9 @@ function renderReadme(markdown) {
   // The README shows the intro as a GIF because GitHub will not autoplay a video. The site can,
   // and the MP4 is a quarter of the size.
   html = html.replace(
-    /<img src="docs\/media\/writedown-intro\.gif"[^>]*alt="([^"]*)"[^>]*>/,
+    /<img src="docs\/media\/backtickle-intro\.gif"[^>]*alt="([^"]*)"[^>]*>/,
     (_, alt) =>
-      `<video class="intro" src="docs/media/writedown-intro.mp4" poster="docs/media/writedown-poster.png" ` +
+      `<video class="intro" src="docs/media/backtickle-intro.mp4" poster="docs/media/backtickle-poster.png" ` +
       `autoplay muted loop playsinline aria-label="${alt}"></video>`,
   );
   return sizeImages(html);

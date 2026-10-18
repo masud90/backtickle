@@ -134,7 +134,7 @@ export function finalName(oldName: string, typed: string, kind: 'folder' | 'file
 
 /**
  * What the platform will refuse, caught early so the field can say why (same rules as Rust). Linux
- * has the rules of macOS: Writedown refuses `:` there too.
+ * has the rules of macOS: Backtickle refuses `:` there too.
  */
 export function nameProblem(name: string): string | null {
   if (name.trim() === '') return 'Type a name.';

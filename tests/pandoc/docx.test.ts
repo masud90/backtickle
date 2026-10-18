@@ -1,5 +1,5 @@
 /**
- * Real Word export: the request Writedown builds for a
+ * Real Word export: the request Backtickle builds for a
  * fixture is run through the Pandoc inside RStudio with exactly the argument list of 2.8, and the
  * `.docx` is opened with Node's zlib. Expected values come from the fixtures and from Pandoc's own
  * citeproc output (`tests/fixtures/flavors/pandoc/expected/`). Skipped without RStudio. Run with

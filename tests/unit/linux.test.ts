@@ -125,7 +125,7 @@ describe('shortcuts on Linux (as on Windows)', () => {
   });
 
   it('refuses the reserved keys in Linux words', () => {
-    expect(refusal(combo('⌘C'))).toBe('Ctrl+C is reserved by the system and Writedown.');
+    expect(refusal(combo('⌘C'))).toBe('Ctrl+C is reserved by the system and Backtickle.');
     expect(refusal(combo('⌥F4'))).toMatch(/Alt\+F4 is reserved/);
     expect(refusal(combo('⌃⌥⌘S'))).toBe('This combination cannot be used on Linux.');
     expect(refusal(combo('⇧K'))).toBe(

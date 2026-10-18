@@ -126,7 +126,7 @@ test.describe('C34 lazy chunks', () => {
 
 const lastState = (page: Page) =>
   page.evaluate(() => {
-    const states = window.__WRITEDOWN_MOCK__?.menuStates ?? [];
+    const states = window.__BACKTICKLE_MOCK__?.menuStates ?? [];
     return states[states.length - 1] ?? null;
   });
 
@@ -216,18 +216,20 @@ test.describe('C35 menu state and actions through the mock', () => {
     await expect(page.getByTestId('sidebar-tab-search')).toHaveAttribute('aria-selected', 'true');
     await menu(page, 'open-folder'); // the dialog answers "cancelled"
     await menu(page, 'export-html');
-    await expect.poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.exports.length)).toBe(1);
+    await expect
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.exports.length))
+      .toBe(1);
     await menu(page, 'copy-html');
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.clipboardWrites.length))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.clipboardWrites.length))
       .toBe(1);
     await menu(page, 'print');
-    await expect.poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.prints)).toBe(1);
+    await expect.poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.prints)).toBe(1);
     await menu(page, 'duplicate');
     await expect
       .poll(() =>
         page.evaluate(() =>
-          (window.__WRITEDOWN_MOCK__?.fileOps ?? []).some((op) => op.op === 'duplicate'),
+          (window.__BACKTICKLE_MOCK__?.fileOps ?? []).some((op) => op.op === 'duplicate'),
         ),
       )
       .toBe(true);
@@ -330,7 +332,7 @@ for (const scheme of ['light', 'dark'] as const) {
       await page.keyboard.press('ControlOrMeta+End');
       await page.keyboard.type(' edit');
       await page.evaluate((path) => {
-        const m = window.__WRITEDOWN_MOCK__;
+        const m = window.__BACKTICKLE_MOCK__;
         m?.externallyModify(path, '# Changed elsewhere\n');
         m?.fileChanged([{ path, kind: 'modified', scope: 'document' }]);
       }, DOC);

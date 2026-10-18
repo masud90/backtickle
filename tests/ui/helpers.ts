@@ -18,7 +18,7 @@ export function guideText(name: 'gfm' | 'commonmark'): string {
 /** Defines what the mock platform serves, before the page's scripts run. */
 export async function seedMock(page: Page, seed: MockSeed): Promise<void> {
   await page.addInitScript((value) => {
-    window.__WRITEDOWN_MOCK_SEED__ = value;
+    window.__BACKTICKLE_MOCK_SEED__ = value;
   }, seed);
 }
 
@@ -33,10 +33,10 @@ export const statusText = (page: Page, testId: string) =>
 export async function menu(page: Page, action: string): Promise<void> {
   await page.evaluate(async (name) => {
     // The mock is created when the page starts; wait for it.
-    for (let i = 0; i < 100 && !window.__WRITEDOWN_MOCK__; i++) {
+    for (let i = 0; i < 100 && !window.__BACKTICKLE_MOCK__; i++) {
       await new Promise((resolve) => setTimeout(resolve, 20));
     }
-    window.__WRITEDOWN_MOCK__?.menuAction(name as never);
+    window.__BACKTICKLE_MOCK__?.menuAction(name as never);
   }, action);
 }
 

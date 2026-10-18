@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds the release app bundle and copies it to outputs/Writedown.app.
+# Builds the release app bundle and copies it to outputs/Backtickle.app.
 # Run through `npm run build:app`. With --universal (`npm run build:app:universal`) the app is
 # built for both Apple silicon and Intel; that needs the Intel Rust target
 # (`rustup target add x86_64-apple-darwin`).
@@ -20,10 +20,10 @@ done
 
 if [[ "$universal" -eq 1 ]]; then
   npm run tauri -- build --bundles app --target universal-apple-darwin
-  bundle="src-tauri/target/universal-apple-darwin/release/bundle/macos/Writedown.app"
+  bundle="src-tauri/target/universal-apple-darwin/release/bundle/macos/Backtickle.app"
 else
   npm run tauri -- build --bundles app
-  bundle="src-tauri/target/release/bundle/macos/Writedown.app"
+  bundle="src-tauri/target/release/bundle/macos/Backtickle.app"
 fi
 
 if [[ ! -d "$bundle" ]]; then
@@ -32,6 +32,6 @@ if [[ ! -d "$bundle" ]]; then
 fi
 
 mkdir -p outputs
-rm -rf outputs/Writedown.app
-ditto "$bundle" outputs/Writedown.app
-echo "Built outputs/Writedown.app"
+rm -rf outputs/Backtickle.app
+ditto "$bundle" outputs/Backtickle.app
+echo "Built outputs/Backtickle.app"

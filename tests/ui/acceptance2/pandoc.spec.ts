@@ -1,7 +1,7 @@
 /**
  * Phase 2 acceptance, Pandoc / MMD: B06 to B12.
  * Expected values: the spec, the fixtures, and `tests/fixtures/flavors/pandoc/expected/` (made by
- * Pandoc 3.8.3). Page ranges keep their hyphen in Writedown (accepted), so both sides are
+ * Pandoc 3.8.3). Page ranges keep their hyphen in Backtickle (accepted), so both sides are
  * compared with en dashes folded to hyphens.
  */
 import { readFileSync } from 'node:fs';
@@ -140,7 +140,7 @@ test.describe('B07 citations', () => {
     const shown = (await texts(page, 'p')).map(hyphen);
     for (const paragraph of EXPECTED_PARAGRAPHS) {
       // Two forms differ from Pandoc on purpose: the missing key (shows "@key?") and the
-      // MultiMarkdown form (Pandoc does not read it; Writedown does). They are checked below.
+      // MultiMarkdown form (Pandoc does not read it; Backtickle does). They are checked below.
       if (/missing key|MultiMarkdown/.test(paragraph)) continue;
       expect(shown, paragraph).toContain(hyphen(paragraph));
     }

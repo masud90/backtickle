@@ -1,10 +1,10 @@
-//! Output for the memory and latency harness (WRITEDOWN_PERF, WRITEDOWN_BENCH).
+//! Output for the memory and latency harness (BACKTICKLE_PERF, BACKTICKLE_BENCH).
 //!
 //! One line per mark, on stdout, for the harness to read:
 //!
 //! ```text
-//! WRITEDOWN_PERF {"mark":"ready","ms":412.3}
-//! WRITEDOWN_BENCH {"render_ms":[1.20,...],"e2e_ms":[140.50,...],"doc_bytes":102400}
+//! BACKTICKLE_PERF {"mark":"ready","ms":412.3}
+//! BACKTICKLE_BENCH {"render_ms":[1.20,...],"e2e_ms":[140.50,...],"doc_bytes":102400}
 //! ```
 //!
 //! `ms` is the time since the process started (the start of `run`, so the few milliseconds the
@@ -38,7 +38,7 @@ fn is_valid_mark_name(name: &str) -> bool {
 /// The stdout line for a mark, or `None` for a name that is not allowed.
 pub fn mark_line(name: &str, ms: f64) -> Option<String> {
     is_valid_mark_name(name)
-        .then(|| format!("WRITEDOWN_PERF {{\"mark\":\"{name}\",\"ms\":{ms:.1}}}"))
+        .then(|| format!("BACKTICKLE_PERF {{\"mark\":\"{name}\",\"ms\":{ms:.1}}}"))
 }
 
 /// A number for a JSON array. JSON has no NaN or infinity, so those become `null`.
@@ -58,7 +58,7 @@ fn json_array(values: &[f64]) -> String {
 /// The stdout line for the typing benchmark result.
 pub fn bench_line(render_ms: &[f64], e2e_ms: &[f64], doc_bytes: u64) -> String {
     format!(
-        "WRITEDOWN_BENCH {{\"render_ms\":{},\"e2e_ms\":{},\"doc_bytes\":{doc_bytes}}}",
+        "BACKTICKLE_BENCH {{\"render_ms\":{},\"e2e_ms\":{},\"doc_bytes\":{doc_bytes}}}",
         json_array(render_ms),
         json_array(e2e_ms)
     )
@@ -83,7 +83,7 @@ pub fn search_bench_line(query: &str, runs: &[SearchRun], error: Option<&str>) -
         serde_json::to_string(e).unwrap_or_else(|_| "null".to_string())
     });
     format!(
-        "WRITEDOWN_BENCH {{\"search\":true,\"query\":{query},\"runs\":[{}],\"error\":{error}}}",
+        "BACKTICKLE_BENCH {{\"search\":true,\"query\":{query},\"runs\":[{}],\"error\":{error}}}",
         items.join(",")
     )
 }
@@ -103,15 +103,15 @@ mod tests {
     fn a_mark_line_has_the_exact_format_with_one_decimal() {
         assert_eq!(
             mark_line("ready", 412.34).as_deref(),
-            Some(r#"WRITEDOWN_PERF {"mark":"ready","ms":412.3}"#)
+            Some(r#"BACKTICKLE_PERF {"mark":"ready","ms":412.3}"#)
         );
         assert_eq!(
             mark_line("frontend-init", 0.0).as_deref(),
-            Some(r#"WRITEDOWN_PERF {"mark":"frontend-init","ms":0.0}"#)
+            Some(r#"BACKTICKLE_PERF {"mark":"frontend-init","ms":0.0}"#)
         );
         assert_eq!(
             mark_line("first-preview-painted", 1234.56).as_deref(),
-            Some(r#"WRITEDOWN_PERF {"mark":"first-preview-painted","ms":1234.6}"#)
+            Some(r#"BACKTICKLE_PERF {"mark":"first-preview-painted","ms":1234.6}"#)
         );
     }
 
@@ -158,7 +158,7 @@ mod tests {
     fn a_bench_line_has_the_exact_format() {
         assert_eq!(
             bench_line(&[1.2, 3.456], &[140.5, 150.0], 102_400),
-            r#"WRITEDOWN_BENCH {"render_ms":[1.20,3.46],"e2e_ms":[140.50,150.00],"doc_bytes":102400}"#
+            r#"BACKTICKLE_BENCH {"render_ms":[1.20,3.46],"e2e_ms":[140.50,150.00],"doc_bytes":102400}"#
         );
     }
 
@@ -166,11 +166,11 @@ mod tests {
     fn a_search_bench_line_has_the_exact_format() {
         assert_eq!(
             search_bench_line("lan\"tern", &[(12.345, 2000, 1000, true)], None),
-            r#"WRITEDOWN_BENCH {"search":true,"query":"lan\"tern","runs":[{"ms":12.35,"files":2000,"matches":1000,"truncated":true}],"error":null}"#
+            r#"BACKTICKLE_BENCH {"search":true,"query":"lan\"tern","runs":[{"ms":12.35,"files":2000,"matches":1000,"truncated":true}],"error":null}"#
         );
         assert_eq!(
             search_bench_line("a", &[], Some("no folder")),
-            r#"WRITEDOWN_BENCH {"search":true,"query":"a","runs":[],"error":"no folder"}"#
+            r#"BACKTICKLE_BENCH {"search":true,"query":"a","runs":[],"error":"no folder"}"#
         );
     }
 
@@ -178,7 +178,7 @@ mod tests {
     fn a_bench_line_with_no_samples_is_valid() {
         assert_eq!(
             bench_line(&[], &[], 0),
-            r#"WRITEDOWN_BENCH {"render_ms":[],"e2e_ms":[],"doc_bytes":0}"#
+            r#"BACKTICKLE_BENCH {"render_ms":[],"e2e_ms":[],"doc_bytes":0}"#
         );
     }
 
@@ -186,7 +186,7 @@ mod tests {
     fn numbers_that_json_cannot_hold_become_null() {
         assert_eq!(
             bench_line(&[f64::NAN, f64::INFINITY], &[1.0], 1),
-            r#"WRITEDOWN_BENCH {"render_ms":[null,null],"e2e_ms":[1.00],"doc_bytes":1}"#
+            r#"BACKTICKLE_BENCH {"render_ms":[null,null],"e2e_ms":[1.00],"doc_bytes":1}"#
         );
     }
 
@@ -194,14 +194,14 @@ mod tests {
     fn the_lines_are_valid_json_after_the_prefix() {
         let mark = mark_line("ready", 12.5).expect("valid name");
         let json: serde_json::Value =
-            serde_json::from_str(mark.strip_prefix("WRITEDOWN_PERF ").expect("prefix"))
+            serde_json::from_str(mark.strip_prefix("BACKTICKLE_PERF ").expect("prefix"))
                 .expect("json");
         assert_eq!(json["mark"], "ready");
         assert_eq!(json["ms"], 12.5);
 
         let bench = bench_line(&[1.0, 2.0], &[3.0], 7);
         let json: serde_json::Value =
-            serde_json::from_str(bench.strip_prefix("WRITEDOWN_BENCH ").expect("prefix"))
+            serde_json::from_str(bench.strip_prefix("BACKTICKLE_BENCH ").expect("prefix"))
                 .expect("json");
         assert_eq!(json["doc_bytes"], 7);
         assert_eq!(json["render_ms"].as_array().map(Vec::len), Some(2));

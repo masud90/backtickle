@@ -32,7 +32,7 @@ export async function startGuide(
 
 /** Sends a settings patch as the Preferences window would (through `settings-changed`). */
 export const change = (page: Page, patch: object): Promise<void> =>
-  page.evaluate((value) => window.__WRITEDOWN_MOCK__?.settingsChanged(value as never), patch);
+  page.evaluate((value) => window.__BACKTICKLE_MOCK__?.settingsChanged(value as never), patch);
 
 export const rootAttr = (page: Page, name: string): Promise<string | null> =>
   page.evaluate((n) => document.documentElement.getAttribute(n), name);

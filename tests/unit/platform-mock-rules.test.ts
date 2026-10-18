@@ -7,7 +7,7 @@ const NEW = { expectedModifiedMs: null };
 
 function mock(seed: MockSeed = {}) {
   const platform = createMockPlatform(seed);
-  const control = window.__WRITEDOWN_MOCK__;
+  const control = window.__BACKTICKLE_MOCK__;
   if (!control) throw new Error('the mock control object is missing');
   return { platform, control };
 }
@@ -588,6 +588,6 @@ describe('mock platform: events and the control object', () => {
   it('the window title and window size hooks of Phase 0 keep working beside the control object', async () => {
     mock();
 
-    expect(typeof window.__WRITEDOWN_MOCK__?.openFiles).toBe('function');
+    expect(typeof window.__BACKTICKLE_MOCK__?.openFiles).toBe('function');
   });
 });

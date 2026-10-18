@@ -4,7 +4,7 @@ import { createMockPlatform, type MockSeed } from '@/lib/platform-mock';
 
 function mock(seed: MockSeed) {
   const platform = createMockPlatform(seed);
-  const control = window.__WRITEDOWN_MOCK__;
+  const control = window.__BACKTICKLE_MOCK__;
   if (!control) throw new Error('the mock control object is missing');
   return { platform, control };
 }
@@ -252,7 +252,7 @@ describe('mock platform: quartoProject', () => {
       },
       launch: { openPath: '/Users/mock/p/a/b/c/doc.qmd' },
     });
-    const { control } = { control: window.__WRITEDOWN_MOCK__ };
+    const { control } = { control: window.__BACKTICKLE_MOCK__ };
     control?.openFiles([deep, '/Users/mock/q/doc.qmd', '/Users/mock/p/doc.qmd']);
 
     expect(await platform.quartoProject('/Users/mock/p/a/b/c/doc.qmd')).toEqual({

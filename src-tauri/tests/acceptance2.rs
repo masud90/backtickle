@@ -4,13 +4,13 @@
 //! a process is `b31_no_rust_code_starts_a_process...` in `tests/config.rs`.) Every test writes
 //! only inside its own temporary folder.
 
+use backtickle_lib::linked_text::{Purpose, read_linked_text};
+use backtickle_lib::vault::{MAX_INDEX_ENTRIES, vault_index};
 use std::fs;
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use writedown_lib::linked_text::{Purpose, read_linked_text};
-use writedown_lib::vault::{MAX_INDEX_ENTRIES, vault_index};
 
 static COUNTER: AtomicUsize = AtomicUsize::new(0);
 
@@ -19,7 +19,7 @@ fn temp() -> PathBuf {
     let dir = std::env::temp_dir().join(format!("wd-acc2-{}-{n}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
-    writedown_lib::fs_util::canonicalize(&dir).unwrap()
+    backtickle_lib::fs_util::canonicalize(&dir).unwrap()
 }
 
 fn write(path: &Path, text: &str) {

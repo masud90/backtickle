@@ -71,7 +71,7 @@ export interface Tab {
 
 /**
  * Dirty: the text differs from the saved text, the line ending was switched, or the file is gone
- * from disk (the document then only exists in Writedown, so it counts as unsaved).
+ * from disk (the document then only exists in Backtickle, so it counts as unsaved).
  */
 export function tabIsDirty(
   tab: Pick<Tab, 'textDirty' | 'format' | 'savedLineEnding'> & { missing?: boolean },

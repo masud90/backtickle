@@ -21,9 +21,9 @@ describe('main window shell', () => {
   it('shows the title bar, the welcome screen and an empty status bar without a document', async () => {
     render(App, { props: { platform: createMockPlatform({}), launch: welcome } });
 
-    expect(screen.getByTestId('app-title').textContent?.trim()).toBe('Writedown');
+    expect(screen.getByTestId('app-title').textContent?.trim()).toBe('Backtickle');
     expect(await screen.findByTestId('welcome')).toBeTruthy();
-    expect(screen.getByRole('heading', { name: 'Welcome to Writedown' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Welcome to Backtickle' })).toBeTruthy();
     expect(screen.getByRole('button', { name: /New Document/ })).toBeTruthy();
     expect(screen.getByRole('button', { name: /Open File/ })).toBeTruthy();
     expect(screen.queryByTestId('document-name')).toBeNull();

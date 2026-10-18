@@ -50,7 +50,7 @@ pub const ACK_TIMEOUT: Duration = Duration::from_secs(2);
 pub enum CloseReason {
     /// The window's close button or Close Window: close the window, keep the app.
     Window,
-    /// Quit Writedown.
+    /// Quit Backtickle.
     Quit,
 }
 
@@ -772,7 +772,7 @@ pub fn reopen(app: &AppHandle<Wry>) {
         app.state::<Lifecycle>().is_setup_done(),
     ) {
         if let Err(error) = create_main_window(app) {
-            eprintln!("writedown: the main window could not be created: {error}");
+            eprintln!("backtickle: the main window could not be created: {error}");
         }
     } else if cfg!(not(target_os = "macos")) && app.state::<Lifecycle>().is_setup_done() {
         focus_target_window(app);

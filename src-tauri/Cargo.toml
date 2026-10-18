@@ -1,16 +1,16 @@
 [package]
-name = "writedown"
+name = "backtickle"
 version = "0.1.2"
 description = "A Markdown reader and writer for macOS, Windows and Linux"
 license = "MIT"
-repository = "https://github.com/masud90/writedown"
+repository = "https://github.com/masud90/backtickle"
 authors = ["Masud Rahman"]
 edition = "2024"
 rust-version = "1.90"
 publish = false
 
 [lib]
-name = "writedown_lib"
+name = "backtickle_lib"
 # Desktop only. No staticlib or cdylib: they are for mobile and would only slow the release build.
 crate-type = ["rlib"]
 

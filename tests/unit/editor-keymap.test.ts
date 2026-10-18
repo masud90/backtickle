@@ -7,9 +7,9 @@ import { REMOVED_BINDINGS } from '@/editor/keymap';
 /** The shortcuts of the menu bar in CodeMirror's notation, where Mod is Command. */
 const MENU_SHORTCUTS: Record<string, string> = {
   Settings: 'Mod-,',
-  'Hide Writedown': 'Mod-h',
+  'Hide Backtickle': 'Mod-h',
   'Hide Others': 'Alt-Mod-h',
-  'Quit Writedown': 'Mod-q',
+  'Quit Backtickle': 'Mod-q',
   New: 'Mod-n',
   Open: 'Mod-o',
   'Close Tab': 'Mod-w',

@@ -76,7 +76,7 @@ async function open(
   await expect(page.getByTestId('document-name')).toHaveText(path.split('/').pop() ?? '');
 }
 
-const settings = (page: Page) => page.evaluate(() => window.__WRITEDOWN_MOCK__?.settings);
+const settings = (page: Page) => page.evaluate(() => window.__BACKTICKLE_MOCK__?.settings);
 const items = (page: Page) => page.getByTestId('outline-item');
 const current = (page: Page) =>
   page.locator('[data-testid="outline-item"][aria-current="location"]');
@@ -253,10 +253,10 @@ test.describe('A11 toolbar formatting', () => {
 
   test('A11 the Preferences button asks for the Preferences window', async ({ page }) => {
     await open(page);
-    expect(await page.evaluate(() => window.__WRITEDOWN_MOCK__?.preferencesOpened)).toBe(0);
+    expect(await page.evaluate(() => window.__BACKTICKLE_MOCK__?.preferencesOpened)).toBe(0);
     await page.getByTestId('open-preferences').click();
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.preferencesOpened))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.preferencesOpened))
       .toBe(1);
   });
 

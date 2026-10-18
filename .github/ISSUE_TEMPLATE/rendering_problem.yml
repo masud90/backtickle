@@ -38,14 +38,14 @@ body:
   - type: textarea
     id: actual
     attributes:
-      label: What does Writedown show?
+      label: What does Backtickle show?
       description: A screenshot of the preview, and whether it's Split, Preview or Live Preview in Editor.
     validations:
       required: true
   - type: input
     id: version
     attributes:
-      label: Writedown version and platform
+      label: Backtickle version and platform
       placeholder: "0.1.2 on macOS 15.4"
     validations:
       required: true

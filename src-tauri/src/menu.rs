@@ -229,13 +229,13 @@ fn predefined(app: &AppHandle<Wry>, kind: Predefined) -> tauri::Result<Predefine
     match kind {
         Predefined::About => {
             let about = AboutMetadataBuilder::new()
-                .name(Some("Writedown"))
+                .name(Some("Backtickle"))
                 .version(Some(app.package_info().version.to_string()))
                 .build();
-            PredefinedMenuItem::about(app, Some("About Writedown"), Some(about))
+            PredefinedMenuItem::about(app, Some("About Backtickle"), Some(about))
         }
         Predefined::Services => PredefinedMenuItem::services(app, None),
-        Predefined::Hide => PredefinedMenuItem::hide(app, Some("Hide Writedown")),
+        Predefined::Hide => PredefinedMenuItem::hide(app, Some("Hide Backtickle")),
         Predefined::HideOthers => PredefinedMenuItem::hide_others(app, None),
         Predefined::ShowAll => PredefinedMenuItem::show_all(app, None),
         Predefined::Cut => PredefinedMenuItem::cut(app, None),
@@ -262,7 +262,7 @@ pub const MINIMIZE_ID: &str = "minimize";
 pub const MAXIMIZE_ID: &str = "maximize";
 
 /// The Edit items that the menu library on Linux can only carry out by faking a key press (X11
-/// only). Writedown has its own items there that run the web view's editing command; their keys
+/// only). Backtickle has its own items there that run the web view's editing command; their keys
 /// are not registered, so the web view still gets them directly as it does on every system.
 #[cfg(not(any(target_os = "macos", windows)))]
 const EDIT_COMMANDS: &[(Predefined, &str, &str)] = &[
@@ -306,7 +306,7 @@ pub fn platform_label(id: &str, label: &'static str) -> &'static str {
     }
 }
 
-/// Linux: the item Writedown has in place of a system item the menu library cannot carry out
+/// Linux: the item Backtickle has in place of a system item the menu library cannot carry out
 /// (Minimize, Maximize, and the Edit items), or `None` for the system's own item.
 #[cfg(not(any(target_os = "macos", windows)))]
 fn linux_item(app: &AppHandle<Wry>, kind: Predefined) -> tauri::Result<Option<MenuItem<Wry>>> {
@@ -512,7 +512,7 @@ pub fn refresh_recents(app: &AppHandle<Wry>, entries: &[RecentEntry]) {
     let handle = app.clone();
     let _ = app.run_on_main_thread(move || {
         if let Err(error) = fill_recent(&handle, &submenu, &labels) {
-            eprintln!("writedown: Open Recent could not be updated: {error}");
+            eprintln!("backtickle: Open Recent could not be updated: {error}");
         }
     });
 }
@@ -584,7 +584,7 @@ fn dispatch(app: &AppHandle<Wry>, id: &str) {
             }
             Step::CreateMainWindow => {
                 if let Err(error) = lifecycle::create_main_window(app) {
-                    eprintln!("writedown: the main window could not be created: {error}");
+                    eprintln!("backtickle: the main window could not be created: {error}");
                     return;
                 }
             }

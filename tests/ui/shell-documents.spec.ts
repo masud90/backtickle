@@ -12,10 +12,10 @@ const NOTE_TEXT = '# Note\n\nSome body text.\n';
 
 /** Answers of the dialogs, changed while the page runs. */
 async function answers(page: Page, value: Record<string, unknown>) {
-  await page.evaluate((next) => window.__WRITEDOWN_MOCK__?.setAnswers(next as never), value);
+  await page.evaluate((next) => window.__BACKTICKLE_MOCK__?.setAnswers(next as never), value);
 }
 
-const saves = (page: Page) => page.evaluate(() => window.__WRITEDOWN_MOCK__?.saves ?? []);
+const saves = (page: Page) => page.evaluate(() => window.__BACKTICKLE_MOCK__?.saves ?? []);
 
 /** Opens `note.md` in Split view at launch. */
 async function openNote(page: Page, seed: MockSeed = {}) {
@@ -265,9 +265,9 @@ test.describe('A04 editing and saving', () => {
     await openNote(page);
 
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.windowTitles.at(-1)))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.windowTitles.at(-1)))
       .toBe('note.md');
-    const state = await page.evaluate(() => window.__WRITEDOWN_MOCK__?.menuStates.at(-1));
+    const state = await page.evaluate(() => window.__BACKTICKLE_MOCK__?.menuStates.at(-1));
     expect(state).toEqual({
       hasDocument: true,
       canSave: true,
@@ -301,7 +301,7 @@ test.describe('A05 Save As', () => {
     await menu(page, 'save');
 
     await expect(page.getByTestId('document-name')).toHaveText('Quarterly Plan.qmd');
-    const dialogs = await page.evaluate(() => window.__WRITEDOWN_MOCK__?.saveDialogs);
+    const dialogs = await page.evaluate(() => window.__BACKTICKLE_MOCK__?.saveDialogs);
     expect(dialogs).toEqual([{ suggestedName: 'Quarterly Plan.md', directory: null }]);
     const [save] = await saves(page);
     expect(save?.path).toBe(`${DOCS}/Quarterly Plan.qmd`);
@@ -324,9 +324,9 @@ test.describe('A05 Save As', () => {
     await menu(page, 'save');
 
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.saveDialogs.length))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.saveDialogs.length))
       .toBe(1);
-    const dialogs = await page.evaluate(() => window.__WRITEDOWN_MOCK__?.saveDialogs);
+    const dialogs = await page.evaluate(() => window.__BACKTICKLE_MOCK__?.saveDialogs);
     expect(dialogs?.[0]?.suggestedName).toBe('Untitled.md');
     expect(await saves(page)).toEqual([]);
     await expect(page.getByTestId('dirty-dot')).toBeVisible();
@@ -341,7 +341,7 @@ test.describe('A05 Save As', () => {
     await menu(page, 'save-as');
 
     await expect(page.getByTestId('document-name')).toHaveText('copy.md');
-    const dialogs = await page.evaluate(() => window.__WRITEDOWN_MOCK__?.saveDialogs);
+    const dialogs = await page.evaluate(() => window.__BACKTICKLE_MOCK__?.saveDialogs);
     expect(dialogs).toEqual([{ suggestedName: 'note.md', directory: DOCS }]);
     const [save] = await saves(page);
     expect(save?.path).toBe(`${DOCS}/copy.md`);
@@ -355,12 +355,12 @@ test.describe('A06 a file that changed on disk', () => {
   }) => {
     await openNote(page, { ask: false });
     await typeAtEnd(page, 'mine');
-    await page.evaluate((path) => window.__WRITEDOWN_MOCK__?.externallyModify(path), NOTE);
+    await page.evaluate((path) => window.__BACKTICKLE_MOCK__?.externallyModify(path), NOTE);
 
     await menu(page, 'save');
 
-    await expect.poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.asks.length)).toBe(1);
-    const [ask] = await page.evaluate(() => window.__WRITEDOWN_MOCK__?.asks ?? []);
+    await expect.poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.asks.length)).toBe(1);
+    const [ask] = await page.evaluate(() => window.__BACKTICKLE_MOCK__?.asks ?? []);
     expect(ask).toMatchObject({
       title: 'The file changed on disk since you opened it',
       ok: 'Overwrite',
@@ -423,7 +423,7 @@ test.describe('A07 encodings, lossy and read-only files', () => {
 
     await menu(page, 'save');
 
-    await expect.poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.asks.length)).toBe(1);
+    await expect.poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.asks.length)).toBe(1);
     expect(await saves(page)).toEqual([]);
     await expect(page.getByTestId('dirty-dot')).toBeVisible();
 
@@ -446,7 +446,7 @@ test.describe('A07 encodings, lossy and read-only files', () => {
     await menu(page, 'save');
 
     await expect(page.getByTestId('document-name')).toHaveText('note copy.md');
-    const dialogs = await page.evaluate(() => window.__WRITEDOWN_MOCK__?.saveDialogs.length);
+    const dialogs = await page.evaluate(() => window.__BACKTICKLE_MOCK__?.saveDialogs.length);
     expect(dialogs).toBe(1);
     const [save] = await saves(page);
     expect(save?.path).toBe(`${DOCS}/note copy.md`);
@@ -489,7 +489,7 @@ test.describe('A08 closing tabs, the window and the app', () => {
     await menu(page, 'close-tab');
 
     await expect(tabs(page)).toHaveText(['a.md', 'b.md']);
-    expect(await page.evaluate(() => window.__WRITEDOWN_MOCK__?.confirmations)).toEqual([]);
+    expect(await page.evaluate(() => window.__BACKTICKLE_MOCK__?.confirmations)).toEqual([]);
   });
 
   test('A08 Close Tab on a dirty tab asks, and Cancel keeps it open and dirty', async ({
@@ -501,7 +501,7 @@ test.describe('A08 closing tabs, the window and the app', () => {
     await menu(page, 'close-tab');
 
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.confirmations))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.confirmations))
       .toEqual(['c.md']);
     await expect(tabs(page)).toHaveCount(3);
     await expect(page.getByTestId('save-status')).toHaveText('Edited');
@@ -542,15 +542,15 @@ test.describe('A08 closing tabs, the window and the app', () => {
     await tabs(page).nth(1).click();
     await dirty(page, 'b.md');
 
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.closeRequested('window'));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.closeRequested('window'));
 
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.confirmations))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.confirmations))
       .toEqual(['a.md', 'b.md']);
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.cancelCloses))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.cancelCloses))
       .toEqual(['window']);
-    expect(await page.evaluate(() => window.__WRITEDOWN_MOCK__?.finishCloses)).toEqual([]);
+    expect(await page.evaluate(() => window.__BACKTICKLE_MOCK__?.finishCloses)).toEqual([]);
     await expect(tabs(page)).toHaveCount(3);
     // The walk stopped on the second document, which is now on show.
     await expect(page.getByTestId('document-name')).toHaveText('b.md');
@@ -563,12 +563,12 @@ test.describe('A08 closing tabs, the window and the app', () => {
     await tabs(page).nth(1).click();
     await dirty(page, 'b.md');
 
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.closeRequested('window'));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.closeRequested('window'));
 
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.finishCloses))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.finishCloses))
       .toEqual(['window']);
-    expect(await page.evaluate(() => window.__WRITEDOWN_MOCK__?.cancelCloses)).toEqual([]);
+    expect(await page.evaluate(() => window.__BACKTICKLE_MOCK__?.cancelCloses)).toEqual([]);
     const written = await saves(page);
     expect(written.map((save) => save.path)).toEqual([A]);
   });
@@ -579,23 +579,23 @@ test.describe('A08 closing tabs, the window and the app', () => {
     await openThree(page, { confirmUnsaved: 'cancel' });
     await dirty(page, 'c.md');
 
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.closeRequested('quit'));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.closeRequested('quit'));
 
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.cancelCloses))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.cancelCloses))
       .toEqual(['quit']);
-    expect(await page.evaluate(() => window.__WRITEDOWN_MOCK__?.finishCloses)).toEqual([]);
+    expect(await page.evaluate(() => window.__BACKTICKLE_MOCK__?.finishCloses)).toEqual([]);
   });
 
   test('A08 with nothing unsaved, a close request finishes at once', async ({ page }) => {
     await openThree(page);
 
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.closeRequested('quit'));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.closeRequested('quit'));
 
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.finishCloses))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.finishCloses))
       .toEqual(['quit']);
-    expect(await page.evaluate(() => window.__WRITEDOWN_MOCK__?.confirmations)).toEqual([]);
+    expect(await page.evaluate(() => window.__BACKTICKLE_MOCK__?.confirmations)).toEqual([]);
   });
 
   test('A08 a window close with no document finishes at once; Close Window from the menu does nothing in the page', async ({
@@ -606,10 +606,10 @@ test.describe('A08 closing tabs, the window and the app', () => {
     await expect(page.getByTestId('welcome')).toBeVisible();
 
     await menu(page, 'close-window');
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.closeRequested('window'));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.closeRequested('window'));
 
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.finishCloses))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.finishCloses))
       .toEqual(['window']);
   });
 
@@ -675,10 +675,10 @@ test.describe('A09 files opened from outside', () => {
     await page.goto('/');
     await expect(page.getByTestId('welcome')).toBeVisible();
 
-    await page.evaluate((paths) => window.__WRITEDOWN_MOCK__?.openFiles(paths), [A]);
+    await page.evaluate((paths) => window.__BACKTICKLE_MOCK__?.openFiles(paths), [A]);
     await expect(page.getByTestId('document-name')).toHaveText('a.md');
 
-    await page.evaluate((paths) => window.__WRITEDOWN_MOCK__?.openFiles(paths), [B]);
+    await page.evaluate((paths) => window.__BACKTICKLE_MOCK__?.openFiles(paths), [B]);
     await expect(tabs(page)).toHaveText(['a.md', 'b.md']);
     await expect(page.getByTestId('document-name')).toHaveText('b.md');
   });
@@ -711,10 +711,10 @@ test.describe('A09 files opened from outside', () => {
   test('A09 a file that opens twice is activated, not duplicated', async ({ page }) => {
     await seedMock(page, { files: { [A]: '# A', [B]: '# B' }, launch: { welcome: true } });
     await page.goto('/');
-    await page.evaluate((paths) => window.__WRITEDOWN_MOCK__?.openFiles(paths), [A, B]);
+    await page.evaluate((paths) => window.__BACKTICKLE_MOCK__?.openFiles(paths), [A, B]);
     await expect(tabs(page)).toHaveCount(2);
 
-    await page.evaluate((paths) => window.__WRITEDOWN_MOCK__?.openFiles(paths), [A]);
+    await page.evaluate((paths) => window.__BACKTICKLE_MOCK__?.openFiles(paths), [A]);
 
     await expect(page.getByTestId('document-name')).toHaveText('a.md');
     await expect(tabs(page)).toHaveCount(2);

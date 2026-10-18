@@ -1,7 +1,7 @@
 /**
  * File > Render with Quarto. A lazy chunk. Unsaved changes are saved
  * first (the user is asked); then the backend opens the document in RStudio or runs the render in
- * Terminal (on Windows and Linux in a terminal window). Writedown never runs the document's code
+ * Terminal (on Windows and Linux in a terminal window). Backtickle never runs the document's code
  * itself.
  */
 

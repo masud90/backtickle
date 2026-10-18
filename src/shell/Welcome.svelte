@@ -29,7 +29,7 @@
     </div>
 
     <h1 class="mb-2 text-center font-headline-xl text-headline-xl tracking-tight">
-      Welcome to Writedown
+      Welcome to Backtickle
     </h1>
     <p class="mb-8 max-w-lg text-center font-body-lg text-body-lg text-on-surface-variant">
       Start a new Markdown document or pick up an existing file from your {byOs(

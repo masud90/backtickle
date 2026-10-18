@@ -44,7 +44,7 @@ pub fn apply_to<R: Runtime>(window: &WebviewWindow<R>, enabled: bool) {
     }
     let effects = enabled.then(sidebar_effect);
     if let Err(error) = window.set_effects(effects) {
-        eprintln!("writedown: the sidebar material could not be set ({error}).");
+        eprintln!("backtickle: the sidebar material could not be set ({error}).");
     }
 }
 

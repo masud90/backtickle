@@ -1,11 +1,11 @@
-//! Which files Writedown treats as documents and as images, by extension (case-insensitive).
+//! Which files Backtickle treats as documents and as images, by extension (case-insensitive).
 //!
 //! These lists decide what the dialogs offer, what Finder and drag and drop may open, what a
 //! link may open as a document and what the asset protocol may serve.
 
 use std::path::Path;
 
-/// The Markdown family: the extensions Writedown can become the default app for.
+/// The Markdown family: the extensions Backtickle can become the default app for.
 pub const MARKDOWN_EXTENSIONS: [&str; 5] = ["md", "markdown", "mdown", "mkd", "mkdn"];
 
 /// Every extension that opens as a document: Markdown, MDX, Quarto, R Markdown, MultiMarkdown

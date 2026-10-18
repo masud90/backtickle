@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// Measurement harness for Writedown: memory (the app plus its WebKit helper processes), startup
+// Measurement harness for Backtickle: memory (the app plus its WebKit helper processes), startup
 // time and keystroke-to-preview delay, on this Mac, without any user interaction.
 //
 //   node scripts/measure.mjs [--runs 5] [--settle 20] [--scenarios all|S1,S2,...]
 //                            [--typing-runs 1] [--out-dir perf-results] [--label phase-0]
 //
-// It launches the built app (outputs/Writedown.app) directly, with WRITEDOWN_PERF=1, reads the
+// It launches the built app (outputs/Backtickle.app) directly, with BACKTICKLE_PERF=1, reads the
 // timing marks from its stdout and measures memory with scripts/memstat (compiled from
 // scripts/memstat.swift on first use). Progress goes to stderr; the Markdown summary goes to
 // stdout and to <out-dir>/<label>-summary.md; every sample goes to <out-dir>/<label>-raw.json.
@@ -14,7 +14,7 @@
 // the Preferences window; S5 the wireframe sample. S6 to S10 are the Phase 2 flavor
 // documents from scripts/gen-flavor-perf.mjs. S11 (S2 plus a 2,000-file folder in the Files tab) and
 // IDLE (CPU time over 60 s of the S11 setup) are Phase 3; S12 is the Search tab's search for
-// "lantern" in the S11 folder, run 5 times by the app (WRITEDOWN_BENCH=search). S13 is S2 with the accessibility features on (WP4.8c).
+// "lantern" in the S11 folder, run 5 times by the app (BACKTICKLE_BENCH=search). S13 is S2 with the accessibility features on (WP4.8c).
 // Typing benchmark (60 keystrokes): S2, S3, S5 to S9, S13.
 //
 // What makes a run valid (everything else is reported and left out of the statistics):
@@ -61,7 +61,7 @@ import { DOC_SIZES, ensureDocument } from './gen-large-doc.mjs';
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '..');
 
-const BUNDLE_ID = 'app.writedown.desktop';
+const BUNDLE_ID = 'app.backtickle.desktop';
 const MB = 1_048_576;
 const SAMPLES_PER_RUN = 3;
 const SAMPLE_INTERVAL_MS = 1000;
@@ -276,7 +276,7 @@ const USAGE = `Usage: node scripts/measure.mjs [options]
   --label NAME         prefix of those two files (default phase-0)
 
 For testing the harness itself:
-  --app PATH           app bundle to measure (default outputs/Writedown.app)
+  --app PATH           app bundle to measure (default outputs/Backtickle.app)
   --memstat PATH       memstat binary (default scripts/.bin/memstat, built on demand)
   --ready-timeout S    seconds to wait for the ready mark (default 30)
   --typing-timeout S   seconds to wait for the typing benchmark (default 600)
@@ -294,7 +294,7 @@ function parseArguments(argv) {
     typingRuns: 1,
     outDir: 'perf-results',
     label: 'phase-0',
-    app: 'outputs/Writedown.app',
+    app: 'outputs/Backtickle.app',
     memstat: null,
     readyTimeout: 30,
     typingTimeout: 600,
@@ -501,8 +501,8 @@ async function listProcesses() {
 }
 
 const isWebKitHelper = (p) => basename(p.comm).startsWith('com.apple.WebKit.');
-const isWritedown = (p) =>
-  /(^|\/)writedown$/i.test(p.comm) || /Writedown\.app\/Contents\/MacOS\//.test(p.comm);
+const isBacktickle = (p) =>
+  /(^|\/)backtickle$/i.test(p.comm) || /Backtickle\.app\/Contents\/MacOS\//.test(p.comm);
 
 async function webkitPids() {
   return (await listProcesses())
@@ -511,8 +511,8 @@ async function webkitPids() {
     .sort(byNumber);
 }
 
-async function otherWritedownInstances(ownPid) {
-  return (await listProcesses()).filter((p) => isWritedown(p) && p.pid !== ownPid);
+async function otherBacktickleInstances(ownPid) {
+  return (await listProcesses()).filter((p) => isBacktickle(p) && p.pid !== ownPid);
 }
 
 // ---------- memstat ----------
@@ -633,9 +633,9 @@ class AppRun {
     this.binary = binary;
     this.args = args;
     // The stores (recents, settings, document state) of every run live in a folder of their own,
-    // so a measurement never touches the stores of the user's real app (WRITEDOWN_CONFIG_DIR).
-    this.configDir = mkdtempSync(join(os.tmpdir(), 'writedown-measure-'));
-    this.env = { ...env, WRITEDOWN_CONFIG_DIR: this.configDir };
+    // so a measurement never touches the stores of the user's real app (BACKTICKLE_CONFIG_DIR).
+    this.configDir = mkdtempSync(join(os.tmpdir(), 'backtickle-measure-'));
+    this.env = { ...env, BACKTICKLE_CONFIG_DIR: this.configDir };
     if (seed) seed(this.configDir);
     this.cwd = cwd;
     this.marks = [];
@@ -717,8 +717,8 @@ class AppRun {
 
   onLine(line, ms) {
     try {
-      if (line.startsWith('WRITEDOWN_PERF ')) {
-        const data = JSON.parse(line.slice('WRITEDOWN_PERF '.length));
+      if (line.startsWith('BACKTICKLE_PERF ')) {
+        const data = JSON.parse(line.slice('BACKTICKLE_PERF '.length));
         this.marks.push({ mark: data.mark, app_ms: data.ms, script_ms: ms });
         if (data.mark === 'page-hidden') {
           // After the quit began, or after the benchmark line (the app then quits itself), the
@@ -728,9 +728,9 @@ class AppRun {
         }
         return;
       }
-      if (line.startsWith('WRITEDOWN_BENCH ')) {
+      if (line.startsWith('BACKTICKLE_BENCH ')) {
         this.bench = {
-          ...JSON.parse(line.slice('WRITEDOWN_BENCH '.length)),
+          ...JSON.parse(line.slice('BACKTICKLE_BENCH '.length)),
           script_ms: ms,
         };
         return;
@@ -1118,7 +1118,7 @@ function folderDocument(n) {
 
 /** The "lantern lines" count the generator prints for n files (it is deterministic). */
 function lanternLinesOf(n) {
-  const scratch = mkdtempSync(join(os.tmpdir(), 'writedown-genfolder-'));
+  const scratch = mkdtempSync(join(os.tmpdir(), 'backtickle-genfolder-'));
   try {
     const output = execFileSync(
       'node',
@@ -1186,10 +1186,10 @@ async function standardRun(options, ctx, scenarioId, runNumber, attemptNumber) {
   let run = null;
   try {
     await waitForUsableScreen(options, record);
-    const strangers = await otherWritedownInstances(process.pid);
+    const strangers = await otherBacktickleInstances(process.pid);
     if (strangers.length > 0) {
       throw new Error(
-        `Another Writedown process appeared: ${strangers.map((p) => p.pid).join(', ')}`,
+        `Another Backtickle process appeared: ${strangers.map((p) => p.pid).join(', ')}`,
       );
     }
     record.load_avg_1m = os.loadavg()[0];
@@ -1200,7 +1200,7 @@ async function standardRun(options, ctx, scenarioId, runNumber, attemptNumber) {
       binary: ctx.binary,
       args: scenarioArguments(scenario, ctx.documents),
       seed: scenarioSeed(scenario, ctx.documents),
-      env: { ...process.env, WRITEDOWN_PERF: '1' },
+      env: { ...process.env, BACKTICKLE_PERF: '1' },
       cwd: repoRoot,
     });
     run.start();
@@ -1371,10 +1371,10 @@ async function typingRun(options, ctx, scenarioId, runNumber, attemptNumber, mod
   let run = null;
   try {
     await waitForUsableScreen(options, record);
-    const strangers = await otherWritedownInstances(process.pid);
+    const strangers = await otherBacktickleInstances(process.pid);
     if (strangers.length > 0) {
       throw new Error(
-        `Another Writedown process appeared: ${strangers.map((p) => p.pid).join(', ')}`,
+        `Another Backtickle process appeared: ${strangers.map((p) => p.pid).join(', ')}`,
       );
     }
     record.load_avg_1m = os.loadavg()[0];
@@ -1387,10 +1387,10 @@ async function typingRun(options, ctx, scenarioId, runNumber, attemptNumber, mod
       seed: searching ? sessionSeeder(scenario, ctx.documents) : undefined,
       env: {
         ...process.env,
-        WRITEDOWN_PERF: '1',
-        WRITEDOWN_BENCH: mode,
-        WRITEDOWN_BENCH_EXIT: '1',
-        ...(searching ? { WRITEDOWN_BENCH_QUERY: scenario.query } : {}),
+        BACKTICKLE_PERF: '1',
+        BACKTICKLE_BENCH: mode,
+        BACKTICKLE_BENCH_EXIT: '1',
+        ...(searching ? { BACKTICKLE_BENCH_QUERY: scenario.query } : {}),
       },
       cwd: repoRoot,
     });
@@ -1455,7 +1455,7 @@ async function typingRun(options, ctx, scenarioId, runNumber, attemptNumber, mod
         samples_expected: BENCH_INSERTIONS,
         script_ms: run.bench.script_ms,
       };
-    // The app quits itself after printing the benchmark line (WRITEDOWN_BENCH_EXIT=1). Give it
+    // The app quits itself after printing the benchmark line (BACKTICKLE_BENCH_EXIT=1). Give it
     // time to do so before any quit command could race with it.
     await run.waitUntil(() => (run.exited ? 'exit' : null), 8000, {
       abortable: false,
@@ -1781,7 +1781,7 @@ function buildSummary(raw) {
       `system-wide free memory ${raw.host.memory_free_percent ?? 'unknown'}% at the start`,
   );
   add(
-    `- App: Writedown ${raw.app.version}, \`${raw.app.bundle}\`, binary built ${raw.app.binary_mtime}, ` +
+    `- App: Backtickle ${raw.app.version}, \`${raw.app.bundle}\`, binary built ${raw.app.binary_mtime}, ` +
       `SHA-256 ${raw.app.binary_sha256.slice(0, 16)}...`,
   );
   add(
@@ -1804,7 +1804,7 @@ function buildSummary(raw) {
   add('## How the numbers were obtained');
   add();
   add(
-    `- Each run launches the binary inside \`${raw.app.bundle}\` directly with WRITEDOWN_PERF=1, waits for the ready mark ` +
+    `- Each run launches the binary inside \`${raw.app.bundle}\` directly with BACKTICKLE_PERF=1, waits for the ready mark ` +
       `(and prefs-ready in S4), waits ${raw.parameters.settle_s} s, then samples memory ${SAMPLES_PER_RUN} times one second apart. The last sample is the result. Then the app is quit and the next run starts after 2 s. ` +
       'Scenarios take turns (S1, S2, ... then the next round) so slow drift in the machine does not favor one scenario.',
   );
@@ -2223,7 +2223,7 @@ function newestSourceChange() {
 
 function collectApp(options) {
   const bundle = resolve(repoRoot, options.app);
-  const binary = join(bundle, 'Contents', 'MacOS', 'writedown');
+  const binary = join(bundle, 'Contents', 'MacOS', 'backtickle');
   if (!existsSync(binary)) {
     throw new Error(
       `The built app was not found at ${shortPath(binary)}.\nBuild it first with: npm run build:app`,
@@ -2318,14 +2318,14 @@ function describeScenarios(ids, documents) {
             return match ? documents[match[1]].path : arg;
           }),
           env: {
-            WRITEDOWN_PERF: '1',
-            WRITEDOWN_CONFIG_DIR: '<temporary folder per run>',
+            BACKTICKLE_PERF: '1',
+            BACKTICKLE_CONFIG_DIR: '<temporary folder per run>',
           },
           typing_env: {
-            WRITEDOWN_PERF: '1',
-            WRITEDOWN_BENCH: 'typing',
-            WRITEDOWN_BENCH_EXIT: '1',
-            WRITEDOWN_CONFIG_DIR: '<temporary folder per run>',
+            BACKTICKLE_PERF: '1',
+            BACKTICKLE_BENCH: 'typing',
+            BACKTICKLE_BENCH_EXIT: '1',
+            BACKTICKLE_CONFIG_DIR: '<temporary folder per run>',
           },
           wait_for_marks: scenario.ready,
           expected_helper_counts: scenario.expected_helpers,
@@ -2338,10 +2338,10 @@ function describeScenarios(ids, documents) {
           search_benchmark: scenario.search_bench
             ? {
                 env: {
-                  WRITEDOWN_PERF: '1',
-                  WRITEDOWN_BENCH: 'search',
-                  WRITEDOWN_BENCH_QUERY: scenario.query,
-                  WRITEDOWN_BENCH_EXIT: '1',
+                  BACKTICKLE_PERF: '1',
+                  BACKTICKLE_BENCH: 'search',
+                  BACKTICKLE_BENCH_QUERY: scenario.query,
+                  BACKTICKLE_BENCH_EXIT: '1',
                 },
                 searches_per_run: SEARCH_RUNS,
               }
@@ -2388,11 +2388,11 @@ async function main() {
   const outDir = resolve(repoRoot, options.outDir);
 
   const app = collectApp(options);
-  const strangers = await otherWritedownInstances(process.pid);
+  const strangers = await otherBacktickleInstances(process.pid);
   if (strangers.length > 0) {
     throw new Error(
-      `Another Writedown instance is already running (pid ${strangers.map((p) => p.pid).join(', ')}). ` +
-        'A measurement would be wrong. Quit it first (for example: pkill -x writedown), then start again.',
+      `Another Backtickle instance is already running (pid ${strangers.map((p) => p.pid).join(', ')}). ` +
+        'A measurement would be wrong. Quit it first (for example: pkill -x backtickle), then start again.',
     );
   }
   await ensureMemstat(options);
@@ -2418,7 +2418,7 @@ async function main() {
   };
 
   const raw = {
-    schema: 'writedown-perf-raw/1',
+    schema: 'backtickle-perf-raw/1',
     status: 'running',
     stop_reason: null,
     started_at: startedAt.toISOString(),

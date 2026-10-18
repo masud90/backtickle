@@ -3,17 +3,17 @@ title: Obsidian Guide
 tags: [markdown, obsidian, reference]
 version: 1.0.0
 aliases: [Obsidian syntax]
-author: Writedown
+author: Backtickle
 created: 2026-10-06
 ---
 
 # Obsidian Guide
 
-This guide shows the Obsidian syntax supported by Writedown, on top of GitHub Flavored Markdown. Each feature has one section: a short description, the source in a code block, and the rendered result directly below it. The frontmatter at the top of this file is shown as a properties table, as in Obsidian.
+This guide shows the Obsidian syntax supported by Backtickle, on top of GitHub Flavored Markdown. Each feature has one section: a short description, the source in a code block, and the rendered result directly below it. The frontmatter at the top of this file is shown as a properties table, as in Obsidian.
 
 ## How links resolve in a vault
 
-A vault is a folder that contains a `.obsidian` folder. When a note is inside a vault, Writedown indexes the notes and attachments in it. A link such as `[[Note]]` is resolved in this order: an exact relative path (with or without `.md`), otherwise the notes with that file name, taking the one with the fewest folder steps from the current note, and ties go in alphabetical order. A click on a resolved link opens the note in a tab. A link that matches nothing is shown as unresolved. This guide is not in a vault, so every wikilink and embed below is unresolved when you open it; they show how the syntax looks, and they work once the text is in a note inside a vault.
+A vault is a folder that contains a `.obsidian` folder. When a note is inside a vault, Backtickle indexes the notes and attachments in it. A link such as `[[Note]]` is resolved in this order: an exact relative path (with or without `.md`), otherwise the notes with that file name, taking the one with the fewest folder steps from the current note, and ties go in alphabetical order. A click on a resolved link opens the note in a tab. A link that matches nothing is shown as unresolved. This guide is not in a vault, so every wikilink and embed below is unresolved when you open it; they show how the syntax looks, and they work once the text is in a note inside a vault.
 
 ## Wikilinks
 
@@ -171,7 +171,7 @@ This paragraph can be linked to from other notes. ^my-block
 
 ## Properties
 
-Properties are the YAML frontmatter at the very top of a note. Writedown shows them as a table of keys and values, with lists and tags as small pills. This guide's own properties are at the top of the preview. The source looks like this:
+Properties are the YAML frontmatter at the very top of a note. Backtickle shows them as a table of keys and values, with lists and tags as small pills. This guide's own properties are at the top of the preview. The source looks like this:
 
 ````markdown
 ---

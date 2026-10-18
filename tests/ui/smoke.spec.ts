@@ -5,8 +5,8 @@ test('main page shows the app title and the welcome screen, and runs on the mock
 }) => {
   await page.goto('/');
 
-  await expect(page.getByTestId('app-title')).toHaveText('Writedown');
-  await expect(page.getByTestId('welcome')).toContainText('Welcome to Writedown');
+  await expect(page.getByTestId('app-title')).toHaveText('Backtickle');
+  await expect(page.getByTestId('welcome')).toContainText('Welcome to Backtickle');
   await expect(page.locator('body')).toHaveAttribute('data-platform', 'mock');
 });
 

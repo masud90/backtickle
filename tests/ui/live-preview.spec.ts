@@ -80,7 +80,7 @@ test('the View menu turns it on and off, and off shows the plain source', async 
   await menu(page, 'toggle-live-preview');
   await expect.poll(() => visibleText(page)).toContain('**bold**');
   const settings = await page.evaluate(
-    () => window.__WRITEDOWN_MOCK__?.settings.editor.livePreview,
+    () => window.__BACKTICKLE_MOCK__?.settings.editor.livePreview,
   );
   expect(settings).toBe(false);
 });

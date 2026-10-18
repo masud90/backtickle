@@ -532,8 +532,8 @@ test('A28 Appearance: system follows the macOS setting live; dark and light over
   // appearance light overrides dark media.
   await page.evaluate(() =>
     (
-      window as unknown as { __WRITEDOWN_MOCK__: { settingsChanged(p: unknown): void } }
-    ).__WRITEDOWN_MOCK__.settingsChanged({
+      window as unknown as { __BACKTICKLE_MOCK__: { settingsChanged(p: unknown): void } }
+    ).__BACKTICKLE_MOCK__.settingsChanged({
       appearance: 'light',
     }),
   );
@@ -544,8 +544,8 @@ test('A28 Appearance: system follows the macOS setting live; dark and light over
   await page.emulateMedia({ colorScheme: 'light' });
   await page.evaluate(() =>
     (
-      window as unknown as { __WRITEDOWN_MOCK__: { settingsChanged(p: unknown): void } }
-    ).__WRITEDOWN_MOCK__.settingsChanged({
+      window as unknown as { __BACKTICKLE_MOCK__: { settingsChanged(p: unknown): void } }
+    ).__BACKTICKLE_MOCK__.settingsChanged({
       appearance: 'dark',
     }),
   );

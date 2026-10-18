@@ -2,13 +2,13 @@
 //! shell. This file lives outside `src/`, so the process-source scan (`config.rs` B31) does not
 //! see it; the app itself starts nothing.
 
+use backtickle_lib::render::write_command_file;
+#[cfg(unix)]
+use backtickle_lib::render::{script_text, shell_quote};
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::Command;
-use writedown_lib::render::write_command_file;
-#[cfg(unix)]
-use writedown_lib::render::{script_text, shell_quote};
 
 /// The shell the render script names on its first line: zsh on macOS, bash on Linux (where it
 /// also waits for Enter, so the tests give it no input).
@@ -19,10 +19,10 @@ const SCRIPT_SHELL: &str = if cfg!(target_os = "macos") {
 };
 
 fn temp(label: &str) -> PathBuf {
-    let dir = writedown_lib::fs_util::canonicalize(std::env::temp_dir())
+    let dir = backtickle_lib::fs_util::canonicalize(std::env::temp_dir())
         .unwrap()
         .join(format!(
-            "writedown-render-test-{label}-{}",
+            "backtickle-render-test-{label}-{}",
             std::process::id()
         ));
     let _ = std::fs::remove_dir_all(&dir);
@@ -104,8 +104,8 @@ fn the_script_runs_quarto_in_the_documents_folder_and_removes_itself() {
     let ran = std::fs::read_to_string(&log).unwrap();
     let mut lines = ran.lines();
     assert_eq!(
-        writedown_lib::fs_util::canonicalize(lines.next().unwrap()).unwrap(),
-        writedown_lib::fs_util::canonicalize(&docs).unwrap()
+        backtickle_lib::fs_util::canonicalize(lines.next().unwrap()).unwrap(),
+        backtickle_lib::fs_util::canonicalize(&docs).unwrap()
     );
     assert_eq!(lines.next().unwrap(), "render it's a.qmd");
     assert!(
@@ -189,8 +189,8 @@ fn the_windows_script_runs_quarto_in_the_documents_folder_and_removes_itself() {
         .unwrap_or_else(|_| panic!("quarto ran: {}", String::from_utf8_lossy(&out.stdout)));
     let mut lines = ran.lines();
     assert_eq!(
-        writedown_lib::fs_util::canonicalize(lines.next().unwrap().trim()).unwrap(),
-        writedown_lib::fs_util::canonicalize(&docs).unwrap()
+        backtickle_lib::fs_util::canonicalize(lines.next().unwrap().trim()).unwrap(),
+        backtickle_lib::fs_util::canonicalize(&docs).unwrap()
     );
     assert_eq!(lines.next().unwrap().trim(), "render \"it's a.qmd\"");
     assert!(

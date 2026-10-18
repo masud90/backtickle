@@ -110,7 +110,7 @@ describe('rendering, debounce and cancel', () => {
       resolveImage: () => undefined,
       onLink: () => {},
     });
-    const mock = window.__WRITEDOWN_MOCK__ as NonNullable<typeof window.__WRITEDOWN_MOCK__>;
+    const mock = window.__BACKTICKLE_MOCK__ as NonNullable<typeof window.__BACKTICKLE_MOCK__>;
     return { platform: mock, state, preview };
   }
 

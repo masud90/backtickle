@@ -50,7 +50,7 @@ async function start(page: Page, extra: Partial<MockSeed> = {}) {
 }
 
 const input = (page: Page) => page.getByTestId('search-input');
-const requests = (page: Page) => page.evaluate(() => window.__WRITEDOWN_MOCK__?.searches ?? []);
+const requests = (page: Page) => page.evaluate(() => window.__BACKTICKLE_MOCK__?.searches ?? []);
 
 test.describe('C17 Search tab', () => {
   test('the command shows the Search tab with the field focused', async ({ page }) => {
@@ -130,11 +130,11 @@ test.describe('C17 Search tab', () => {
     await expect.poll(async () => (await requests(page)).length).toBe(2);
     const sent = await requests(page);
     expect(sent[1]?.id).toBeGreaterThan(sent[0]?.id ?? 0);
-    expect(await page.evaluate(() => window.__WRITEDOWN_MOCK__?.cancelledSearches)).toEqual([
+    expect(await page.evaluate(() => window.__BACKTICKLE_MOCK__?.cancelledSearches)).toEqual([
       sent[0]?.id,
     ]);
     // The answer of the second search shows (nothing is scripted for it).
-    await page.evaluate((id) => window.__WRITEDOWN_MOCK__?.finishSearch(id), sent[1]?.id ?? 0);
+    await page.evaluate((id) => window.__BACKTICKLE_MOCK__?.finishSearch(id), sent[1]?.id ?? 0);
     await expect(page.getByTestId('search-none')).toHaveText('No matches');
   });
 

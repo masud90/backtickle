@@ -54,11 +54,11 @@ fn too_large_message(limit: u64) -> String {
     const MB: u64 = 1024 * 1024;
     if limit.is_multiple_of(MB) {
         format!(
-            "The file is larger than {} MB, which Writedown does not open.",
+            "The file is larger than {} MB, which Backtickle does not open.",
             limit / MB
         )
     } else {
-        format!("The file is larger than {limit} bytes, which Writedown does not open.")
+        format!("The file is larger than {limit} bytes, which Backtickle does not open.")
     }
 }
 
@@ -241,7 +241,7 @@ mod tests {
         assert_eq!(error.code, ErrorCode::TooLarge);
         assert_eq!(
             error.message,
-            "The file is larger than 10 bytes, which Writedown does not open."
+            "The file is larger than 10 bytes, which Backtickle does not open."
         );
     }
 
@@ -256,7 +256,7 @@ mod tests {
         assert_eq!(error.code, ErrorCode::TooLarge);
         assert_eq!(
             error.message,
-            "The file is larger than 2 MB, which Writedown does not open."
+            "The file is larger than 2 MB, which Backtickle does not open."
         );
     }
 

@@ -43,7 +43,7 @@ function textOf(el: Element): string {
   )) {
     junk.remove();
   }
-  // Math is compared as a token: Pandoc writes TeX in a span, Writedown writes MathML.
+  // Math is compared as a token: Pandoc writes TeX in a span, Backtickle writes MathML.
   for (const math of own(copy, 'span.math, math, .katex, .math-display, .math-inline')) {
     math.replaceWith(document.createTextNode(' MATH '));
   }
@@ -73,7 +73,7 @@ export function extract(html: string, options: { quarto?: boolean } = {}): Struc
   // Never content: scripts, styles, the table of contents of a standalone page.
   for (const junk of own(root, 'script, style, template, nav#TOC')) junk.remove();
 
-  // The title block: Pandoc and Quarto write it as `header#title-block-header`, Writedown as
+  // The title block: Pandoc and Quarto write it as `header#title-block-header`, Backtickle as
   // `header.wd-title-block`.
   const block = root.querySelector('header#title-block-header, header.wd-title-block');
   const titleBlock = block

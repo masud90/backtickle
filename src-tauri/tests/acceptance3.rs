@@ -5,6 +5,10 @@
 //! and never leaves the folder through a symlink. Every test writes only inside its own temporary
 //! folder.
 
+use backtickle_lib::grants::PathGrants;
+use backtickle_lib::search::{
+    MAX_FILES, MAX_MATCHES, SearchRegistry, SearchRequest, SearchResult, search_folder,
+};
 use serde_json::Value;
 use std::collections::BTreeMap;
 use std::fs;
@@ -12,16 +16,12 @@ use std::fs;
 use std::os::unix::fs::symlink;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use writedown_lib::grants::PathGrants;
-use writedown_lib::search::{
-    MAX_FILES, MAX_MATCHES, SearchRegistry, SearchRequest, SearchResult, search_folder,
-};
 
 static COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 fn temp() -> PathBuf {
     let n = COUNTER.fetch_add(1, Ordering::SeqCst);
-    let base = writedown_lib::fs_util::canonicalize(std::env::temp_dir()).unwrap();
+    let base = backtickle_lib::fs_util::canonicalize(std::env::temp_dir()).unwrap();
     let dir = base.join(format!("wd-acc3-{}-{n}", std::process::id()));
     let _ = fs::remove_dir_all(&dir);
     fs::create_dir_all(&dir).unwrap();
@@ -88,7 +88,7 @@ fn relative_paths(result: &SearchResult, root: &Path) -> Vec<String> {
 }
 
 fn fixture_folder() -> PathBuf {
-    writedown_lib::fs_util::canonicalize(
+    backtickle_lib::fs_util::canonicalize(
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("..")
             .join("tests")
@@ -356,7 +356,7 @@ fn c18_never_leaves_the_folder_through_a_symlink() {
     symlink(&outside, root.join("linkdir")).unwrap();
     symlink("../outside/secret.md", root.join("relative.md")).unwrap();
     let result = run(&root, &request(1, &root, "lantern", false, false, false));
-    let root = writedown_lib::fs_util::canonicalize(&root).unwrap();
+    let root = backtickle_lib::fs_util::canonicalize(&root).unwrap();
     let paths = relative_paths(&result, &root);
     assert!(paths.contains(&"inside.md".to_owned()), "{paths:?}");
     for path in &paths {

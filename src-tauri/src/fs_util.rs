@@ -158,7 +158,7 @@ pub fn temp_sibling(target: &Path) -> PathBuf {
         .map(|name| name.to_string_lossy().into_owned())
         .unwrap_or_else(|| "file".to_owned());
     let unique = format!(
-        ".{name}.{}-{}.writedown-tmp",
+        ".{name}.{}-{}.backtickle-tmp",
         std::process::id(),
         TEMP_COUNTER.fetch_add(1, Ordering::Relaxed)
     );
@@ -280,7 +280,7 @@ mod tests {
             .to_string_lossy()
             .into_owned();
         assert!(name.starts_with(".note.md."), "{name}");
-        assert!(name.ends_with(".writedown-tmp"), "{name}");
+        assert!(name.ends_with(".backtickle-tmp"), "{name}");
     }
 
     #[test]

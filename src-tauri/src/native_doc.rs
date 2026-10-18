@@ -11,7 +11,7 @@
 //! On Linux: the same `*` before the title (as GNOME's text editor does), recent documents go to
 //! GTK's recent files (`recently-used.xbel`, which file managers and the file chooser list), and
 //! the default app for Markdown is read and set through GIO (the user's `mimeapps.list`), with
-//! Writedown's desktop entry (installed by the .deb package).
+//! Backtickle's desktop entry (installed by the .deb package).
 
 use serde::Serialize;
 use std::path::{Path, PathBuf};
@@ -87,7 +87,7 @@ pub fn set_title(window: &tauri::WebviewWindow, title: &str) -> tauri::Result<()
 }
 
 /// Whether the calls to the system recents list are made. They are skipped when the stores are
-/// in a folder chosen with `WRITEDOWN_CONFIG_DIR` (tests, benchmarks and real-app checks), so
+/// in a folder chosen with `BACKTICKLE_CONFIG_DIR` (tests, benchmarks and real-app checks), so
 /// those runs never touch the user's system recents. The app's own recents list is unaffected.
 pub fn system_recents_enabled(overridden: bool) -> bool {
     !overridden
@@ -218,7 +218,7 @@ pub fn clear_recent(app: &tauri::AppHandle<tauri::Wry>) {
     });
 }
 
-/// Removes the recent files only Writedown has used from GTK's list (a file another app opened
+/// Removes the recent files only Backtickle has used from GTK's list (a file another app opened
 /// too stays: it is that app's as well).
 #[cfg(not(any(target_os = "macos", windows)))]
 pub fn clear_recent(app: &tauri::AppHandle<tauri::Wry>) {
@@ -259,7 +259,7 @@ pub const MARKDOWN_UTI: &str = "net.daringfireball.markdown";
 #[serde(rename_all = "camelCase")]
 pub struct DefaultMarkdownApp {
     /// Whether the default app is this one.
-    pub is_writedown: bool,
+    pub is_backtickle: bool,
     /// The default app's name without `.app`, or null when macOS names none.
     pub app_name: Option<String>,
 }
@@ -273,7 +273,7 @@ pub fn bundle_root(exe: &Path) -> Option<PathBuf> {
 }
 
 /// Whether `default_app` (an application bundle) is the bundle that runs `exe`.
-pub fn is_writedown(default_app: &Path, exe: &Path) -> bool {
+pub fn is_backtickle(default_app: &Path, exe: &Path) -> bool {
     let Some(root) = bundle_root(exe) else {
         return false;
     };
@@ -300,7 +300,7 @@ pub fn read_default_markdown_app() -> DefaultMarkdownApp {
     use objc2_foundation::{NSString, NSURL};
 
     let none = DefaultMarkdownApp {
-        is_writedown: false,
+        is_backtickle: false,
         app_name: None,
     };
     let (Some(ut_class), Some(exe)) = (AnyClass::get(c"UTType"), std::env::current_exe().ok())
@@ -323,7 +323,7 @@ pub fn read_default_markdown_app() -> DefaultMarkdownApp {
     };
     let app = PathBuf::from(path.to_string());
     DefaultMarkdownApp {
-        is_writedown: is_writedown(&app, &exe),
+        is_backtickle: is_backtickle(&app, &exe),
         app_name: app_name(&app),
     }
 }
@@ -356,7 +356,7 @@ pub fn read_default_markdown_app() -> DefaultMarkdownApp {
         (end > 0).then(|| String::from_utf16_lossy(&buffer[..end]))
     };
     let exe = query(ASSOCSTR_EXECUTABLE).map(PathBuf::from);
-    let is_writedown = match (exe, std::env::current_exe()) {
+    let is_backtickle = match (exe, std::env::current_exe()) {
         (Some(default), Ok(own)) => match (
             crate::fs_util::canonicalize(&default),
             crate::fs_util::canonicalize(&own),
@@ -367,7 +367,7 @@ pub fn read_default_markdown_app() -> DefaultMarkdownApp {
         _ => false,
     };
     DefaultMarkdownApp {
-        is_writedown,
+        is_backtickle,
         app_name: query(ASSOCSTR_FRIENDLYAPPNAME).filter(|name| !name.is_empty()),
     }
 }
@@ -379,18 +379,18 @@ pub fn read_default_markdown_app() -> DefaultMarkdownApp {
     use gtk::gio::prelude::AppInfoExt;
     let Some(default) = gtk::gio::AppInfo::default_for_type(MARKDOWN_TYPES[0], false) else {
         return DefaultMarkdownApp {
-            is_writedown: false,
+            is_backtickle: false,
             app_name: None,
         };
     };
     let own = own_app_info().and_then(|own| own.id());
     DefaultMarkdownApp {
-        is_writedown: own.is_some() && default.id() == own,
+        is_backtickle: own.is_some() && default.id() == own,
         app_name: Some(default.display_name().to_string()),
     }
 }
 
-/// Sets Writedown as the default app for Markdown. Must run on the main thread. macOS shows its
+/// Sets Backtickle as the default app for Markdown. Must run on the main thread. macOS shows its
 /// own confirmation; `done` receives the outcome when the system calls back.
 #[cfg(target_os = "macos")]
 pub fn set_default_markdown_app(done: std::sync::mpsc::Sender<Result<(), &'static str>>) {
@@ -406,7 +406,7 @@ pub fn set_default_markdown_app(done: std::sync::mpsc::Sender<Result<(), &'stati
         .and_then(|exe| bundle_root(&exe))
     else {
         let _ = done.send(Err(
-            "Writedown must run from its app bundle to be made the default.",
+            "Backtickle must run from its app bundle to be made the default.",
         ));
         return;
     };
@@ -440,7 +440,7 @@ pub fn set_default_markdown_app(done: std::sync::mpsc::Sender<Result<(), &'stati
     }
 }
 
-/// Shows the system's "Open with" chooser for Markdown files, where the user picks Writedown and
+/// Shows the system's "Open with" chooser for Markdown files, where the user picks Backtickle and
 /// "Always use this app" (Windows does not let an app make itself the default). Must run on the
 /// main thread; the chooser is modal.
 #[cfg(windows)]
@@ -463,14 +463,14 @@ pub fn set_default_markdown_app(done: std::sync::mpsc::Sender<Result<(), &'stati
     let _ = done.send(result.map_err(|_| "Windows did not change the default app."));
 }
 
-/// Makes Writedown's desktop entry the default for the Markdown types (Linux asks for no
+/// Makes Backtickle's desktop entry the default for the Markdown types (Linux asks for no
 /// confirmation). GIO writes the choice to the user's `mimeapps.list`.
 #[cfg(not(any(target_os = "macos", windows)))]
 pub fn set_default_markdown_app(done: std::sync::mpsc::Sender<Result<(), &'static str>>) {
     use gtk::gio::prelude::AppInfoExt;
     let Some(own) = own_app_info() else {
         let _ = done.send(Err(
-            "Writedown has no desktop entry on this system. Install the .deb package to make it the default app.",
+            "Backtickle has no desktop entry on this system. Install the .deb package to make it the default app.",
         ));
         return;
     };
@@ -488,7 +488,7 @@ pub fn set_default_markdown_app(done: std::sync::mpsc::Sender<Result<(), &'stati
 #[cfg(not(any(target_os = "macos", windows)))]
 const MARKDOWN_TYPES: [&str; 2] = ["text/markdown", "text/x-markdown"];
 
-/// Writedown's own desktop entry, if one is installed: the one whose `Exec` starts this executable
+/// Backtickle's own desktop entry, if one is installed: the one whose `Exec` starts this executable
 /// (the .deb package), or the AppImage it runs from (an AppImage added to the app menu by an
 /// integration tool).
 #[cfg(not(any(target_os = "macos", windows)))]
@@ -536,17 +536,17 @@ mod tests {
     #[test]
     fn the_exec_line_is_matched_by_path_or_by_bare_name() {
         let programs = [
-            PathBuf::from("/usr/bin/writedown"),
-            PathBuf::from("/home/me/Apps/Writedown.AppImage"),
+            PathBuf::from("/usr/bin/backtickle"),
+            PathBuf::from("/home/me/Apps/Backtickle.AppImage"),
         ];
-        assert!(exec_starts("writedown %F", &programs));
-        assert!(exec_starts("/usr/bin/writedown %F", &programs));
+        assert!(exec_starts("backtickle %F", &programs));
+        assert!(exec_starts("/usr/bin/backtickle %F", &programs));
         assert!(exec_starts(
-            "\"/home/me/Apps/Writedown.AppImage\" %U",
+            "\"/home/me/Apps/Backtickle.AppImage\" %U",
             &programs
         ));
-        assert!(!exec_starts("/opt/writedown %F", &programs));
-        assert!(!exec_starts("bin/writedown", &programs));
+        assert!(!exec_starts("/opt/backtickle %F", &programs));
+        assert!(!exec_starts("bin/backtickle", &programs));
         assert!(!exec_starts("gedit %U", &programs));
         assert!(!exec_starts("", &programs));
     }
@@ -565,7 +565,7 @@ mod tests {
         );
         assert!(
             !system_recents_enabled(true),
-            "WRITEDOWN_CONFIG_DIR: skipped"
+            "BACKTICKLE_CONFIG_DIR: skipped"
         );
     }
 
@@ -584,18 +584,18 @@ mod tests {
     }
 
     #[test]
-    fn the_default_app_is_writedown_only_when_it_is_our_bundle() {
+    fn the_default_app_is_backtickle_only_when_it_is_our_bundle() {
         let dir = crate::test_support::TempDir::new();
-        let bundle = dir.path().join("Writedown.app");
-        let exe = bundle.join("Contents/MacOS/writedown");
+        let bundle = dir.path().join("Backtickle.app");
+        let exe = bundle.join("Contents/MacOS/backtickle");
         assert_eq!(bundle_root(&exe), Some(bundle.clone()));
-        assert!(is_writedown(&bundle, &exe));
-        assert!(!is_writedown(&dir.path().join("Other.app"), &exe));
+        assert!(is_backtickle(&bundle, &exe));
+        assert!(!is_backtickle(&dir.path().join("Other.app"), &exe));
         assert!(
-            !is_writedown(&bundle, Path::new("/tmp/target/debug/writedown")),
+            !is_backtickle(&bundle, Path::new("/tmp/target/debug/backtickle")),
             "a plain build folder is not the bundle"
         );
-        assert_eq!(bundle_root(Path::new("/tmp/target/debug/writedown")), None);
+        assert_eq!(bundle_root(Path::new("/tmp/target/debug/backtickle")), None);
     }
 
     #[test]
@@ -626,11 +626,11 @@ mod tests {
     #[test]
     fn the_default_app_serializes_in_camel_case() {
         let value = serde_json::to_value(DefaultMarkdownApp {
-            is_writedown: true,
-            app_name: Some("Writedown".into()),
+            is_backtickle: true,
+            app_name: Some("Backtickle".into()),
         })
         .expect("json");
-        assert_eq!(value["isWritedown"], true);
-        assert_eq!(value["appName"], "Writedown");
+        assert_eq!(value["isBacktickle"], true);
+        assert_eq!(value["appName"], "Backtickle");
     }
 }

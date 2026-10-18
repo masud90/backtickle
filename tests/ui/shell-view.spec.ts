@@ -23,8 +23,9 @@ async function open(
   await expect(page.getByTestId('document-name')).toHaveText('note.md');
 }
 
-const menuState = (page: Page) => page.evaluate(() => window.__WRITEDOWN_MOCK__?.menuStates.at(-1));
-const settings = (page: Page) => page.evaluate(() => window.__WRITEDOWN_MOCK__?.settings);
+const menuState = (page: Page) =>
+  page.evaluate(() => window.__BACKTICKLE_MOCK__?.menuStates.at(-1));
+const settings = (page: Page) => page.evaluate(() => window.__BACKTICKLE_MOCK__?.settings);
 const previewPane = (page: Page) => page.getByRole('region', { name: 'Preview' });
 const editorPane = (page: Page) => page.getByRole('region', { name: 'Markdown source' });
 
@@ -263,7 +264,7 @@ test.describe('A27 zoom', () => {
   test('A27 a settings change from another window is followed', async ({ page }) => {
     await open(page);
 
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.settingsChanged({ view: { zoom: 0.5 } }));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.settingsChanged({ view: { zoom: 0.5 } }));
 
     await expect(page.getByTestId('zoom-value')).toHaveText('50%');
     await expect.poll(() => paragraphFont(page)).toBe('7.5px');
@@ -312,11 +313,13 @@ test.describe('A28 appearance', () => {
       page.locator('.cm-editor').evaluate((el) => getComputedStyle(el).backgroundColor);
     const light = await background();
 
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.settingsChanged({ appearance: 'dark' }));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.settingsChanged({ appearance: 'dark' }));
     await expect.poll(() => onSurface(page)).toBe(DARK);
     await expect.poll(background).not.toBe(light);
 
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.settingsChanged({ appearance: 'system' }));
+    await page.evaluate(() =>
+      window.__BACKTICKLE_MOCK__?.settingsChanged({ appearance: 'system' }),
+    );
     await expect.poll(() => onSurface(page)).toBe(LIGHT);
     await expect(page.locator('html')).not.toHaveAttribute('data-theme', /.+/);
   });
@@ -361,7 +364,7 @@ test.describe('the Markdown guide', () => {
     await menu(page, 'save');
 
     await expect(page.getByTestId('document-name')).toHaveText('guide-copy.md');
-    const dialogs = await page.evaluate(() => window.__WRITEDOWN_MOCK__?.saveDialogs);
+    const dialogs = await page.evaluate(() => window.__BACKTICKLE_MOCK__?.saveDialogs);
     expect(dialogs?.length).toBe(1);
   });
 });
@@ -431,7 +434,7 @@ test.describe('settings the shell stores', () => {
         canRender: false,
       });
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.windowTitles.at(-1)))
-      .toBe('Writedown');
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.windowTitles.at(-1)))
+      .toBe('Backtickle');
   });
 });

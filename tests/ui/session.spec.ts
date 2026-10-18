@@ -13,8 +13,8 @@ const C = `${DOCS}/c.md`;
 const GONE = `${DOCS}/gone.md`;
 const LONG = Array.from({ length: 200 }, (_, i) => `Line ${i + 1}`).join('\n\n');
 
-const mock = <T>(page: Page, read: (m: NonNullable<Window['__WRITEDOWN_MOCK__']>) => T) =>
-  page.evaluate(`(${read.toString()})(window.__WRITEDOWN_MOCK__)`) as Promise<T>;
+const mock = <T>(page: Page, read: (m: NonNullable<Window['__BACKTICKLE_MOCK__']>) => T) =>
+  page.evaluate(`(${read.toString()})(window.__BACKTICKLE_MOCK__)`) as Promise<T>;
 
 async function start(page: Page, seed: MockSeed) {
   await seedMock(page, seed);
@@ -69,14 +69,14 @@ test.describe('C24 cursor and scroll come back', () => {
     await expect(position(page)).toHaveText('Ln 7, Col 3');
 
     // A tab switch stores the position of the tab that is left.
-    await page.evaluate((path) => window.__WRITEDOWN_MOCK__?.openFiles([path]), B);
+    await page.evaluate((path) => window.__BACKTICKLE_MOCK__?.openFiles([path]), B);
     await expect(page.getByTestId('document-name')).toHaveText('b.md');
     await menu(page, 'close-tab');
     await expect(page.getByTestId('document-name')).toHaveText('a.md');
     await menu(page, 'close-tab');
     await expect(page.getByTestId('welcome')).toBeVisible();
 
-    await page.evaluate((path) => window.__WRITEDOWN_MOCK__?.openFiles([path]), A);
+    await page.evaluate((path) => window.__BACKTICKLE_MOCK__?.openFiles([path]), A);
     await expect(page.getByTestId('document-name')).toHaveText('a.md');
     await expect(position(page)).toHaveText('Ln 7, Col 3');
   });
@@ -147,7 +147,7 @@ test.describe('C25 session restore', () => {
     await menu(page, 'new');
     await expect(tabs(page)).toHaveCount(3);
     await tabs(page).nth(0).click();
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.closeRequested('quit'));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.closeRequested('quit'));
     // The untitled document is empty and clean, so nothing is asked.
     await expect.poll(() => mock(page, (m) => m.finishCloses)).toEqual(['quit']);
     const stored = await mock(page, (m) => m.session);

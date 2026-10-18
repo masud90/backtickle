@@ -107,7 +107,7 @@ test.describe('A16 task boxes', () => {
     await menu(page, 'save');
 
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.saves.at(-1)?.text))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.saves.at(-1)?.text))
       .toContain('- [x] first');
   });
 });
@@ -119,8 +119,8 @@ test.describe('A19 links', () => {
   });
 
   const link = (page: Page, name: string) => preview(page).getByRole('link', { name, exact: true });
-  const mock = <T>(page: Page, read: (m: NonNullable<Window['__WRITEDOWN_MOCK__']>) => T) =>
-    page.evaluate(`(${read.toString()})(window.__WRITEDOWN_MOCK__)`) as Promise<T>;
+  const mock = <T>(page: Page, read: (m: NonNullable<Window['__BACKTICKLE_MOCK__']>) => T) =>
+    page.evaluate(`(${read.toString()})(window.__BACKTICKLE_MOCK__)`) as Promise<T>;
 
   test('A19 an external link calls openExternal and does not navigate the page', async ({
     page,
@@ -189,7 +189,7 @@ test.describe('A19 links', () => {
   });
 
   test('A19 a link to another kind of file asks, then reveals it in Finder', async ({ page }) => {
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.setAnswers({ ask: true }));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.setAnswers({ ask: true }));
 
     await link(page, 'PDF document').click();
 
@@ -200,7 +200,7 @@ test.describe('A19 links', () => {
   });
 
   test('A19 declining the question reveals nothing', async ({ page }) => {
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.setAnswers({ ask: false }));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.setAnswers({ ask: false }));
 
     await link(page, 'PDF document').click();
 
@@ -404,7 +404,7 @@ test.describe('A21 flavors', () => {
     await page.getByRole('menuitemradio', { name: 'CommonMark' }).click();
 
     await expect
-      .poll(() => page.evaluate(() => window.__WRITEDOWN_MOCK__?.settings.defaultFlavor))
+      .poll(() => page.evaluate(() => window.__BACKTICKLE_MOCK__?.settings.defaultFlavor))
       .toBe('commonmark');
     await menu(page, 'new');
     await expect(page.getByTestId('flavor-pill')).toContainText('CommonMark');
@@ -499,7 +499,7 @@ test.describe('A22 words, characters and reading time', () => {
     await openWith(page, { files: { [path]: text }, settings: { readingWpm: 238 } }, path);
     await expect(page.getByTestId('status-reading')).toHaveText('Reading Time: 3 min');
 
-    await page.evaluate(() => window.__WRITEDOWN_MOCK__?.settingsChanged({ readingWpm: 480 }));
+    await page.evaluate(() => window.__BACKTICKLE_MOCK__?.settingsChanged({ readingWpm: 480 }));
 
     await expect(page.getByTestId('status-reading')).toHaveText('Reading Time: 1 min');
   });

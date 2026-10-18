@@ -70,7 +70,7 @@ async function serve(csp: string): Promise<string> {
 }
 
 test.beforeAll(() => {
-  distDir = mkdtempSync(join(tmpdir(), 'writedown-csp-'));
+  distDir = mkdtempSync(join(tmpdir(), 'backtickle-csp-'));
   execFileSync('npx', ['vite', 'build', '--outDir', distDir, '--emptyOutDir'], {
     cwd: projectRoot,
     stdio: 'pipe',
@@ -99,7 +99,7 @@ async function openUnderPolicy(page: Page, baseUrl: string) {
     document.addEventListener('securitypolicyviolation', (event) => {
       records.push(`${event.violatedDirective}: ${event.blockedURI}`);
     });
-    window.__WRITEDOWN_MOCK_SEED__ = value;
+    window.__BACKTICKLE_MOCK_SEED__ = value;
   }, seed);
   await page.goto(`${baseUrl}/`);
   await expect(page.getByTestId('preview').getByRole('heading', { name: 'Table' })).toBeVisible();

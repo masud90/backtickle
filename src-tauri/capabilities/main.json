@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main-window",
-  "description": "What the main Writedown window and any other document window (doc-<n>, a tab moved to a new window) may do. Keep this list as short as possible. There is no file system, dialog or opener permission: files are chosen, read, saved and revealed through our own commands, which only serve paths Rust granted (see src/grants.rs).",
+  "description": "What the main Backtickle window and any other document window (doc-<n>, a tab moved to a new window) may do. Keep this list as short as possible. There is no file system, dialog or opener permission: files are chosen, read, saved and revealed through our own commands, which only serve paths Rust granted (see src/grants.rs).",
   "windows": ["main", "doc-*"],
   "permissions": [
     "core:app:default",
