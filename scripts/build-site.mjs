@@ -151,9 +151,7 @@ function renderReadme(markdown) {
     md.renderer.rules[rule] = (tokens, idx) => rewriteHtml(tokens[idx].content);
   }
 
-  // The site shows no download count, even if the README gains one again.
-  const withoutDownloads = markdown.replace(/^.*img\.shields\.io\/github\/downloads.*\n/gm, '');
-  let html = md.render(withoutDownloads);
+  let html = md.render(markdown);
 
   // The README shows the intro as a GIF because GitHub will not autoplay a video. The site can,
   // and the MP4 is a quarter of the size.
