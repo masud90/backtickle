@@ -1,10 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.2.1 (2026-10-20)
 
 - Backtickle checks GitHub once a day for a newer version and shows a banner with a link to download it.
   It is the app's only network request of its own, and Check for updates in Preferences (General) turns it off.
   Nothing is downloaded or installed by itself.
+- Fixed: an MDX expression made of many empty comments could freeze the preview for seconds.
+- Fixed: pasting a table lost a backslash written right before a pipe.
+- Fixed: Export and Copy as HTML could put back a remote image address that raw HTML in the document had
+  imitated; only https: images are restored now.
 
 ## 0.2.0 (2026-10-18)
 
