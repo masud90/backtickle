@@ -104,6 +104,16 @@ export async function embedImages(
   );
 }
 
+/** The address of a remote image as written when it is an `https:` URL, or null. */
+function remoteAddress(source: string | null): string | null {
+  if (source === null) return null;
+  try {
+    return new URL(source.trim()).protocol === 'https:' ? source.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Remote images that the "Load remote images" setting kept out of the preview go back into a page
  * that leaves the app, with the address as written. They are either
@@ -112,7 +122,7 @@ export async function embedImages(
  */
 export function restoreRemoteImages(root: Element | DocumentFragment): void {
   for (const image of root.querySelectorAll('img[data-wd-remote]')) {
-    const source = image.getAttribute('data-wd-src');
+    const source = remoteAddress(image.getAttribute('data-wd-src'));
     image.removeAttribute('data-wd-remote');
     image.removeAttribute('data-wd-src');
     if (source !== null) image.setAttribute('src', source);
@@ -120,8 +130,11 @@ export function restoreRemoteImages(root: Element | DocumentFragment): void {
   for (const placeholder of [
     ...root.querySelectorAll('.wd-image-remote-off[data-wd-remote-src]'),
   ]) {
+    // Raw HTML in a document can imitate the placeholder, so only an `https:` address goes back.
+    const source = remoteAddress(placeholder.getAttribute('data-wd-remote-src'));
+    if (source === null) continue;
     const image = placeholder.ownerDocument.createElement('img');
-    image.setAttribute('src', placeholder.getAttribute('data-wd-remote-src') ?? '');
+    image.setAttribute('src', source);
     image.setAttribute('alt', placeholder.getAttribute('data-wd-remote-alt') ?? '');
     placeholder.replaceWith(image);
   }

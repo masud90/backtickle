@@ -7,7 +7,13 @@ import { cleanForExport } from '@/export/clean';
 import { cutBlocks, lightCss } from '@/export/css';
 import { documentHtml } from '@/export/document-html';
 import { directoryOf, suggestedHtmlName } from '@/export/html';
-import { dataUriResolver, fileUrlOf, imageType, toBase64 } from '@/export/images';
+import {
+  dataUriResolver,
+  fileUrlOf,
+  imageType,
+  restoreRemoteImages,
+  toBase64,
+} from '@/export/images';
 import { buildPage, pageTitle } from '@/export/page';
 import { FLAVORS, type FlavorId } from '@/flavors';
 import { createMockPlatform } from '@/lib/platform-mock';
@@ -227,5 +233,18 @@ describe('cleanForExport data attributes', () => {
     expect(link.getAttributeNames()).toEqual(['class']);
     expect(root.querySelector('p')?.getAttribute('id')).toBe('p1');
     expect(root.innerHTML).not.toContain('javascript:');
+  });
+});
+
+describe('restoreRemoteImages', () => {
+  it('puts https addresses back and drops anything else, even in an imitated placeholder', () => {
+    const root = parseHtml(
+      '<img data-wd-remote="" data-wd-src="https://example.com/a.png" alt="a">' +
+        '<span class="wd-image-remote-off" data-wd-remote-src="https://example.com/b.png" data-wd-remote-alt="b"></span>' +
+        '<span class="wd-image-remote-off" data-wd-remote-src="javascript:alert(1)" data-wd-remote-alt="c"></span>',
+    );
+    restoreRemoteImages(root);
+    const sources = [...root.querySelectorAll('img')].map((image) => image.getAttribute('src'));
+    expect(sources).toEqual(['https://example.com/a.png', 'https://example.com/b.png']);
   });
 });

@@ -98,6 +98,15 @@ describe('MDX: components.mdx (B23)', () => {
     expect(root.textContent).not.toContain('Fixture for MDX');
   });
 
+  it('checks for comment-only expressions without catastrophic backtracking', () => {
+    // Empty comments, then `x`: the old pattern took seconds on 30 of them.
+    const start = performance.now();
+    const root = page(`{/*${'*//*'.repeat(30)}*/ x}\n`);
+    expect(performance.now() - start).toBeLessThan(1000);
+    expect(root.querySelector('code.mdx-expression')).not.toBeNull();
+    expect(page('{/* a */ /* b */}\n').querySelector('code.mdx-expression')).toBeNull();
+  });
+
   it('gives GFM constructs the Phase 1 structures', () => {
     expect(root.querySelectorAll('table > thead > tr > th')).toHaveLength(2);
     expect(root.querySelectorAll('table > tbody > tr > td')).toHaveLength(2);

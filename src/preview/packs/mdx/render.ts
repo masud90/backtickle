@@ -71,7 +71,8 @@ interface State {
 const MAX_YAML_CHARS = 64 * 1024;
 const MAX_PROP_CHARS = 120;
 const ALERT_MARKER = /^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\][ \t]*(?:\n|$)/i;
-const COMMENT_ONLY = /^\s*(?:\/\*[\s\S]*?\*\/\s*)*$/;
+// A comment body cannot contain `*/`, so each comment matches one way only (no backtracking).
+const COMMENT_ONLY = /^\s*(?:\/\*(?:[^*]|\*(?!\/))*\*\/\s*)*$/;
 const TASK_LABEL_LIMIT = 160;
 
 /** Never written out, whatever the sanitizer would do with them. */
