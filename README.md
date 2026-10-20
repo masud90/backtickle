@@ -21,8 +21,6 @@ Write on the left, read on the right, on macOS, Windows and Linux. Free, private
 
 <img src="docs/media/backtickle-intro.gif" width="880" alt="Backtickle in motion: Markdown source typed on the left renders as a formatted document on the right, with math, task lists and a callout; then the macOS, Windows and Linux versions and the Backtickle logo">
 
-<sub>[Watch the full-quality video (MP4)](docs/media/backtickle-intro.mp4)</sub>
-
 </div>
 
 ## Why Backtickle
