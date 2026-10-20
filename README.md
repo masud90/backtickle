@@ -21,8 +21,6 @@ Write on the left, read on the right, on macOS, Windows and Linux. Free, private
 
 <img src="docs/media/backtickle-intro.gif" width="880" alt="Backtickle in motion: Markdown source typed on the left renders as a formatted document on the right, with math, task lists and a callout; then the macOS, Windows and Linux versions and the Backtickle logo">
 
-<sub>[Watch the full-quality video (MP4)](docs/media/backtickle-intro.mp4)</sub>
-
 </div>
 
 ## Why Backtickle
@@ -152,6 +150,18 @@ If you would like to help Backtickle get signed releases, see [Contributing](#co
 - The preview is sanitized and runs under a strict content security policy.
 - The app makes no network requests of its own. Links open in your browser only when you click them, and
   remote images can be turned off in Preferences.
+
+## Compared with other Markdown apps
+
+Coming from another app? These pages compare Backtickle feature by feature, including where the other app is the
+better choice: [Typora](https://masud90.github.io/backtickle/vs/typora/),
+[Obsidian](https://masud90.github.io/backtickle/vs/obsidian/),
+[MarkText](https://masud90.github.io/backtickle/vs/marktext/),
+[iA Writer](https://masud90.github.io/backtickle/vs/ia-writer/),
+[Zettlr](https://masud90.github.io/backtickle/vs/zettlr/),
+[MacDown](https://masud90.github.io/backtickle/vs/macdown/),
+[ghostwriter](https://masud90.github.io/backtickle/vs/ghostwriter/) and
+[Marked](https://masud90.github.io/backtickle/vs/marked/).
 
 ## Requirements
 

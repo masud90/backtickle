@@ -10,6 +10,7 @@ on:
       - README.md
       - docs/media/**
       - docs/images/**
+      - docs/vs/**
       - scripts/build-site.mjs
       - .github/workflows/pages.yml
   workflow_dispatch:
