@@ -11,7 +11,7 @@
 // github.com. The Pages workflow runs this on every push to main, so the site follows the README.
 //
 // Each docs/vs/<app>.md becomes the page vs/<app>/ ("Backtickle vs <app>"): YAML front matter gives
-// its title, description, date and questions (shown at the end of the page and marked up as an
+// its title, description, date, place in the list (order) and questions (shown at the end of the page and marked up as an
 // FAQPage), and the body is ordinary Markdown. vs/ lists them all, and llms.txt sums the project up
 // for AI assistants, with links to every page.
 
@@ -507,8 +507,8 @@ function readComparison(file) {
 const comparisons = existsSync(vsDir)
   ? readdirSync(vsDir)
       .filter((file) => file.endsWith('.md'))
-      .sort()
       .map(readComparison)
+      .sort((a, b) => (a.order ?? 99) - (b.order ?? 99))
   : [];
 
 const escapeHtml = (text) => escapeAttr(text).replace(/>/g, '&gt;');
@@ -518,6 +518,8 @@ function comparisonPage(c) {
   const root = '../../';
   const url = `${siteUrl}vs/${c.slug}/`;
   const gif = `docs/vs/media/${c.gif}`;
+  // The GIF's first frame as a PNG, for link previews (which do not animate).
+  const still = gif.replace(/\.gif$/, '.png');
   const size = gifSize(join(repoRoot, gif)) ?? { width: 1200, height: 675 };
   const others = comparisons.filter((o) => o.slug !== c.slug);
   const faq = c.faq ?? [];
@@ -557,7 +559,7 @@ ${others.map((o) => `<li><a href="../${o.slug}/">${escapeHtml(appName)} vs ${esc
       inLanguage: 'en',
       dateModified: c.updated,
       isPartOf: { '@type': 'WebSite', name: appName, url: siteUrl },
-      primaryImageOfPage: { '@type': 'ImageObject', url: `${siteUrl}${gif}` },
+      primaryImageOfPage: { '@type': 'ImageObject', url: `${siteUrl}${still}` },
       about: [
         { '@id': `${siteUrl}#app` },
         {
@@ -601,6 +603,7 @@ ${others.map((o) => `<li><a href="../${o.slug}/">${escapeHtml(appName)} vs ${esc
     pageDescription: c.description,
     pageShareTitle: c.heading,
     jsonLd,
+    image: { url: `${siteUrl}${still}`, alt: c.gifAlt, width: 1200, height: 675 },
     className: 'readme vs',
   });
 }

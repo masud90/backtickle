@@ -153,6 +153,18 @@ If you would like to help Backtickle get signed releases, see [Contributing](#co
 - The app makes no network requests of its own. Links open in your browser only when you click them, and
   remote images can be turned off in Preferences.
 
+## Compared with other Markdown apps
+
+Coming from another app? These pages compare Backtickle feature by feature, including where the other app is the
+better choice: [Typora](https://masud90.github.io/backtickle/vs/typora/),
+[Obsidian](https://masud90.github.io/backtickle/vs/obsidian/),
+[MarkText](https://masud90.github.io/backtickle/vs/marktext/),
+[iA Writer](https://masud90.github.io/backtickle/vs/ia-writer/),
+[Zettlr](https://masud90.github.io/backtickle/vs/zettlr/),
+[MacDown](https://masud90.github.io/backtickle/vs/macdown/),
+[ghostwriter](https://masud90.github.io/backtickle/vs/ghostwriter/) and
+[Marked](https://masud90.github.io/backtickle/vs/marked/).
+
 ## Requirements
 
 macOS 14 Sonoma or later, with Safari 26 installed (Software Update offers it on Sonoma and Sequoia;
