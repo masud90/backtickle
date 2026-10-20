@@ -102,6 +102,17 @@
     />
   {/if}
 
+  {#if shell.update}
+    <Banner
+      message="Backtickle {shell.update.version} is available."
+      testId="banner-update"
+      buttons={[
+        { label: 'Download', onclick: () => shell.downloadUpdate(), primary: true },
+        { label: 'Dismiss', onclick: () => shell.dismissUpdate() },
+      ]}
+    />
+  {/if}
+
   {#if shell.notice}
     <div
       role="status"

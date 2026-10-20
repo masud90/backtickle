@@ -49,8 +49,8 @@ MacDown details from [macdown.uranusjr.com](https://macdown.uranusjr.com), its
   Pandoc citations and Quarto documents.
 - **The same split view, improved.** Synced scrolling, a document outline, and task boxes you can tick in the
   preview.
-- **Safe by design.** The preview is sanitized under a strict content security policy, and the app makes no network
-  requests of its own.
+- **Safe by design.** The preview is sanitized under a strict content security policy, and the app's only network
+  request of its own is a daily update check you can turn off.
 
 ## Where MacDown still fits
 

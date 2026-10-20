@@ -140,6 +140,16 @@ export const SETTINGS_META: readonly SettingMeta[] = [
     keywords: ['translucent', 'vibrancy', 'sidebar', 'transparency', 'blur', 'material'],
   },
   {
+    key: 'checkForUpdates',
+    kind: 'boolean',
+    default: true,
+    label: 'Check for updates',
+    description:
+      'Once a day, ask GitHub whether a newer version is out. This is the only network request Backtickle makes, and nothing about your documents is sent.',
+    category: 'general',
+    keywords: ['update', 'updates', 'version', 'release', 'new', 'network', 'github', 'security'],
+  },
+  {
     key: 'recentLimit',
     kind: 'number',
     default: 20,

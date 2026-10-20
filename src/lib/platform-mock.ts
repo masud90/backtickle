@@ -242,6 +242,8 @@ export interface MockSeed {
   pandocDialog?: string | null | Array<string | null>;
   /** `chooseDefaultFolder`: the folder chosen, null for "cancelled", or a list of such answers. */
   defaultFolderDialog?: string | null | Array<string | null>;
+  /** What `latestRelease` returns (a tag such as `v9.0.0`). Default null: the check finds nothing. */
+  latestRelease?: string | null;
   /** What `pandocInfo` returns. Default null (no Pandoc). */
   pandoc?: { path: string; version: string } | null;
   /** What `defaultMarkdownApp` returns. Default: another app named Typora, not Backtickle. */
@@ -576,6 +578,7 @@ export function defaultSettings(): Settings {
     },
     restoreSession: true,
     vibrancy: true,
+    checkForUpdates: true,
     shortcuts: {},
     files: {
       ignore: ['node_modules', '_site', '_freeze', 'renv', 'venv', '__pycache__'],
@@ -733,6 +736,7 @@ export function mergeSettings(base: Settings, source: unknown): Settings {
     },
     restoreSession: pickBool(s.restoreSession, base.restoreSession),
     vibrancy: pickBool(s.vibrancy, base.vibrancy),
+    checkForUpdates: pickBool(s.checkForUpdates, base.checkForUpdates),
     shortcuts: pickShortcuts(s.shortcuts, base.shortcuts),
     files: {
       ignore: pickNames(section(source, 'files').ignore, base.files.ignore),
@@ -1739,6 +1743,8 @@ export function createMockPlatform(
   return {
     kind: 'mock',
     appVersion: async () => MOCK_APP_VERSION,
+    // Never the network: the seed answers.
+    latestRelease: async () => seed?.latestRelease ?? null,
     ping: async () => 'pong (mock)',
 
     launchOptions: async () => {

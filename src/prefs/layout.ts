@@ -19,6 +19,7 @@ export const CARDS: Record<SettingCategory, CardLayout[]> = {
       keys: ['openExistingIn', 'openNewIn', 'restoreSession', 'recentLimit'],
     },
     { title: 'Reading time', keys: ['readingWpm'] },
+    { title: 'Updates', keys: ['checkForUpdates'] },
   ],
   editor: [
     { title: 'Typeface', keys: ['editor.fontFamily', 'editor.fontSize', 'editor.lineHeight'] },
@@ -120,7 +121,7 @@ export const SWATCH_KEYS: ReadonlySet<string> = new Set(['a11y.rulerTint']);
 
 /** The one-line description under each category title. */
 export const CATEGORY_DESCRIPTIONS: Record<SettingCategory | 'shortcuts', string> = {
-  general: 'How Backtickle looks, opens documents and counts reading time.',
+  general: 'How Backtickle looks, opens documents, counts reading time and checks for updates.',
   editor: 'The typeface and behavior of the Markdown editor.',
   preview: 'How the preview renders your documents and which Markdown flavor applies.',
   accessibility: 'Reading comfort, motion and contrast, and the size of the interface.',

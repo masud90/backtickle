@@ -33,7 +33,8 @@ desktop app that shows a Markdown file the way it is meant to be read, and lets 
   Quarto / R Markdown and MDX.
 - **The things technical writing needs.** Math, Mermaid and Graphviz diagrams, citations and bibliographies,
   callouts, task lists, cross-references, export to HTML, PDF and Word.
-- **Safe by design.** Nothing in a document is ever executed, and the app makes no network requests of its own.
+- **Safe by design.** Nothing in a document is ever executed, and the app's only network request of its own is a
+  daily check for a new version, which you can turn off.
 - **Light.** Built with Tauri on the system web view, not a bundled browser, so it starts fast and stays small.
 
 ## Download
@@ -148,8 +149,10 @@ If you would like to help Backtickle get signed releases, see [Contributing](#co
 
 **Safety and privacy**
 - The preview is sanitized and runs under a strict content security policy.
-- The app makes no network requests of its own. Links open in your browser only when you click them, and
-  remote images can be turned off in Preferences.
+- The app makes one network request of its own: once a day it asks GitHub whether a newer version is out, so you
+  hear about security fixes. Nothing about you or your documents is sent, and Check for updates in Preferences
+  turns it off. It never downloads or installs anything by itself. Links open in your browser only when you click
+  them, and remote images can be turned off in Preferences.
 
 ## Compared with other Markdown apps
 
@@ -203,7 +206,7 @@ with an issue for each item.
   a large change.
 
 Four principles guide every change: nothing in a document is ever executed, the app makes no network requests
-of its own, memory use stays low, and dependencies use permissive licenses. [CONTRIBUTING.md](CONTRIBUTING.md)
+of its own besides the update check, memory use stays low, and dependencies use permissive licenses. [CONTRIBUTING.md](CONTRIBUTING.md)
 explains them and lists the checks to run before a pull request. Please report security problems privately, as
 described in [SECURITY.md](SECURITY.md).
 
