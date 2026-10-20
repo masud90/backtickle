@@ -1064,6 +1064,7 @@ function settingsSeeder(scenario) {
     );
     const merge = (target, source) => {
       for (const [key, value] of Object.entries(source)) {
+        if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
         if (value && typeof value === 'object' && !Array.isArray(value)) {
           target[key] = merge(target[key] ?? {}, value);
         } else {

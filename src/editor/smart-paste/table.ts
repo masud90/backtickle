@@ -25,7 +25,11 @@ export function rowsFromHtml(html: string): string[][] | null {
 const escapeHtml = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-const pipeCell = (cell: string) => cell.replace(/\|/g, '\\|').replace(/\n/g, '<br>');
+/** A pipe gets a backslash, and backslashes just before it are doubled, so `a\|b` keeps its backslash. */
+const pipeCell = (cell: string) =>
+  cell
+    .replace(/(\\*)\|/g, (_, slashes: string) => `${slashes}${slashes}\\|`)
+    .replace(/\n/g, '<br>');
 
 /**
  * A pipe table with the first row as header; CommonMark has no pipe tables, so it gets an HTML

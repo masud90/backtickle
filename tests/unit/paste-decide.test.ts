@@ -89,6 +89,11 @@ describe('tables from cells', () => {
       ),
     ).toBe('| a | b |\n| --- | --- |\n| x\\|y | l1<br>l2 |');
   });
+  it('keeps a backslash that stands before a pipe, and leaves other backslashes alone', () => {
+    expect(tableFromRows([['h'], ['a\\|b'], ['C:\\dir']], 'gfm')).toBe(
+      '| h |\n| --- |\n| a\\\\\\|b |\n| C:\\dir |',
+    );
+  });
   it('gives CommonMark an HTML table block', () => {
     const out = tableFromRows(
       [
