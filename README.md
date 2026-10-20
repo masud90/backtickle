@@ -15,6 +15,9 @@ Write on the left, read on the right, on macOS, Windows and Linux. Free, private
 [![CI](https://github.com/masud90/backtickle/actions/workflows/ci.yml/badge.svg)](https://github.com/masud90/backtickle/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-008733)](LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-008733)](#contributing)
+[![Downloads](https://img.shields.io/github/downloads/masud90/backtickle/total?label=downloads&color=0058bc)](https://github.com/masud90/backtickle/releases)
+[![GitHub stars](https://img.shields.io/github/stars/masud90/backtickle?style=flat&logo=github&label=stars&color=4c4aca)](https://github.com/masud90/backtickle/stargazers)
+[![Follow @masudtweets on X](https://img.shields.io/badge/follow-%40masudtweets-000000?logo=x&logoColor=white)](https://x.com/masudtweets)
 
 <img src="docs/media/backtickle-intro.gif" width="880" alt="Backtickle in motion: Markdown source typed on the left renders as a formatted document on the right, with math, task lists and a callout; then the macOS, Windows and Linux versions and the Backtickle logo">
 
