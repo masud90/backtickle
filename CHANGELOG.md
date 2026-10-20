@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Backtickle checks GitHub once a day for a newer version and shows a banner with a link to download it.
+  It is the app's only network request of its own, and Check for updates in Preferences (General) turns it off.
+  Nothing is downloaded or installed by itself.
+
 ## 0.2.0 (2026-10-18)
 
 - Writedown is now called Backtickle. The first launch of Backtickle brings over the settings, snippets,

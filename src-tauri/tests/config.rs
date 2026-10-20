@@ -19,6 +19,10 @@ const PREFERENCES_HTML: &str = include_str!("../../preferences.html");
 /// The only non-local origins the web view may reach, and only for the IPC and asset protocols.
 const ALLOWED_LOCAL_ORIGINS: [&str; 2] = ["http://ipc.localhost", "http://asset.localhost"];
 
+/// The update check (src/lib/platform.ts, `latestRelease`) is the one request the app makes of its
+/// own, to this host only, and only through `connect-src`.
+const UPDATE_CHECK_ORIGIN: &str = "https://api.github.com";
+
 fn json(text: &str) -> Value {
     serde_json::from_str(text).expect("valid JSON")
 }
@@ -106,7 +110,7 @@ fn production_csp_is_strict() {
 }
 
 #[test]
-fn only_images_may_load_from_the_web() {
+fn only_images_and_the_update_check_may_reach_the_web() {
     for kind in ["csp", "devCsp"] {
         for (directive, value) in &csp(kind) {
             if directive == "img-src" {
@@ -121,8 +125,9 @@ fn only_images_may_load_from_the_web() {
                 }
                 let is_local_dev_server = kind == "devCsp"
                     && ["http://localhost:1420", "ws://localhost:1420"].contains(&source);
+                let is_update_check = directive == "connect-src" && source == UPDATE_CHECK_ORIGIN;
                 assert!(
-                    ALLOWED_LOCAL_ORIGINS.contains(&source) || is_local_dev_server,
+                    ALLOWED_LOCAL_ORIGINS.contains(&source) || is_local_dev_server || is_update_check,
                     "{kind} {directive} allows a remote source: {source}"
                 );
             }

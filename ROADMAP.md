@@ -4,7 +4,7 @@ Where Backtickle is going next. Each item has an issue with the details; comment
 or have a view on how it should work. The order is a rough priority, not a promise of dates.
 
 Four principles hold for everything below: nothing in a document is ever executed, the app makes no network
-requests of its own, memory use stays low, and dependencies use permissive licenses
+requests of its own besides the update check, memory use stays low, and dependencies use permissive licenses
 ([CONTRIBUTING.md](CONTRIBUTING.md)).
 
 ## Now

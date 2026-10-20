@@ -31,6 +31,7 @@
   },
   "restoreSession": true,
   "vibrancy": true,
+  "checkForUpdates": true,
   "shortcuts": {},
   "files": {
     "ignore": ["node_modules", "_site", "_freeze", "renv", "venv", "__pycache__"]

@@ -50,6 +50,7 @@ import {
 import { type OutlineDepth, sameHeadings } from './outline';
 import { fileTab, movedFields, type Tab, tabFromTransfer, tabIsDirty, untitledTab } from './tab';
 import type { ExportSource, InsertItem, WorkspaceApi, WorkspaceHost } from './types';
+import { type AvailableUpdate, UpdateChecker } from './update';
 import type { WikilinkTarget } from './wikilinks';
 
 /** Used until the settings arrive from the platform (the same values as the Rust defaults). */
@@ -80,6 +81,7 @@ const FALLBACK_SETTINGS: Settings = {
   view: { sidebarVisible: true, sidebarWidth: 240, splitRatio: 0.5, syncScroll: true, zoom: 1 },
   restoreSession: true,
   vibrancy: true,
+  checkForUpdates: true,
   shortcuts: {},
   files: { ignore: ['node_modules', '_site', '_freeze', 'renv', 'venv', '__pycache__'] },
   export: { pandocPath: null },
@@ -130,6 +132,8 @@ export class Shell implements WorkspaceHost {
   error = $state<string | null>(null);
   /** A plain notice, shown in a dismissible banner (for example after a handoff to RStudio). */
   notice = $state<string | null>(null);
+  /** A newer release the update check found (main window only), shown in a banner. */
+  update = $state.raw<AvailableUpdate | null>(null);
   /** The clock for relative times; refreshed every 30 seconds while the window is visible. */
   now = $state(Date.now());
   /** 1-based caret position of the document on show. */
@@ -200,6 +204,9 @@ export class Shell implements WorkspaceHost {
   } | null;
   private readonly cleanups: Array<() => void> = [];
   private clockTimer: ReturnType<typeof setInterval> | undefined;
+  private updateChecker: UpdateChecker | null = null;
+  /** The version whose banner was dismissed; the daily check does not show it again. */
+  private dismissedUpdate: string | null = null;
   private lastMenuKey = '';
   private lastTitle: string | null = null;
   private settingsPatchTimer: ReturnType<typeof setTimeout> | undefined;
@@ -302,6 +309,7 @@ export class Shell implements WorkspaceHost {
       this.error = errorMessage(error);
     }
     this.loaded = true;
+    this.startUpdateCheck();
     if (this.tabs.length === 0) {
       // The welcome screen is the finished window.
       await tick();
@@ -313,6 +321,7 @@ export class Shell implements WorkspaceHost {
 
   destroy(): void {
     for (const stop of this.cleanups.splice(0)) stop();
+    this.updateChecker?.stop();
     clearInterval(this.clockTimer);
     clearTimeout(this.settingsPatchTimer);
     clearTimeout(this.sidebarWidthTimer);
@@ -453,6 +462,7 @@ export class Shell implements WorkspaceHost {
   applySettings(next: Settings): void {
     const redetect = next.preview.autoDetectFlavor !== this.settings.preview.autoDetectFlavor;
     this.settings = next;
+    this.syncUpdateCheck();
     applyZoom(document.documentElement, next);
     // Preview settings (WP4.3): CSS variables, render options, fonts.
     applyPreviewSettings(document.documentElement, next);
@@ -711,6 +721,39 @@ export class Shell implements WorkspaceHost {
 
   dismissNotice(): void {
     this.notice = null;
+  }
+
+  /**
+   * The update check runs in the main window only, once startup is done, and never in a measured
+   * run (a network answer arriving mid-benchmark would skew it).
+   */
+  private startUpdateCheck(): void {
+    const { perf, bench, benchSearch, benchPdf, benchRecovery } = this.launch;
+    if (!this.isMain || perf || bench || benchSearch || benchPdf || benchRecovery) return;
+    this.updateChecker = new UpdateChecker(this.platform, (update) => {
+      if (update.version !== this.dismissedUpdate) this.update = update;
+    });
+    this.syncUpdateCheck();
+  }
+
+  private syncUpdateCheck(): void {
+    if (!this.updateChecker) return;
+    this.updateChecker.sync(this.settings.checkForUpdates);
+    if (!this.settings.checkForUpdates) this.update = null;
+  }
+
+  /** The update banner's Download button: the release page opens in the browser. */
+  downloadUpdate(): void {
+    const update = this.update;
+    if (!update) return;
+    this.dismissUpdate();
+    this.platform.openExternal(update.url).catch((error) => this.showError(errorMessage(error)));
+  }
+
+  /** Hides the update banner; the same version does not come back until the next launch. */
+  dismissUpdate(): void {
+    this.dismissedUpdate = this.update?.version ?? this.dismissedUpdate;
+    this.update = null;
   }
 
   dismissBanner(kind: 'legacy' | 'lossy' | 'readOnly'): void {

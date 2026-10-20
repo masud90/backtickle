@@ -292,6 +292,8 @@ export interface Settings {
   restoreSession: boolean;
   /** true. Phase 5: the macOS sidebar material behind the sidebar. */
   vibrancy: boolean;
+  /** true. Ask GitHub once a day whether a newer release is out; the app's only network request. */
+  checkForUpdates: boolean;
   /** `{}`. Phase 5: shortcuts changed from the defaults, by command id; null removes the shortcut. Edited in Keyboard Shortcuts. */
   shortcuts: Record<string, string | null>;
   files: {
@@ -657,6 +659,12 @@ export interface Platform {
   readonly kind: PlatformKind;
   /** The application version, from the Tauri package info (the mock returns a fixed value). */
   appVersion(): Promise<string>;
+  /**
+   * The tag of the newest release on GitHub, such as `v0.3.0`, or null when it cannot be told
+   * (offline, rate-limited, an odd answer). The update check (src/shell/update.ts) is its only
+   * caller and the app's only network request of its own; it sends no cookies and no referrer.
+   */
+  latestRelease(): Promise<string | null>;
   /** Round-trip check of the bridge: the Rust side answers "pong". */
   ping(): Promise<string>;
   /** Command-line arguments and measurement switches the app was started with. */
@@ -940,6 +948,36 @@ async function call<T>(command: string, args?: Record<string, unknown>): Promise
   }
 }
 
+/** The GitHub API answer for the newest release (drafts and pre-releases are never "latest"). */
+const LATEST_RELEASE_URL = 'https://api.github.com/repos/masud90/backtickle/releases/latest';
+const LATEST_RELEASE_TIMEOUT_MS = 15_000;
+
+/**
+ * Asks GitHub for the newest release from the web view, which brings the system's own TLS on
+ * every platform. The CSP's `connect-src` allows exactly this host (tauri.conf.json).
+ */
+async function fetchLatestRelease(): Promise<string | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LATEST_RELEASE_TIMEOUT_MS);
+  try {
+    const response = await fetch(LATEST_RELEASE_URL, {
+      headers: { Accept: 'application/vnd.github+json' },
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+      cache: 'no-store',
+      signal: controller.signal,
+    });
+    if (!response.ok) return null;
+    const body: unknown = await response.json();
+    const tag = (body as { tag_name?: unknown } | null)?.tag_name;
+    return typeof tag === 'string' ? tag : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /** Subscribes to a backend event and resolves to the function that stops listening. */
 function subscribe<T>(event: string, handler: (payload: T) => void): Promise<() => void> {
   return listen<T>(event, (message) => handler(message.payload));
@@ -949,6 +987,7 @@ function createTauriPlatform(): Platform {
   return {
     kind: 'tauri',
     appVersion: () => invoke<string>('app_version'),
+    latestRelease: fetchLatestRelease,
     ping: () => invoke<string>('ping'),
     launchOptions: () => invoke<LaunchOptions>('launch_options'),
     openFileDialog: () => invoke<string | null>('pick_file'),

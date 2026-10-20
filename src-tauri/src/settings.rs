@@ -179,6 +179,9 @@ pub struct Settings {
     pub restore_session: bool,
     /// Phase 5: the macOS sidebar material behind the sidebar (default on).
     pub vibrancy: bool,
+    /// Ask GitHub once a day whether a newer release is out (default on, see src/shell/update.ts).
+    /// The app's only network request of its own.
+    pub check_for_updates: bool,
     /// Phase 5: shortcuts changed from the defaults, by command id; `None` removes the shortcut.
     pub shortcuts: BTreeMap<String, Option<String>>,
     pub files: FilesSettings,
@@ -223,6 +226,7 @@ impl Default for Settings {
             },
             restore_session: true,
             vibrancy: true,
+            check_for_updates: true,
             shortcuts: BTreeMap::new(),
             files: FilesSettings {
                 ignore: DEFAULT_FILES_IGNORE
@@ -448,6 +452,7 @@ impl Settings {
             },
             restore_session: pick_bool(get("restoreSession"), base.restore_session),
             vibrancy: pick_bool(get("vibrancy"), base.vibrancy),
+            check_for_updates: pick_bool(get("checkForUpdates"), base.check_for_updates),
             shortcuts: pick_shortcuts(get("shortcuts"), &base.shortcuts),
             files: FilesSettings {
                 ignore: pick_names(
@@ -580,6 +585,7 @@ impl Settings {
             },
             "restoreSession": self.restore_session,
             "vibrancy": self.vibrancy,
+            "checkForUpdates": self.check_for_updates,
             "shortcuts": self.shortcuts,
             "files": { "ignore": self.files.ignore },
             "export": { "pandocPath": self.export.pandoc_path },
@@ -1291,6 +1297,17 @@ mod tests {
         assert!(after(json!({ "vibrancy": 0 })).vibrancy);
         assert_eq!(
             after(json!({ "vibrancy": false })).to_value()["vibrancy"],
+            false
+        );
+    }
+
+    #[test]
+    fn update_check_defaults_on_takes_only_booleans_and_is_written_back() {
+        assert!(Settings::default().check_for_updates);
+        assert!(!after(json!({ "checkForUpdates": false })).check_for_updates);
+        assert!(after(json!({ "checkForUpdates": "no" })).check_for_updates);
+        assert_eq!(
+            after(json!({ "checkForUpdates": false })).to_value()["checkForUpdates"],
             false
         );
     }

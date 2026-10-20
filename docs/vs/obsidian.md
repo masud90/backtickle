@@ -53,7 +53,8 @@ Obsidian details from [obsidian.md](https://obsidian.md), its [pricing](https://
 - **Open source.** The whole app is MIT-licensed and on GitHub.
 - **Export for other people.** PDF, HTML and Word (through Pandoc) are built in, and Quarto documents can be sent
   to Render with Quarto.
-- **Nothing runs.** No plugins, no code in documents, no network requests of its own.
+- **Nothing runs.** No plugins, no code in documents, and no network requests of its own besides an update check
+  you can turn off.
 
 ## Where Obsidian is the better choice
 

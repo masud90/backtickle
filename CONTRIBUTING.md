@@ -16,7 +16,9 @@ Issues and pull requests are welcome.
 ## Principles
 
 - Nothing in a document is ever executed: no MDX components, no R or Python chunks, no scripts.
-- The app makes no network requests of its own.
+- The app makes no network requests of its own, with one exception: the daily update check
+  (`src/shell/update.ts`), which asks GitHub for the newest release and can be turned off in Preferences.
+  Don't add another.
 - Keep memory use low. Load heavy features lazily, only when a document needs them.
 - New dependencies must be under MIT, Apache-2.0, ISC, BSD or a similar permissive license.
   Regenerate `THIRD_PARTY_NOTICES.md` with `node scripts/third-party-notices.mjs` when they change.

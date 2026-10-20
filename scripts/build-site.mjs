@@ -666,7 +666,8 @@ function llmsTxt() {
 > ${appName} is a free, open-source (MIT) Markdown editor and reader for macOS, Windows and Linux. It
 > shows a Markdown file the way it is meant to be read and lets you edit it beside the result.
 
-- Price: free. No account, no subscription, no telemetry: the app makes no network requests of its own.
+- Price: free. No account, no subscription, no telemetry: the app's only network request of its own is a daily
+  update check, which can be turned off.
 - Platforms: macOS 14 or later (Apple Silicon and Intel), Windows 10 and 11, Linux (.deb and AppImage).
 - Current version: ${version}. Download: ${releasesUrl}
 - Source code: ${repoUrl}

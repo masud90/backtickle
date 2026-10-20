@@ -53,7 +53,8 @@ October 2026.
   callouts, Graphviz diagrams and an optional Exact Preview through Pandoc.
 - **You want to see the source.** The Split view keeps the Markdown and the result side by side with synced
   scrolling, which Typora's single pane does not.
-- **Privacy matters.** Backtickle makes no network requests of its own, and nothing in a document ever runs.
+- **Privacy matters.** Backtickle's only network request of its own is a daily update check you can turn off, and
+  nothing in a document ever runs.
 
 ## Where Typora is the better choice
 
