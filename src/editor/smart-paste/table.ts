@@ -25,11 +25,10 @@ export function rowsFromHtml(html: string): string[][] | null {
 const escapeHtml = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-/** Backslashes just before a pipe are doubled first, so `a\|b` in a cell keeps its backslash. */
+/** A pipe gets a backslash, and backslashes just before it are doubled, so `a\|b` keeps its backslash. */
 const pipeCell = (cell: string) =>
   cell
-    .replace(/\\(?=\\*\|)/g, '\\\\')
-    .replace(/\|/g, '\\|')
+    .replace(/(\\*)\|/g, (_, slashes: string) => `${slashes}${slashes}\\|`)
     .replace(/\n/g, '<br>');
 
 /**
