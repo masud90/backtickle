@@ -1,0 +1,38 @@
+name: Security digest
+
+# Prints open code scanning and Dependabot alerts to the job log, so the weekly
+# triage (which can't read those APIs directly) can read them from the run.
+# Read-only: it never changes alerts.
+
+on:
+  schedule:
+    - cron: "15 23 * * 6" # Saturday 23:15 UTC, Sunday 02:15 in Nairobi, before the triage
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: read
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code scanning alerts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/code-scanning/alerts?state=open&per_page=100" \
+            --jq '.[] | {number, rule: .rule.id, severity: (.rule.security_severity_level // .rule.severity), tool: .tool.name, path: .most_recent_instance.location.path, line: .most_recent_instance.location.start_line, url: .html_url}'
+
+      # GITHUB_TOKEN can't read Dependabot alerts. Add a fine-grained token with
+      # "Dependabot alerts: read" on this repo as the DEPENDABOT_ALERTS_TOKEN secret.
+      - name: Dependabot alerts (including malware)
+        env:
+          GH_TOKEN: ${{ secrets.DEPENDABOT_ALERTS_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "DEPENDABOT_ALERTS_TOKEN is not set; skipping Dependabot alerts."
+            exit 0
+          fi
+          gh api --paginate "repos/$GITHUB_REPOSITORY/dependabot/alerts?state=open&per_page=100" \
+            --jq '.[] | {number, package: .dependency.package.name, ecosystem: .dependency.package.ecosystem, manifest: .dependency.manifest_path, severity: .security_advisory.severity, ghsa: .security_advisory.ghsa_id, summary: .security_advisory.summary, patched: .security_vulnerability.first_patched_version.identifier, url: .html_url}'
