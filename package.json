@@ -86,7 +86,7 @@
     "@types/mdast": "4.0.4",
     "@types/node": "24.19.1",
     "commonmark-spec": "0.31.2",
-    "happy-dom": "20.14.5",
+    "happy-dom": "21.0.4",
     "jsdom": "29.1.1",
     "svelte": "5.57.1",
     "svelte-check": "4.7.6",
